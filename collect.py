@@ -5,7 +5,7 @@ import glob
 import scipy
 import scipy.misc
 import datetime
-import time
+import time as timemod
 
 import argparse
 
@@ -15,7 +15,7 @@ parser.add_argument('-n','--num_frames', action='store', default=100)
 parser.add_argument('-d','--debug', action='store_true', default=False)
 
 args = parser.parse_args()
-num_frames = args.num_frames
+num_frames = int(args.num_frames)
 debug = args.debug
 
 import serial
@@ -73,15 +73,18 @@ try:
             d = ser.readline()
             ## most recent line
             #data = list(map(int,str(d,'ascii').split(',')))
+            line = d.strip()
+            data = line.split(b',')
+            data = list(map(float,str(d,'ascii').split(',')))
         else:
             d = ser.readline()
             line = d.strip()
             data = list(map(int,line.split(',')))
         # Record all in convenient format
-        accel = np.array([float(d[0]),float(d[1]),float(d[2])], dtype=np.float16)
-        gx = float(d[3])
-        gy = float(d[4])
-        gz = float(d[5])
+        accel = np.array([float(data[0]),float(data[1]),float(data[2])], dtype=np.float16)
+        gx = float(data[3])
+        gy = float(data[4])
+        gz = float(data[5])
         time = int(data[6])
         steer_raw = int(data[7])
         gas_raw = int(data[8])
@@ -98,11 +101,12 @@ try:
         accel = accel / 10.
         # update speeds, accel is scaled to be m/s**2 at this point
         # so just multiply by seconds elapsed
-        speeds = speeds + accel*(t-t_old)/1000.
+        #speeds = speeds + accel*(t-t_old)/1000.
         # now shift the accel
         accel += 0.5
         # compute magnitude of speed and accel
-        mspeed = np.sqrt(np.sum(speeds*speeds))
+        #mspeed = np.sqrt(np.sum(speeds*speeds))
+        mspeed = 99
         maccel = np.sqrt(np.sum(accel*accel))
 
         # Stuff into appropriate arrays
@@ -124,9 +128,10 @@ try:
             imgs[:] = 0
             speedx[:] = 0
             targets[:] = 0
-        time.sleep(1)
+        timemod.sleep(1)
 except:
     np.savez(imgs_file,imgs[:idx])
     np.savez(speedx_file,speedx[:idx])
     np.savez(targets_file,targets[:idx])
+    raise
 
