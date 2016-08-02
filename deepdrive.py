@@ -41,56 +41,50 @@ av = A['vehicle_states'].value[1:]
 
 # slim inputs
 B = np.array(A['images'].value,dtype=np.uint8)
-# inverted color!
-plt.imshow(255 - B[0].swapaxes(0,2).swapaxes(0,1))
-plt.imshow(B[0].swapaxes(0,2).swapaxes(0,1))
-plt.imshow(AA[0].swapaxes(0,2).swapaxes(0,1))
+plt.imshow(B[0][::-1,:,:].transpose((1,2,0)))
 
-# blue channel inverted?
-inv = np.copy(B[0])
-inv = 255 - inv
-inv[2] = 255 - inv[2]
-plt.imshow(inv.swapaxes(0,2).swapaxes(0,1))
-plt.imshow(B[0].swapaxes(0,2).swapaxes(0,1))
+B = B[:,::-1,:,:]
 
 bb = scipy.misc.imresize(B[0],(128,128),'cubic','RGB')
 plt.imshow(bb)
 
-aa = scipy.misc.imresize(AA[0],(128,128),'cubic','RGB')
-plt.imshow(aa)
+bb = scipy.misc.imresize(B[0],(64,64),'cubic','RGB')
+plt.imshow(bb)
 
 ndata = 0
+imgsize = 64
+# TODO: Handle multiple hdf5 files, need to expand data or
+# batch process (fitting, really) one file at a time
 for dfile in dfiles:
     with h5py.File(dfile,'r') as h5f:
-        label_list = list()
-        # Get data size
-        for k,v in h5f.items():
-            ndata += v.shape[0]
-            label_list.append(k)
-        shape = (ndata, v.shape[1], v.shape[2])
-        data = np.zeros(shape,dtype=np.uint8)
-        # one-hot encoded
-        labels = np.zeros((shape[0],len(h5f.values())),dtype=np.float16)
-        # For every font
-        for i,(k,v) in tqdm(enumerate(h5f.items()),total=len(label_list)):
-            label = label_list.index(k)
-            data[i*v.shape[0]:(i+1)*v.shape[0]]=v[:]
-            labels[i*v.shape[0]:(i+1)*v.shape[0],label] = 1.
-
+        # raw data
+        A = dict(h5f.items()) 
+        # extract images in 1-byte format
+        B = np.array(A['images'].value,dtype=np.uint8)
+        # change BGR to RGB
+        B = B[:,::-1,:,:]
+        # Scale down image size
+        imgs = np.zeros((len(B),3,64,64),dtype=np.uint8)
+        for i,b in enumerate(B):
+            imgs[i] = scipy.misc.imresize(b,(64,64),'cubic','RGB').transpose((2,0,1))
+        # speed and accel
+        speedx = A['vehicle_states'].value[:,2:4]
+        # throttle and steering
+        targets = A['targets'].value[:,4:]
 
 
 # frame size
-nrows = 16
-ncols = 16
+nrows = 64
+ncols = 64
 
 # accel, speed, distance, angle
-real_in = Input(shape=(4,), name='real_input')
+real_in = Input(shape=(2,), name='real_input')
 
 # video frame in, grayscale
-frame_in = Input(shape=(1,nrows,ncols))
+frame_in = Input(shape=(3,nrows,ncols))
 
 # convolution for image input
-conv = Convolution2D(1,3,3,border_mode='same',
+conv = Convolution2D(4,5,5,border_mode='same',
         activation='relu')
 conv_l = conv(frame_in)
 pool_l = MaxPooling2D(pool_size=(2,2))(conv_l)
@@ -99,22 +93,37 @@ flat = Flatten()(pool_l)
 
 M = merge([flat,real_in], mode='concat', concat_axis=1)
 
-A = Dense(1, activation='linear')(M)
-P = Dense(1, activation='linear')(M)
+Accel = Dense(1, activation='linear')(M)
+Steer = Dense(1, activation='linear')(M)
 
-model = Model(input=[real_in, frame_in], output=[A,P])
+model = Model(input=[real_in, frame_in], output=[Accel,Steer])
 
 model.compile(loss='mean_squared_error',
               optimizer='rmsprop',
               metrics=['accuracy'])
 
-nsamples = 1000
-fake_real = np.random.random((nsamples,4))
-fake_frame = np.random.random((nsamples,1,nrows,ncols))
+#nsamples = 1000
+#fake_real = np.random.random((nsamples,4))
+#fake_frame = np.random.random((nsamples,1,nrows,ncols))
 
-fake_A = np.random.random(nsamples)
-fake_P = np.random.random(nsamples)
+#fake_A = np.random.random(nsamples)
+#fake_P = np.random.random(nsamples)
 
-h = model.fit([fake_real, fake_frame], [fake_A, fake_P], batch_size = 32, nb_epoch=10, verbose=1)
+h = model.fit([speedx, imgs], [targets[:,0], targets[:,1]], batch_size = 32, nb_epoch=10, verbose=1)
+
+W = model.get_weights()
+
+# look at conv filters separately in color channel
+f, con = plt.subplots(4,3, sharex='col', sharey='row')
+for row in range(4):
+    for col in range(3):
+        con[row,col].pcolormesh(W[0][row,col],cmap=plt.cm.hot)
+
+
+# combine color channels into on filter image
+f, con = plt.subplots(4,1, sharex='col', sharey='row')
+for row in range(4):
+    con[row].imshow(W[0][row].transpose((1,2,0)),
+                    interpolation="none")
 
 
