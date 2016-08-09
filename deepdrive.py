@@ -9,7 +9,7 @@ import scipy
 import keras
 from keras.models import Sequential, Model
 from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
-from keras.layers import Embedding, Input, merge
+from keras.layers import Embedding, Input, merge, ELU
 from keras.layers.recurrent import SimpleRNN, LSTM
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD, Adam, RMSprop
@@ -24,7 +24,7 @@ dfiles = glob.glob('data/*.h5')
 # 999 data points, images are 3x227x227
 # vehicle_states are just target at previous time
 # no distance finder, but this is enough to work with
-dfile = dfiles[0]
+dfile = dfiles[9]
 h5f = h5py.File(dfile,'r')
 A = dict(h5f.items()) 
 
@@ -51,55 +51,98 @@ plt.imshow(bb)
 bb = scipy.misc.imresize(B[0],(64,64),'cubic','RGB')
 plt.imshow(bb)
 
-ndata = 0
-imgsize = 64
-# TODO: Handle multiple hdf5 files, need to expand data or
-# batch process (fitting, really) one file at a time
+
+# determine scaling parameters
+# speed and accel
+speedmax = None
+speedmin = None
+accelmax = None
+accelmin = None
 for dfile in dfiles:
     with h5py.File(dfile,'r') as h5f:
         # raw data
         A = dict(h5f.items()) 
-        # extract images in 1-byte format
-        B = np.array(A['images'].value,dtype=np.uint8)
-        # change BGR to RGB
-        B = B[:,::-1,:,:]
-        # Scale down image size
-        imgs = np.zeros((len(B),3,64,64),dtype=np.uint8)
-        for i,b in enumerate(B):
-            imgs[i] = scipy.misc.imresize(b,(64,64),'cubic','RGB').transpose((2,0,1))
-        # speed and accel
-        speedx = A['vehicle_states'].value[:,2:4]
-        # throttle and steering
-        targets = A['targets'].value[:,4:]
+        smx = np.max(A['vehicle_states'].value[:,2])
+        smn = np.min(A['vehicle_states'].value[:,2])
+        amx = np.max(A['vehicle_states'].value[:,3])
+        amn = np.min(A['vehicle_states'].value[:,3])
+        if speedmax is None or smx > speedmax:
+            speedmax = smx
+        if speedmin is None or smn < speedmin:
+            speedmin = smn
+        if accelmax is None or amx > accelmax:
+            accelmax = amx
+        if accelmin is None or amn < accelmin:
+            accelmin = amn
+        #plt.plot(A['targets'].value[:,3],A['targets'].value[:,5],'.')
 
 
+# throttle was supposed to be zero to 1, but has negative values, probably -1 to 1
+
+# steering is nominally -1 to 1, but doesn't go below zero?
+throttlemax = None
+throttlemin = None
+steermax = None
+steermin = None
+for dfile in dfiles:
+    with h5py.File(dfile,'r') as h5f:
+        # raw data
+        A = dict(h5f.items()) 
+        smx = np.max(A['targets'].value[:,4])
+        smn = np.min(A['targets'].value[:,4])
+        tmx = np.max(A['targets'].value[:,5])
+        tmn = np.min(A['targets'].value[:,5])
+        if steermax is None or smx > steermax:
+            steermax = smx
+        if steermin is None or smn < steermin:
+            steermin = smn
+        if throttlemax is None or tmx > throttlemax:
+            throttlemax = tmx
+        if throttlemin is None or tmn < throttlemin:
+            throttlemin = tmn
+
+
+ndata = 0
+imgsize = 64
 # frame size
 nrows = 64
 ncols = 64
 
-# accel, speed, distance, angle
+# speed, accel, distance, angle
 real_in = Input(shape=(2,), name='real_input')
 
 # video frame in, grayscale
 frame_in = Input(shape=(3,nrows,ncols))
 
 # convolution for image input
-conv = Convolution2D(4,5,5,border_mode='same',
+conv1 = Convolution2D(8,5,5,border_mode='same',
         activation='relu')
-conv_l = conv(frame_in)
-pool_l = MaxPooling2D(pool_size=(2,2))(conv_l)
+conv_l1 = conv1(frame_in)
+pool_l1 = MaxPooling2D(pool_size=(2,2))(conv_l1)
 
-flat = Flatten()(pool_l)
+conv2 = Convolution2D(8,5,5,border_mode='same',
+        activation='relu')
+conv_l2 = conv2(pool_l1)
+pool_l2 = MaxPooling2D(pool_size=(2,2))(conv_l2)
+
+flat = Flatten()(pool_l2)
 
 M = merge([flat,real_in], mode='concat', concat_axis=1)
 
-Accel = Dense(1, activation='linear')(M)
-Steer = Dense(1, activation='linear')(M)
+D1 = Dense(64, activation='sigmoid')(M)
+D2 = Dense(32, activation='sigmoid')(D1)
+D3 = Dense(32, activation='sigmoid')(D2)
+
+A1 = Dense(32, activation='sigmoid')(D3)
+S1 = Dense(32, activation='sigmoid')(D3)
+
+Accel = Dense(1, activation='sigmoid')(A1)
+Steer = Dense(1, activation='sigmoid')(S1)
 
 model = Model(input=[real_in, frame_in], output=[Accel,Steer])
 
 model.compile(loss='mean_squared_error',
-              optimizer='rmsprop',
+              optimizer='adam',
               metrics=['accuracy'])
 
 #nsamples = 1000
@@ -109,7 +152,29 @@ model.compile(loss='mean_squared_error',
 #fake_A = np.random.random(nsamples)
 #fake_P = np.random.random(nsamples)
 
-h = model.fit([speedx, imgs], [targets[:,0], targets[:,1]], batch_size = 32, nb_epoch=10, verbose=1)
+# batch process (fitting, really) one file at a time
+for dfile in dfiles:
+    with h5py.File(dfile,'r') as h5f:
+        # raw data
+        A = dict(h5f.items()) 
+        # extract images in 1-byte format
+        B = np.array(A['images'].value,dtype=np.float16)/255.
+        # change BGR to RGB
+        B = B[:,::-1,:,:]
+        # Scale down image size
+        imgs = np.zeros((len(B),3,64,64),dtype=np.float16)
+        for i,b in enumerate(B):
+            imgs[i] = scipy.misc.imresize(b,(64,64),'cubic','RGB').transpose((2,0,1))
+        # speed and accel scale
+        speedx = A['vehicle_states'].value[:,2:4]
+        speedx[:,0] = (speedx[:,0] - speedmin) / (speedmax-speedmin)
+        speedx[:,1] = (speedx[:,1] - accelmin) / (accelmax-accelmin)
+        # throttle and steering scale
+        targets = (A['targets'].value[:,4:] + 1) / 2.
+        # Train while we have this file open
+        h = model.fit([speedx, imgs], [targets[:,1], targets[:,0]],
+                batch_size = 32, nb_epoch=10, verbose=1,
+                validation_split=0.1)
 
 W = model.get_weights()
 
@@ -126,4 +191,33 @@ for row in range(4):
     con[row].imshow(W[0][row].transpose((1,2,0)),
                     interpolation="none")
 
+# View the correct and predicted steering angle and accel
+# Draw a line from center to outside, length is accel, angle is steering
+all_pred = list()
+for dfile in dfiles:
+    with h5py.File(dfile,'r') as h5f:
+        # raw data
+        A = dict(h5f.items()) 
+        # extract images in 1-byte format
+        B = np.array(A['images'].value,dtype=np.uint8)/255.
+        # change BGR to RGB
+        B = B[:,::-1,:,:]
+        # Scale down image size
+        imgs = np.zeros((len(B),3,64,64),dtype=np.uint8)
+        for i,b in enumerate(B):
+            imgs[i] = scipy.misc.imresize(b,(64,64),'cubic','RGB').transpose((2,0,1))
+        # speed and accel
+        speedx = A['vehicle_states'].value[:,2:4]
+        speedx[:,0] = (speedx[:,0] - speedmin) / (speedmax-speedmin)
+        speedx[:,1] = (speedx[:,1] - accelmin) / (accelmax-accelmin)
+        # throttle and steering scale
+        targets = (A['targets'].value[:,4:] + 1) / 2.
+        # Train while we have this file open
+        h = model.predict([speedx, imgs],
+                batch_size = 32, verbose=1)
+        all_pred.append(h)
 
+# Should look at intermediate values to see where this goes wrong
+
+
+# throttle and steering may have been mixed up
