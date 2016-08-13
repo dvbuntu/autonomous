@@ -115,29 +115,34 @@ real_in = Input(shape=(2,), name='real_input')
 frame_in = Input(shape=(3,nrows,ncols))
 
 # convolution for image input
-conv1 = Convolution2D(8,5,5,border_mode='same',
-        activation='relu')
+conv1 = Convolution2D(8,5,5,border_mode='same')
 conv_l1 = conv1(frame_in)
-pool_l1 = MaxPooling2D(pool_size=(2,2))(conv_l1)
+Econv_l1 = ELU()(conv_l1)
+pool_l1 = MaxPooling2D(pool_size=(2,2))(Econv_l1)
 
-conv2 = Convolution2D(8,5,5,border_mode='same',
-        activation='relu')
+conv2 = Convolution2D(8,5,5,border_mode='same')
 conv_l2 = conv2(pool_l1)
-pool_l2 = MaxPooling2D(pool_size=(2,2))(conv_l2)
+Econv_l2 = ELU()(conv_l2)
+pool_l2 = MaxPooling2D(pool_size=(2,2))(Econv_l2)
 
 flat = Flatten()(pool_l2)
 
 M = merge([flat,real_in], mode='concat', concat_axis=1)
 
-D1 = Dense(64, activation='sigmoid')(M)
-D2 = Dense(32, activation='sigmoid')(D1)
-D3 = Dense(32, activation='sigmoid')(D2)
+D1 = Dense(64)(M)
+ED1 = ELU()(D1)
+D2 = Dense(32)(ED1)
+ED2 = ELU()(D2)
+D3 = Dense(32)(ED2)
+ED3 = ELU()(D3)
 
-A1 = Dense(32, activation='sigmoid')(D3)
-S1 = Dense(32, activation='sigmoid')(D3)
+A1 = Dense(32)(ED3)
+EA1 = ELU()(A1)
+S1 = Dense(32)(ED3)
+ES1 = ELU()(S1)
 
-Accel = Dense(1, activation='sigmoid')(A1)
-Steer = Dense(1, activation='sigmoid')(S1)
+Accel = Dense(1, activation='sigmoid')(EA1)
+Steer = Dense(1, activation='sigmoid')(ES1)
 
 model = Model(input=[real_in, frame_in], output=[Accel,Steer])
 
@@ -145,12 +150,20 @@ model.compile(loss='mean_squared_error',
               optimizer='adam',
               metrics=['accuracy'])
 
+# Fake data
 #nsamples = 1000
-#fake_real = np.random.random((nsamples,4))
-#fake_frame = np.random.random((nsamples,1,nrows,ncols))
+#fake_real = np.random.random((nsamples,2))
+#fake_frame = np.random.random((nsamples,3,nrows,ncols))
 
 #fake_A = np.random.random(nsamples)
 #fake_P = np.random.random(nsamples)
+
+#h = model.fit([fake_real, fake_frame], [fake_A, fake_P],
+#        batch_size = 32, nb_epoch=10, verbose=1,
+#        validation_split=0.1)
+#h = model.predict([fake_real, fake_frame],
+#        batch_size = 32, verbose=1)
+# this produces distinct values
 
 # batch process (fitting, really) one file at a time
 for dfile in dfiles:
@@ -217,7 +230,11 @@ for dfile in dfiles:
                 batch_size = 32, verbose=1)
         all_pred.append(h)
 
+# Make sure we get a variety of values
+plt.plot([np.array([p[0][i] for p in all_pred]).reshape(11) for i in range(999)],'.')
+plt.plot([np.array([p[1][i] for p in all_pred]).reshape(11) for i in range(999)],'.')
+
+
+
 # Should look at intermediate values to see where this goes wrong
-
-
 # throttle and steering may have been mixed up
