@@ -190,6 +190,7 @@ for dfile in dfiles:
                 validation_split=0.1)
 
 W = model.get_weights()
+model.save_weights('steering.h5')
 
 # look at conv filters separately in color channel
 f, con = plt.subplots(4,3, sharex='col', sharey='row')
