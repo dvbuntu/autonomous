@@ -245,6 +245,7 @@ def get_point(s,start=0,end=63,height= 16):
         X = end
     return (X,height)
 lines = [list(map(get_point,p)) for p in all_pred]
+lines_t = [list(map(get_point,targets[:,0]))]
 
 from PIL import Image, ImageDraw
 im = Image.fromarray(np.array(imgs[0].transpose(1,2,0),dtype=np.uint8))
@@ -261,7 +262,10 @@ for datafile in dfiles[-1:]:
         def next_frame(i):
             im = Image.fromarray(np.array(imgs[i].transpose(1,2,0),dtype=np.uint8))
             draw = ImageDraw.Draw(im) 
-            draw.line((32,63, lines[-1][i][0],lines[-1][i][1]), fill=128)
+            draw.line((32,63, lines[-1][i][0],lines[-1][i][1]),
+                        fill=(255,0,0,128))
+            draw.line((32,63, lines_t[-1][i][0],lines_t[-1][i][1]),
+                        fill=(0,255,0,128))
             imageplot.set_array(im)
             return imageplot,
         animate = animation.FuncAnimation(figure, next_frame, frames=range(len(imgs)), interval=33, blit=False)
