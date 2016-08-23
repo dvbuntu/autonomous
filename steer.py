@@ -189,8 +189,9 @@ for dfile in dfiles:
                 batch_size = 32, nb_epoch=10, verbose=1,
                 validation_split=0.1)
 
-W = model.get_weights()
 model.save_weights('steering.h5')
+model.load_weights('steering.h5')
+W = model.get_weights()
 
 # look at conv filters separately in color channel
 f, con = plt.subplots(4,3, sharex='col', sharey='row')
@@ -257,8 +258,8 @@ plt.imshow(im,interpolation='nearest')
 import matplotlib.animation as animation
 for datafile in dfiles[-1:]:
     with h5py.File(datafile) as data:
-        figure = plot.figure()
-        imageplot = plot.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
+        figure = plt.figure()
+        imageplot = plt.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
         def next_frame(i):
             im = Image.fromarray(np.array(imgs[i].transpose(1,2,0),dtype=np.uint8))
             draw = ImageDraw.Draw(im) 
@@ -268,8 +269,8 @@ for datafile in dfiles[-1:]:
                         fill=(0,255,0,128))
             imageplot.set_array(im)
             return imageplot,
-        animate = animation.FuncAnimation(figure, next_frame, frames=range(len(imgs)), interval=33, blit=False)
-        plot.show()
+        animate = animation.FuncAnimation(figure, next_frame, frames=range(len(imgs)), interval=100, blit=False)
+        plt.show()
 
 
 
