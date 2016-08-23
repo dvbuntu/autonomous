@@ -16,7 +16,7 @@ all_targets = []
 
 from gas import make_cat
 
-for dfile in dfiles:
+for dfile in tqdm(dfiles):
     with h5py.File(dfile,'r') as h5f:
         # raw data
         A = dict(h5f.items()) 
@@ -43,6 +43,6 @@ imgs_arr = np.array(all_imgs)
 speedx_arr = np.array(all_speedx)
 targets_arr = np.array(all_targets)
 
-imgs_arr.savez('data/imgs_arr.npz')
-speedx_arr.savez('data/speedx_arr.npz')
-targets_arr.savez('data/targets_arr.npz')
+np.savez('data/imgs_arr.npz',imgs_arr)
+np.savez('data/speedx_arr.npz',speedx_arr)
+np.savez('data/targets_arr.npz',targets_arr)
