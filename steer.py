@@ -273,4 +273,14 @@ for datafile in dfiles[-1:]:
         plt.show()
 
 
+# Switch to the compressed data input
+# Huzzah!
 
+imgs = np.load('data/imgs_arr.npz')['arr_0']
+speedx = np.load('data/speedx_arr.npz')['arr_0']
+targets = np.load('data/targets_arr.npz')['arr_0']
+h = model.fit([speedx, imgs], [targets[:,0]],
+                batch_size = 32, nb_epoch=100, verbose=1,
+                validation_split=0.1, shuffle=True)
+
+model.save_weights('steer_simple100.h5')
