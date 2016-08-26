@@ -17,5 +17,5 @@ Simple model in `basic_model.py`.  Currently linear with mean squared error loss
 
 # Data sources
 
-* [Robots](http://www.robots.ox.ac.uk/NewCollegeData/index.php?n=Main.Downloads#GettingStarted)
-* [General list](http://www.cvlibs.net/datasets/kitti/raw_data.php)
+* [DeepDrive](http://deepdrive.io)
+  * [Compressed subset of DeepDrive](https://drive.google.com/open?id=0B0zbVEese408WjYtWGdJWTF0Rjg)
