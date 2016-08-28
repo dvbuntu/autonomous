@@ -91,7 +91,7 @@ for dfile in tqdm(dfiles):
         speedx[:,0] = (speedx[:,0] - speedmin) / (speedmax-speedmin)
         speedx[:,1] = (speedx[:,1] - accelmin) / (accelmax-accelmin)
         # throttle and steering scale
-        steer = (A['targets'].value[:,4] + 1)
+        steer = A['targets'].value[:,4]
         gas_cat = list(map(make_cat, (A['targets'].value[:,5] + 1) / 2.))
         targets = np.zeros((len(steer),2), dtype=np.float16)
         targets[:,0] = (steer[:] + 1) / 2.
