@@ -15,6 +15,8 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD, Adam, RMSprop
 import sklearn.metrics as metrics
 
+from PIL import Image, ImageDraw
+
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -248,7 +250,6 @@ def get_point(s,start=0,end=63,height= 16):
 lines = [list(map(get_point,p)) for p in all_pred]
 lines_t = [list(map(get_point,targets[:,0]))]
 
-from PIL import Image, ImageDraw
 im = Image.fromarray(np.array(imgs[0].transpose(1,2,0),dtype=np.uint8))
 draw = ImageDraw.Draw(im) 
 draw.line((32,63, lines[-1][0][0],lines[-1][0][1]), fill=128)
@@ -284,3 +285,37 @@ h = model.fit([speedx, imgs], [targets[:,0]],
                 validation_split=0.1, shuffle=True)
 
 model.save_weights('steer_simple100.h5')
+model.load_weights('steer_simple100.h5')
+
+preds = model.predict([speedx,imgs])
+
+# plot predictions and actual
+plt.plot(np.array([preds.reshape(len(preds)),targets[:,0]]).T,'.')
+
+# Animation!
+def get_point(s,start=0,end=63,height= 16):
+    X = int(s*(end-start))
+    if X < start:
+        X = start
+    if X > end:
+        X = end
+    return (X,height)
+
+import matplotlib.animation as animation
+figure = plt.figure()
+imageplot = plt.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
+def next_frame(i):
+    im = Image.fromarray(np.array(imgs[i].transpose(1,2,0),dtype=np.uint8))
+    p = get_point(preds[i,0])
+    t = get_point(targets[i,0])
+    draw = ImageDraw.Draw(im) 
+    draw.line((32,63, p,p),
+                fill=(255,0,0,128))
+    draw.line((32,63, t,t),
+                fill=(0,255,0,128))
+    imageplot.set_array(im)
+    return imageplot,
+animate = animation.FuncAnimation(figure, next_frame, frames=range(len(imgs)), interval=100, blit=False)
+plt.show()
+
+
