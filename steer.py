@@ -284,7 +284,7 @@ h = model.fit([speedx, imgs], [targets[:,0]],
                 batch_size = 32, nb_epoch=100, verbose=1,
                 validation_split=0.1, shuffle=True)
 
-model.save_weights('steer_simple100.h5')
+model.save_weights('steer_simple100.h5',overwrite=True)
 model.load_weights('steer_simple100.h5')
 
 preds = model.predict([speedx,imgs])

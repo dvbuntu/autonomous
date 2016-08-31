@@ -100,9 +100,9 @@ for dfile in tqdm(dfiles):
         all_speedx.extend(np.array(speedx,dtype=np.float32))
         all_targets.extend(np.array(targets,dtype=np.float16))
 
-imgs_arr = np.array(all_imgs)
-speedx_arr = np.array(all_speedx)
-targets_arr = np.array(all_targets)
+imgs_arr = np.array(all_imgs[:1000]+all_imgs[1250:])
+speedx_arr = np.array(all_speedx[:1000]+all_speedx[1250:])
+targets_arr = np.array(all_targets[:1000] + all_targets[1250:])
 
 np.savez('data/imgs_arr.npz',imgs_arr)
 np.savez('data/speedx_arr.npz',speedx_arr)
