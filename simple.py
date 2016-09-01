@@ -36,7 +36,7 @@ real_in = Input(shape=(2,), name='real_input')
 frame_in = Input(shape=(3,nrows,ncols))
 
 # convolution for image input
-conv1 = Convolution2D(8,5,5,border_mode='same', W_regularizer=l2(0.001))
+conv1 = Convolution2D(4,5,5,border_mode='same', W_regularizer=l2(0.001))
 conv_l1 = conv1(frame_in)
 Econv_l1 = ELU()(conv_l1)
 pool_l1 = MaxPooling2D(pool_size=(2,2))(Econv_l1)
@@ -52,12 +52,12 @@ M = merge([flat,real_in], mode='concat', concat_axis=1)
 
 D1 = Dense(64,W_regularizer=l2(0.001))(M)
 ED1 = ELU()(D1)
-#D2 = Dense(32,W_regularizer=l2(0.001))(ED1)
-#ED2 = ELU()(D2)
-#D3 = Dense(32,W_regularizer=l2(0.001))(ED2)
-#ED3 = ELU()(D3)
+D2 = Dense(32,W_regularizer=l2(0.001))(ED1)
+ED2 = ELU()(D2)
+D3 = Dense(32,W_regularizer=l2(0.001))(ED2)
+ED3 = ELU()(D3)
 
-S1 = Dense(32,W_regularizer=l2(0.001))(ED1)
+S1 = Dense(32,W_regularizer=l2(0.001))(ED3)
 ES1 = ELU()(S1)
 
 Steer = Dense(1, activation='linear',W_regularizer=l2(0.001))(ES1)
@@ -77,11 +77,11 @@ imgs = np.load('data/imgs_arr.npz')['arr_0']
 speedx = np.load('data/speedx_arr.npz')['arr_0']
 targets = np.load('data/targets_arr.npz')['arr_0']
 h = model.fit([speedx, imgs], [targets[:,0]],
-                batch_size = 32, nb_epoch=100, verbose=1,
+                batch_size = 32, nb_epoch=10, verbose=1,
                 validation_split=0.1, shuffle=True)
 
-model.save_weights('steer_simple_l2.h5',overwrite=True)
-model.load_weights('steer_simple_l2.h5')
+model.save_weights('steer_simple_l2_big.h5',overwrite=True)
+model.load_weights('steer_simple_l2_big.h5')
 
 W = model.get_weights()
 
@@ -100,9 +100,13 @@ for row in range(4):
 
 preds = model.predict([speedx,imgs])
 
+#FYI 1.0 is to the left, 0. is to the right
+# unless I'm mixing up my directions in the animation
+
 
 # plot predictions and actual
 plt.plot(np.array([preds.reshape(len(preds)),targets[:,0]]).T,'.')
+plt.plot(preds.reshape(len(preds)),targets[:,0],'.')
 
 # Animation!
 def get_point(s,start=0,end=63,height= 16):
@@ -118,8 +122,8 @@ figure = plt.figure()
 imageplot = plt.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
 def next_frame(i):
     im = Image.fromarray(np.array(imgs[i].transpose(1,2,0),dtype=np.uint8))
-    p = get_point(preds[i,0])
-    t = get_point(targets[i,0])
+    p = get_point(1-preds[i,0])
+    t = get_point(1-targets[i,0])
     draw = ImageDraw.Draw(im) 
     draw.line((32,63, p,p),
                 fill=(255,0,0,128))
@@ -127,7 +131,7 @@ def next_frame(i):
                 fill=(0,255,0,128))
     imageplot.set_array(im)
     return imageplot,
-animate = animation.FuncAnimation(figure, next_frame, frames=range(100,len(imgs)), interval=100, blit=False)
+animate = animation.FuncAnimation(figure, next_frame, frames=range(0,len(imgs)), interval=25, blit=False)
 plt.show()
 
 # acceleration model

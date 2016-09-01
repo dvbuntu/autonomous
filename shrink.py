@@ -100,9 +100,14 @@ for dfile in tqdm(dfiles):
         all_speedx.extend(np.array(speedx,dtype=np.float32))
         all_targets.extend(np.array(targets,dtype=np.float16))
 
-imgs_arr = np.array(all_imgs[:1000]+all_imgs[1250:])
-speedx_arr = np.array(all_speedx[:1000]+all_speedx[1250:])
-targets_arr = np.array(all_targets[:1000] + all_targets[1250:])
+
+bad = [(1000,1250),(250+2700,250+3800),(250+4000,250+4800)]
+bad_idx = list()
+junk = [bad_idx.extend(list(range(s,e))) for (s,e) in bad]
+
+imgs_arr = np.array([a for i,a in enumerate(all_imgs) if i not in bad_idx])
+speedx_arr = np.array([a for i,a in enumerate(all_speedx) if i not in bad_idx])
+targets_arr = np.array([a for i,a in enumerate(all_targets) if i not in bad_idx])
 
 np.savez('data/imgs_arr.npz',imgs_arr)
 np.savez('data/speedx_arr.npz',speedx_arr)
