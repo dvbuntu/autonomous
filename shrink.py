@@ -8,7 +8,7 @@ import scipy
 
 import matplotlib.pyplot as plt
 from keras.utils.np_utils import to_categorical
-dfiles = glob.glob('data/*.h5')
+dfiles = sorted(glob.glob('data/*.h5'))
 
 all_imgs = []
 all_speedx = []
@@ -101,7 +101,7 @@ for dfile in tqdm(dfiles):
         all_targets.extend(np.array(targets,dtype=np.float16))
 
 
-bad = [(1000,1250),(250+2700,250+3800),(250+4000,250+4800)]
+bad = [(5000,5300),(7100,9200),(17500,19000),(21500,23500)]
 bad_idx = list()
 junk = [bad_idx.extend(list(range(s,e))) for (s,e) in bad]
 
@@ -109,6 +109,6 @@ imgs_arr = np.array([a for i,a in enumerate(all_imgs) if i not in bad_idx])
 speedx_arr = np.array([a for i,a in enumerate(all_speedx) if i not in bad_idx])
 targets_arr = np.array([a for i,a in enumerate(all_targets) if i not in bad_idx])
 
-np.savez('data/imgs_arr.npz',imgs_arr)
-np.savez('data/speedx_arr.npz',speedx_arr)
-np.savez('data/targets_arr.npz',targets_arr)
+np.savez('data/imgs_arr_big.npz',imgs_arr)
+np.savez('data/speedx_arr_big.npz',speedx_arr)
+np.savez('data/targets_arr_big.npz',targets_arr)
