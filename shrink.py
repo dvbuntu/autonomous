@@ -1,14 +1,37 @@
-import os
-import math
 import numpy as np
 import h5py
 import glob
-from tqdm import tqdm
 import scipy
 
-import matplotlib.pyplot as plt
-from keras.utils.np_utils import to_categorical
 dfiles = sorted(glob.glob('data/*.h5'))
+#train_0000.h5
+#train_0001.h5
+#train_0002.h5
+#train_0003.h5
+#train_0004.h5
+#train_0005.h5
+#train_0006.h5
+#train_0007.h5
+#train_0008.h5
+#train_0009.h5
+#train_0010.h5
+#train_0473.h5
+#train_0474.h5
+#train_0475.h5
+#train_0476.h5
+#train_0477.h5
+#train_0478.h5
+#train_0480.h5
+#train_0481.h5
+#train_0482.h5
+#train_0483.h5
+#train_0484.h5
+#train_0485.h5
+#train_0486.h5
+#train_0487.h5
+#train_0488.h5
+#train_0489.h5
+
 
 all_imgs = []
 all_speedx = []
@@ -74,7 +97,7 @@ for dfile in dfiles:
 
 
 # activate the shrink ray!
-for dfile in tqdm(dfiles):
+for dfile in dfiles:
     with h5py.File(dfile,'r') as h5f:
         # raw data
         A = dict(h5f.items()) 
@@ -100,7 +123,7 @@ for dfile in tqdm(dfiles):
         all_speedx.extend(np.array(speedx,dtype=np.float32))
         all_targets.extend(np.array(targets,dtype=np.float16))
 
-
+# Bad frame regions
 bad = [(5000,5300),(7100,9200),(17500,19000),(21500,23500)]
 bad_idx = list()
 junk = [bad_idx.extend(list(range(s,e))) for (s,e) in bad]
@@ -109,6 +132,7 @@ imgs_arr = np.array([a for i,a in enumerate(all_imgs) if i not in bad_idx])
 speedx_arr = np.array([a for i,a in enumerate(all_speedx) if i not in bad_idx])
 targets_arr = np.array([a for i,a in enumerate(all_targets) if i not in bad_idx])
 
+# Save off Compressed data set
 np.savez('data/imgs_arr_big.npz',imgs_arr)
 np.savez('data/speedx_arr_big.npz',speedx_arr)
 np.savez('data/targets_arr_big.npz',targets_arr)
