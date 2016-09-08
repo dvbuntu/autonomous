@@ -2,6 +2,8 @@ import numpy as np
 import h5py
 import glob
 import scipy
+import scipy.misc
+from tqdm import tqdm
 
 dfiles = sorted(glob.glob('data/*.h5'))
 #train_0000.h5
@@ -97,7 +99,7 @@ for dfile in dfiles:
 
 
 # activate the shrink ray!
-for dfile in dfiles:
+for dfile in tqdm(dfiles):
     with h5py.File(dfile,'r') as h5f:
         # raw data
         A = dict(h5f.items()) 
@@ -124,7 +126,7 @@ for dfile in dfiles:
         all_targets.extend(np.array(targets,dtype=np.float16))
 
 # Bad frame regions
-bad = [(5000,5300),(7100,9200),(17500,19000),(21500,23500)]
+bad = [(5000,5300),(7100,9200),(17500,19000),(21500,25300)]
 bad_idx = list()
 junk = [bad_idx.extend(list(range(s,e))) for (s,e) in bad]
 
