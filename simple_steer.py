@@ -37,18 +37,18 @@ real_in = Input(shape=(2,), name='real_input')
 frame_in = Input(shape=(3,nrows,ncols), name='img_input')
 
 # convolution for image input
-conv1 = Convolution2D(6,3,3,border_mode='same', W_regularizer=l2(0.002))
+conv1 = Convolution2D(6,3,3,border_mode='same', W_regularizer=l2(0.0001), init='lecun_uniform')
 conv_l1 = conv1(frame_in)
 Econv_l1 = ELU()(conv_l1)
 pool_l1 = MaxPooling2D(pool_size=(2,2))(Econv_l1)
 
-conv2 = Convolution2D(8,4,4,border_mode='same', W_regularizer=l2(0.002))
+conv2 = Convolution2D(8,4,4,border_mode='same', W_regularizer=l2(0.0001), init='lecun_uniform')
 conv_l2 = conv2(pool_l1)
 Econv_l2 = ELU()(conv_l2)
 pool_l2 = MaxPooling2D(pool_size=(2,2))(Econv_l2)
 drop_l2 = Dropout(.25)(pool_l2)
 
-conv3 = Convolution2D(16,3,3,border_mode='same', W_regularizer=l2(0.002))
+conv3 = Convolution2D(16,3,3,border_mode='same', W_regularizer=l2(0.0001), init='lecun_uniform')
 conv_l3 = conv3(drop_l2)
 Econv_l3 = ELU()(conv_l3)
 pool_l3 = MaxPooling2D(pool_size=(2,2))(Econv_l3)
@@ -59,43 +59,62 @@ flat = Flatten()(drop_l3)
 
 M = merge([flat,real_in], mode='concat', concat_axis=1)
 
-D1 = Dense(64,W_regularizer=l2(0.002))(M)
+D1 = Dense(256,W_regularizer=l2(0.0001), init='lecun_uniform')(M)
 ED1 = ELU()(D1)
 DED1 = Dropout(0.5)(ED1)
-D2 = Dense(32,W_regularizer=l2(0.002))(DED1)
-ED2 = ELU()(D2)
-D3 = Dense(32,W_regularizer=l2(0.002))(ED2)
-ED3 = ELU()(D3)
 
-S1 = Dense(32,W_regularizer=l2(0.002))(ED3)
+S1 = Dense(64,W_regularizer=l2(0.0001), init='lecun_uniform')(DED1)
 ES1 = ELU()(S1)
-DES1 = Dropout(0.25)(ES1)
-S2 = Dense(32,W_regularizer=l2(0.002))(DES1)
-ES2 = ELU()(S2)
-S3 = Dense(32,W_regularizer=l2(0.002))(ES2)
-ES3 = ELU()(S3)
 
-Steer = Dense(1, activation='linear',W_regularizer=l2(0.001), name='steer_out')(ES3)
+# Custom activation to clamp values to 0-1
+from keras import initializations
+from keras.engine import Layer
+import keras.backend as K
 
-G1 = Dense(32,W_regularizer=l2(0.002))(ED3)
-EG1 = ELU()(G1)
-DEG1 = Dropout(0.25)(EG1)
-G2 = Dense(32,W_regularizer=l2(0.002))(DEG1)
-EG2 = ELU()(G2)
-G3 = Dense(32,W_regularizer=l2(0.002))(EG2)
-EG3 = ELU()(G3)
+class ClampedLinear(Layer):
+    '''Thresholded Linear Activation:
+    `f(x) = x for x > alpha and x < beta`
+    `f(x) = alpha for x <= alpha`.
+    `f(x) = beta for x >= beta`.
+    # Input shape
+        Arbitrary. Use the keyword argument `input_shape`
+        (tuple of integers, does not include the samples axis)
+        when using this layer as the first layer in a model.
+    # Output shape
+        Same shape as the input.
+    # Arguments
+        alpha: float >= 0. Left threshold
+        beta:  float >= 0. Right threshold
+    '''
+    def __init__(self, alpha=0., beta = 1.0, **kwargs):
+        self.supports_masking = True
+        self.alpha = K.cast_to_floatx(alpha)
+        self.beta = K.cast_to_floatx(beta)
+        super(ClampedLinear, self).__init__(**kwargs)
+    def call(self, x, mask=None):
+        y = K.maximum(x,self.alpha)
+        z = K.minimum(y,self.beta)
+        return z
+    def get_config(self):
+        config = {'alpha': float(self.alpha),
+                  'beta': float(self.beta),}
+        base_config = super(ClampedLinear, self).get_config()
+        return dict(list(base_config.items()) + list(config.items())) 
 
-Accel = Dense(3, activation='sigmoid', name='gas_out')(EG3)
+clamp = ClampedLinear()
 
-model = Model(input=[real_in, frame_in], output=[Steer,Accel])
+Steer_node = Dense(1, name='steer_node', init='lecun_uniform')(ES1)
+Steer_out = Activation(clamp,name='steer_out')(Steer_node)
+
+model = Model(input=[real_in, frame_in], output=[Steer_out])
 
 sgd = SGD(lr=0.003)
 adam = Adam(lr=0.003)
 
-model.compile(loss=['mse',
-                    'categorical_crossentropy'],
+
+model.compile(loss=['mse'],
               optimizer=adam,
-              metrics=['mse','accuracy'])
+              metrics=['mse'])
 
 # Switch to the compressed data input
 # Huzzah!
@@ -103,18 +122,17 @@ model.compile(loss=['mse',
 imgs = np.load('data/imgs_arr_big.npz')['arr_0']
 speedx = np.load('data/speedx_arr_big.npz')['arr_0']
 targets = np.load('data/targets_arr_big.npz')['arr_0']
-gas_target = to_categorical(targets[:,1])
 nb_epoch = 500
 mini_epoch = 10
 num_steps = int(nb_epoch/mini_epoch)
 for step in tqdm(range(0,num_steps)):
-    h = model.fit([speedx, imgs], {'steer_out':targets[:,0],'gas_out':gas_target},
+    h = model.fit([speedx, imgs], {'steer_out':targets[:,0]},
                     batch_size = 32, nb_epoch=mini_epoch, verbose=1,
                     validation_split=0.1, shuffle=True)
-    model.save_weights('steer_simple_l2_big_{0}_{1:4.5}_{2:4.5}.h5'.format(step,h.history['val_steer_out_loss'][-1],h.history['val_gas_out_acc'][-1]),overwrite=True)
+    model.save_weights('steer_spec_l2_big_{0}_{1:4.5}.h5'.format(step,h.history['val_loss'][-1]),overwrite=True)
 
-model.save_weights('steer_simple_l2_big_final.h5',overwrite=True)
-model.load_weights('steer_simple_l2_big_final.h5')
+model.save_weights('steer_only_l2_big_final.h5',overwrite=True)
+model.load_weights('steer_only_l2_big_final.h5')
 
 W = model.get_weights()
 
@@ -132,8 +150,7 @@ for row in range(4):
                     interpolation="none")
 
 preds = model.predict([speedx,imgs])
-steer_preds = preds[0].reshape([-1])
-gas_preds = np.argmax(preds[1],axis=1)
+steer_preds = preds.reshape([-1])
 
 #FYI 1.0 is to the left, 0. is to the right
 # unless I'm mixing up my directions in the animation
@@ -155,26 +172,22 @@ def get_point(s,start=0,end=63,height= 16):
 
 # evaluate the model at each point
 mse = []
-acc = []
-weights = sorted(glob.glob('*_0.*.h5'),
+weights = sorted(glob.glob('steer_only*_0.*.h5'),
         key = lambda x: int(x.split('_')[4]) )
 val_idx = (len(imgs)//10) * 9
 for wfile in tqdm(weights):
     model.load_weights(wfile)
     preds = model.predict([speedx[val_idx:],imgs[val_idx:]])
-    steer_preds = preds[0].reshape([-1])
-    gas_preds = np.argmax(preds[1],axis=1)
+    steer_preds = preds.reshape([-1])
     mse.append(metrics.mean_squared_error(targets[val_idx:,0],steer_preds))
-    acc.append(metrics.accuracy_score(targets[val_idx:,1],gas_preds))
 
 
 plt.plot(mse)
-plt.plot(acc)
 
 import matplotlib.animation as animation
 figure = plt.figure()
 imageplot = plt.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
-def next_frame(i,val_idx = 0):
+def next_frame(i):
     im = Image.fromarray(np.array(imgs[val_idx+i].transpose(1,2,0),dtype=np.uint8))
     p = get_point(1-steer_preds[i])
     t = get_point(1-targets[i+val_idx,0])
