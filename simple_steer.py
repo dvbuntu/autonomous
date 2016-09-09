@@ -29,7 +29,7 @@ imgsize = 64
 # frame size
 nrows = 64
 ncols = 64
-wr = 0.0001
+wr = 0.00001
 dp = 0.
 
 # speed, accel, distance, angle
@@ -125,14 +125,14 @@ model.compile(loss=['mse'],
 imgs = np.load('data/imgs_arr_big.npz')['arr_0']
 speedx = np.load('data/speedx_arr_big.npz')['arr_0']
 targets = np.load('data/targets_arr_big.npz')['arr_0']
-nb_epoch = 50
+nb_epoch = 100
 mini_epoch = 10
 num_steps = int(nb_epoch/mini_epoch)
-for step in tqdm(range(0,num_steps)):
+for step in tqdm(range(5,num_steps)):
     h = model.fit([speedx, imgs], {'steer_out':targets[:,0]},
                     batch_size = 32, nb_epoch=mini_epoch, verbose=1,
                     validation_split=0.1, shuffle=True)
-    model.save_weights('steer_spec_l2_big_{0}_{1:4.5}.h5'.format(step,h.history['val_loss'][-1]),overwrite=True)
+    model.save_weights('steer_nodrop_l2_big_{0}_{1:4.5}.h5'.format(step,h.history['val_loss'][-1]),overwrite=True)
 
 model.save_weights('steer_only_l2_big_final.h5',overwrite=True)
 model.load_weights('steer_only_l2_big_final.h5')
@@ -176,7 +176,7 @@ def get_point(s,start=0,end=63,height= 16):
 # evaluate the model at each point
 mse = []
 all_preds = []
-weights = sorted(glob.glob('steer_spec*_0.*.h5'),
+weights = sorted(glob.glob('steer_nodrop*.h5'),
         key = lambda x: int(x.split('_')[4]) )
 val_idx = (len(imgs)//10) * 9
 for wfile in tqdm(weights):
