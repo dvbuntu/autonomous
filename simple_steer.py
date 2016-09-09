@@ -13,7 +13,7 @@ from keras.layers import Embedding, Input, merge, ELU
 from keras.layers.recurrent import SimpleRNN, LSTM
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD, Adam, RMSprop
-from keras.regularizers import l2, activity_l2
+from keras.regularizers import l2, activity_l2, l1
 from keras.utils.np_utils import to_categorical
 from keras import backend as K
 import sklearn.metrics as metrics
@@ -29,7 +29,7 @@ imgsize = 64
 # frame size
 nrows = 64
 ncols = 64
-wr = 0.
+wr = 0.0001
 dp = 0.
 
 # speed, accel, distance, angle
@@ -39,18 +39,18 @@ real_in = Input(shape=(2,), name='real_input')
 frame_in = Input(shape=(3,nrows,ncols), name='img_input')
 
 # convolution for image input
-conv1 = Convolution2D(6,3,3,border_mode='same', W_regularizer=l2(wr), init='lecun_uniform')
+conv1 = Convolution2D(6,3,3,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
 conv_l1 = conv1(frame_in)
 Econv_l1 = ELU()(conv_l1)
 pool_l1 = MaxPooling2D(pool_size=(2,2))(Econv_l1)
 
-conv2 = Convolution2D(8,3,3,border_mode='same', W_regularizer=l2(wr), init='lecun_uniform')
+conv2 = Convolution2D(8,3,3,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
 conv_l2 = conv2(pool_l1)
 Econv_l2 = ELU()(conv_l2)
 pool_l2 = MaxPooling2D(pool_size=(2,2))(Econv_l2)
 drop_l2 = Dropout(dp)(pool_l2)
 
-conv3 = Convolution2D(16,3,3,border_mode='same', W_regularizer=l2(wr), init='lecun_uniform')
+conv3 = Convolution2D(16,3,3,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
 conv_l3 = conv3(drop_l2)
 Econv_l3 = ELU()(conv_l3)
 pool_l3 = MaxPooling2D(pool_size=(2,2))(Econv_l3)
@@ -61,11 +61,11 @@ flat = Flatten()(drop_l3)
 
 M = merge([flat,real_in], mode='concat', concat_axis=1)
 
-D1 = Dense(32,W_regularizer=l2(wr), init='lecun_uniform')(M)
+D1 = Dense(32,W_regularizer=l1(wr), init='lecun_uniform')(M)
 ED1 = ELU()(D1)
 DED1 = Dropout(dp)(ED1)
 
-S1 = Dense(64,W_regularizer=l2(wr), init='lecun_uniform')(DED1)
+S1 = Dense(64,W_regularizer=l1(wr), init='lecun_uniform')(DED1)
 ES1 = ELU()(S1)
 
 # Custom activation to clamp values to 0-1
@@ -125,10 +125,10 @@ model.compile(loss=['mse'],
 imgs = np.load('data/imgs_arr_big.npz')['arr_0']
 speedx = np.load('data/speedx_arr_big.npz')['arr_0']
 targets = np.load('data/targets_arr_big.npz')['arr_0']
-nb_epoch = 500
+nb_epoch = 50
 mini_epoch = 10
 num_steps = int(nb_epoch/mini_epoch)
-for step in tqdm(range(1,num_steps)):
+for step in tqdm(range(0,num_steps)):
     h = model.fit([speedx, imgs], {'steer_out':targets[:,0]},
                     batch_size = 32, nb_epoch=mini_epoch, verbose=1,
                     validation_split=0.1, shuffle=True)
@@ -175,6 +175,7 @@ def get_point(s,start=0,end=63,height= 16):
 
 # evaluate the model at each point
 mse = []
+all_preds = []
 weights = sorted(glob.glob('steer_spec*_0.*.h5'),
         key = lambda x: int(x.split('_')[4]) )
 val_idx = (len(imgs)//10) * 9
@@ -182,6 +183,7 @@ for wfile in tqdm(weights):
     model.load_weights(wfile)
     preds = model.predict([speedx[val_idx:],imgs[val_idx:]])
     steer_preds = preds.reshape([-1])
+    all_preds.append(steer_preds)
     mse.append(metrics.mean_squared_error(targets[val_idx:,0],steer_preds))
 
 
@@ -206,4 +208,15 @@ def next_frame(i):
 animate = animation.FuncAnimation(figure, next_frame, frames=range(0,len(imgs)), interval=25, blit=False)
 plt.show()
 
-plt.plot(np.array([steer_preds.reshape(len(steer_preds)),targets[val_idx:,0]]).T,'.')
+# Muck with default symbol cycler
+from itertools import cycle, product
+from cycler import cycler
+C1 = plt.rcParams['axes.prop_cycle']
+C = [c['color'] for c in list(C1)]
+sym = [".","x","+","v"]
+S1 = cycler('marker',sym)
+#P = ['{0}{1}'.format(c,s) for c,s in product(C,sym)]
+P = S1*C1
+plt.rc('axes', prop_cycle=P)
+lines = plt.plot(np.array( [targets[val_idx:,0]] + [sp.reshape(len(steer_preds)) for sp in all_preds]).T, linestyle='')
+plt.legend(lines, ['target'] + [str(i) for i in range(len(all_preds))])
