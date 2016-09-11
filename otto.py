@@ -141,6 +141,8 @@ def do_loop():
     # TODO
     # make prediction
     pred = model.predict([np.array([[mspeed,maccel]]),np.array([img])])
+    # clamp values
+    pred[0] = np.max([np.min([pred[0],1.0]),0.])
     # rescale output steering
     steer_p = int(255-255*pred[0])
     # get time in ms
