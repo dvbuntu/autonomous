@@ -23,6 +23,10 @@ import sklearn.metrics as metrics
 import datetime
 
 import pygame
+import pygame.camera
+from pygame.locals import *
+pygame.init()
+pygame.camera.init()
 
 debug = True
 
@@ -84,66 +88,73 @@ model.compile(loss=['mse'],
 
 
 # load model weights
-model.load_weights('steer_only_current.h5')
+model.load_weights('/home/ubuntu/proj/autonomous/steer_only_current.h5')
 
 # initialize webcam
 cams = pygame.camera.list_cameras()
-cam = pygame.camera.Camera(camlist[0],(64,64),'RGB')
+cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
 cam.start()
 
 # make serial connection
 if not debug:
     ser = serial.Serial('/dev/tty.usbmodem1411')
 else:
-    ser = open('test_data.csv')
+    ser = open('/home/ubuntu/proj/autonomous/test_data.csv')
 
 # initialize speeds
 speeds = np.zeros(3,dtype=np.float32)
 
-# function for output string
-def drive_str(steer, direction=1, speed=255, ms):
-    '''Generate string to drive car to send over serial connection
+# Start the loop 
+start = datetime.datetime.now()
 
+# function for output string
+def drive_str(steer, direction=1, speed=255, ms=0):
+    '''Generate string to drive car to send over serial connection
     Format is:
     Steering (0-255 is L/R), Direction (0/1 for rev/forwar), Speed (0 brake, 255 full throttle), time in ms
-
     Str will look like:
     127,1,255,12345
     '''
     return '{0},{1},{2},{3}'.format(int(steer),int(direction),int(speed),int(ms))
 
-# Start the loop 
-start = datetime.datetime.now()
-while True:
+def do_loop():
+    global speeds
     # get image as numpy array
     img = pygame.surfarray.array3d(cam.get_image())
     # throw away non-square sides (left and rightmost 20 cols)
     img = img[20:140]
     # Shrink to 64x64
-    img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose((2,0,1))
+    img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,0,1)
     # Read acceleration information (and time, TODO)
-    data = ser.readline().split(',')
+    d = ser.readline()
+    data = list(map(float,d.strip().split(',')))
     # save some info
     print('Saw {0}'.format(data), end='')
     accel = np.array(data[:3],dtype=np.float32)
     accel[2] -= 1 # subtract accel due to gravity, maybe the car can fly :p
     # update speeds, assume one "time unit" or multiply by elapsed ms
-    speeds += accel
+    speeds = speeds + accel
     # compute magnitude of speed and accel
     mspeed = np.sqrt(np.sum(speeds*speeds))
     maccel = np.sqrt(np.sum(accel*accel))
     # rescale inputs ( decide on max speed and accel of vehicle), clamp values to these
     # TODO
     # make prediction
-    pred = model.predict(np.array([[mspeed,maccel]]),[img])
+    pred = model.predict([np.array([[mspeed,maccel]]),np.array([img])])
     # rescale output steering
-    steer_p = int(255-pred[0])
-    # get time
+    steer_p = int(255-255*pred[0])
+    # get time in ms
     now = datetime.datetime.now()
-    t = int((now-start).microseconds/1000)
+    t = int((now-start).total_seconds()*1000)
     # create str
     s = drive_str(steer_p,ms=t)
-    print('send {0}'.format(s), end='')
+    print(' send {0}'.format(s))
     if not debug:
         ser.write(s)
 
+
+while True:
+    do_loop()
+# cleanup
+ser.close()
+cam.stop()
