@@ -61,7 +61,6 @@ conv3 = Convolution2D(16,3,3,border_mode='same', W_regularizer=l1(wr), init='lec
 conv_l3 = conv3(drop_l2)
 Econv_l3 = ELU()(conv_l3)
 pool_l3 = MaxPooling2D(pool_size=(2,2))(Econv_l3)
-
 drop_l3 = Dropout(dp)(pool_l3)
 
 flat = Flatten()(drop_l3)
@@ -113,7 +112,7 @@ def drive_str(steer, direction=1, speed=255, ms=0):
     Format is:
     Steering (0-255 is L/R), Direction (0/1 for rev/forwar), Speed (0 brake, 255 full throttle), time in ms
     Str will look like:
-    127,1,255,12345
+    127,1,255,123
     '''
     return '{0},{1},{2},{3}'.format(int(steer),int(direction),int(speed),int(ms))
 
@@ -122,12 +121,15 @@ def do_loop():
     # get image as numpy array
     img = pygame.surfarray.array3d(cam.get_image())
     # throw away non-square sides (left and rightmost 20 cols)
-    img = img[20:140]
+    img = img[20:-20]
     # Shrink to 64x64
     img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,0,1)
     # Read acceleration information (and time, TODO)
-    d = ser.readline()
-    data = list(map(float,d.strip().split(',')))
+    d = ser.readlines()
+    # most recent line
+    line = d[-1].strip()
+    # parse into list
+    data = list(map(float,line.split(',')))
     # save some info
     print('Saw {0}'.format(data), end='')
     accel = np.array(data[:3],dtype=np.float32)
