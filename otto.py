@@ -102,7 +102,7 @@ cam.start()
 # make serial connection
 print('connect to serial port')
 if not debug:
-    ser = serial.Serial('/dev/tty.usbmodem1411')
+    ser = serial.Serial('/dev/ttyACM0')
 else:
     ser = open('/home/ubuntu/proj/autonomous/test_data.csv')
 
