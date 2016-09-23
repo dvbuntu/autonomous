@@ -353,9 +353,12 @@ void doAutoCommands() {
         break;
       case CMD_TIME:
         time = atoi(command);
+        /* 
+         *  Remove time check 
         if (time < last_time) {
           return;
         }
+        */
         last_time = time;
         if (DEBUG_SERIAL) {
           Serial.printf("%d, %lu\n", cmd_cnt, time);
@@ -428,7 +431,7 @@ void setup() {
   SoftPWMServoPWMWrite(PIN_M2_PWM, 0);
 
   initIMU();
-  delay(5000);
+  delay(2000);
   /*
     //initIMU: if not reachable stop
     if (!initIMU()) {
