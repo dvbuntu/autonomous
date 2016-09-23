@@ -31,7 +31,7 @@ pygame.init()
 pygame.camera.init()
 
 debug = False
-video = False
+video = True 
 
 # setup model
 print("setting up model")
@@ -123,7 +123,7 @@ def drive_str(steer, direction=1, speed=50, ms=0):
     Str will look like:
     127,1,255,123
     '''
-    return '{0},{1},{2},{3}'.format(int(steer),int(direction),int(speed),int(ms))
+    return '{0},{1},{2},{3}\n'.format(int(steer),int(direction),int(speed),int(ms))
 
 def get_point(s,start=0,end=63,height= 16):
     ''' Figure out the other point for animation'''
@@ -142,7 +142,8 @@ if video == True:
     figure = plt.figure()
     imageplot = plt.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
     from itertools import cycle
-    loop = cycle(range(10))
+    loop = 10
+    #loop = cycle(range(10))
 else:
     imageplot = False
 
@@ -159,7 +160,6 @@ def do_loop(i=0):
         # Read acceleration information (and time, TODO)
         d = ser.readline()
         # most recent line
-        
         data = list(map(float,str(d,'ascii').split(',')))
     else:
         d = ser.readline()
@@ -190,6 +190,8 @@ def do_loop(i=0):
     pred[0] = np.max([np.min([pred[0],1.0]),0.])
     # rescale output steering
     steer_p = int(255-255*pred[0])
+    # temporary
+    #steer_p = np.clip(steer_p, 96, 160)
     # create str
     s = drive_str(steer_p,ms=t)
     print(' send {0}'.format(s))
@@ -204,12 +206,13 @@ def do_loop(i=0):
         imageplot.set_array(im)
     #if i % 10 == 0:
     #    print(i)
+    time.sleep(1)
     return imageplot,
 
 
 print('big rocket go now')
 if video == True:
-    animate = animation.FuncAnimation(figure, do_loop, frames=loop, interval=25,blit=False)
+    animate = animation.FuncAnimation(figure, do_loop, interval=25,blit=False)
     print('started animation')
     plt.show()
     print('should show animation')
