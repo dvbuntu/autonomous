@@ -31,11 +31,7 @@ pygame.init()
 #pygame.camera.init()
 
 debug = False
-<<<<<<< HEAD
 video = True 
-=======
-video = False
->>>>>>> 6455e54f770d1f598a3f0ee457d1df6792d346bf
 
 # setup model
 print("setting up model")
