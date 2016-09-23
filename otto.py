@@ -28,10 +28,10 @@ import pygame
 import pygame.camera
 from pygame.locals import *
 pygame.init()
-pygame.camera.init()
+#pygame.camera.init()
 
-debug = True
-video = True
+debug = False
+video = False
 
 # setup model
 print("setting up model")
@@ -95,9 +95,9 @@ model.load_weights('/home/ubuntu/proj/autonomous/steer_only_current.h5')
 
 # initialize webcam
 print('initialize webcame')
-cams = pygame.camera.list_cameras()
-cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
-cam.start()
+#cams = pygame.camera.list_cameras()
+#cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
+#cam.start()
 
 # make serial connection
 print('connect to serial port')
@@ -109,7 +109,7 @@ else:
 # initialize speeds
 speeds = np.zeros(3,dtype=np.float32)
 
-# Start the loop 
+# Start the loop
 start = datetime.datetime.now()
 t = 0
 
@@ -195,7 +195,7 @@ def do_loop(i=0):
     if video == True:
         im = Image.fromarray(np.array(img.transpose(1,2,0),dtype=np.uint8))
         p = get_point(1-pred[0])
-        draw = ImageDraw.Draw(im) 
+        draw = ImageDraw.Draw(im)
         draw.line((32,63, p,p),
                     fill=(255,0,0,128))
         imageplot.set_array(im)
