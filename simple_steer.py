@@ -161,7 +161,6 @@ steer_preds = preds.reshape([-1])
 
 # plot predictions and actual
 plt.plot(np.array([steer_preds.reshape(len(steer_preds)),targets[:,0]]).T,'.')
-plt.plot(steer_preds.reshape(len(steer_preds)),targets[:,0],'.')
 
 # Animation!
 def get_point(s,start=0,end=63,height= 16):
