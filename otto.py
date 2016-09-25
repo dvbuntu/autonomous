@@ -6,6 +6,16 @@ import glob
 import scipy
 import scipy.misc
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Steer Otto, the autonomous tractor.')
+parser.add_argument('-d','--debug', action='store_true', default=False)
+parser.add_argument('-n','--no-video', action='store_true', default=False)
+
+args = parser.parse_args()
+debug = args.debug
+video = not args.no_video 
+
 import serial
 
 import keras
@@ -28,10 +38,8 @@ import pygame
 import pygame.camera
 from pygame.locals import *
 pygame.init()
-#pygame.camera.init()
+pygame.camera.init()
 
-debug = False
-video = True 
 
 # setup model
 print("setting up model")
@@ -94,10 +102,10 @@ model.compile(loss=['mse'],
 model.load_weights('/home/ubuntu/proj/autonomous/steer_only_current.h5')
 
 # initialize webcam
-print('initialize webcame')
-#cams = pygame.camera.list_cameras()
-#cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
-#cam.start()
+print('initialize webcam')
+cams = pygame.camera.list_cameras()
+cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
+cam.start()
 
 # make serial connection
 print('connect to serial port')
