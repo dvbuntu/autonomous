@@ -28,10 +28,10 @@ import pygame
 import pygame.camera
 from pygame.locals import *
 pygame.init()
-pygame.camera.init()
+#pygame.camera.init()
 
-debug = True
-video = True
+debug = False
+video = True 
 
 # setup model
 print("setting up model")
@@ -95,33 +95,35 @@ model.load_weights('/home/ubuntu/proj/autonomous/steer_only_current.h5')
 
 # initialize webcam
 print('initialize webcame')
-cams = pygame.camera.list_cameras()
-cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
-cam.start()
+#cams = pygame.camera.list_cameras()
+#cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
+#cam.start()
 
 # make serial connection
 print('connect to serial port')
 if not debug:
     ser = serial.Serial('/dev/ttyACM0')
+    if(ser.isOpen() == False):
+        ser.open()
 else:
     ser = open('/home/ubuntu/proj/autonomous/test_data.csv')
 
 # initialize speeds
 speeds = np.zeros(3,dtype=np.float32)
 
-# Start the loop 
+# Start the loop
 start = datetime.datetime.now()
 t = 0
 
 # function for output string
-def drive_str(steer, direction=1, speed=255, ms=0):
+def drive_str(steer, direction=1, speed=50, ms=0):
     '''Generate string to drive car to send over serial connection
     Format is:
     Steering (0-255 is L/R), Direction (0/1 for rev/forwar), Speed (0 brake, 255 full throttle), time in ms
     Str will look like:
     127,1,255,123
     '''
-    return '{0},{1},{2},{3}'.format(int(steer),int(direction),int(speed),int(ms))
+    return '{0},{1},{2},{3}\n'.format(int(steer),int(direction),int(speed),int(ms))
 
 def get_point(s,start=0,end=63,height= 16):
     ''' Figure out the other point for animation'''
@@ -140,7 +142,8 @@ if video == True:
     figure = plt.figure()
     imageplot = plt.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
     from itertools import cycle
-    loop = cycle(range(10))
+    loop = 10
+    #loop = cycle(range(10))
 else:
     imageplot = False
 
@@ -155,14 +158,14 @@ def do_loop(i=0):
     img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,1,0)
     if not debug:
         # Read acceleration information (and time, TODO)
-        d = ser.readlines()
+        d = ser.readline()
         # most recent line
-        line = d[-1].strip()
+        data = list(map(float,str(d,'ascii').split(',')))
     else:
         d = ser.readline()
         line = d.strip()
+        data = list(map(float,line.split(',')))
     # parse into list
-    data = list(map(float,line.split(',')))
     # save some info
     print('Saw {0}'.format(data), end='')
     # get time in ms
@@ -187,26 +190,29 @@ def do_loop(i=0):
     pred[0] = np.max([np.min([pred[0],1.0]),0.])
     # rescale output steering
     steer_p = int(255-255*pred[0])
+    # temporary
+    #steer_p = np.clip(steer_p, 96, 160)
     # create str
     s = drive_str(steer_p,ms=t)
     print(' send {0}'.format(s))
     if not debug:
-        ser.write(s)
+        ser.write(s.encode('ascii'))
     if video == True:
         im = Image.fromarray(np.array(img.transpose(1,2,0),dtype=np.uint8))
         p = get_point(1-pred[0])
-        draw = ImageDraw.Draw(im) 
+        draw = ImageDraw.Draw(im)
         draw.line((32,63, p,p),
                     fill=(255,0,0,128))
         imageplot.set_array(im)
     #if i % 10 == 0:
     #    print(i)
+    time.sleep(1)
     return imageplot,
 
 
 print('big rocket go now')
 if video == True:
-    animate = animation.FuncAnimation(figure, do_loop, frames=loop, interval=25, blit=False)
+    animate = animation.FuncAnimation(figure, do_loop, interval=25,blit=False)
     print('started animation')
     plt.show()
     print('should show animation')
