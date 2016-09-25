@@ -5,18 +5,6 @@ import glob
 import numpy as np
 from tqdm import tqdm
 
-import keras
-from keras.models import Sequential, Model
-from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
-from keras.layers import Embedding, Input, merge, ELU
-from keras.layers.recurrent import SimpleRNN, LSTM
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
-from keras.optimizers import SGD, Adam, RMSprop
-from keras.regularizers import l2, activity_l2, l1
-from keras.utils.np_utils import to_categorical
-from keras import backend as K
-import sklearn.metrics as metrics
-
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -35,6 +23,8 @@ fstarts = [0]
 
 for c,l in zip(camfiles,logfiles):
     cams = h5py.File(camfiles[2],'r')['X'].value
+
+    # How much data are we talking about in this file?  Keep track
     nframes = len(cams)
     abs_start = fstarts[-1]
     abs_end = abs_start + nframes
@@ -48,6 +38,7 @@ for c,l in zip(camfiles,logfiles):
     logs = h5py.File(logfiles[2],'r')
     ptrs = logs['cam1_ptr'].value
 
+    # Line logs up to correct frames
     starts = np.zeros(nframes,dtype=np.uint32)
     starts[0] = 37
     cur = 1
@@ -56,6 +47,7 @@ for c,l in zip(camfiles,logfiles):
             starts[cur] = i
             cur += 1
 
+    # Make room for new data
     all_imgs.resize((abs_end, 3, 64, 64))
     spds.resize((abs_end))
     accel.resize((abs_end))
@@ -63,6 +55,7 @@ for c,l in zip(camfiles,logfiles):
     gas.resize((abs_end))
     brake.resize((abs_end))
 
+    # Stuff data into large array
     all_imgs[abs_start:abs_end] = smcam
     spds[abs_start:abs_end] = logs['speed'].value[starts]
     accel[abs_start:abs_end] = logs['car_accel'].value[starts]
