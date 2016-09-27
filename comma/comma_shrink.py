@@ -22,7 +22,7 @@ brake = np.zeros(1)
 fstarts = [0]
 
 for c,l in zip(camfiles,logfiles):
-    cams = h5py.File(camfiles[2],'r')['X'].value
+    cams = h5py.File(c,'r')['X']
 
     # How much data are we talking about in this file?  Keep track
     nframes = len(cams)
@@ -35,7 +35,7 @@ for c,l in zip(camfiles,logfiles):
     for i,c in tqdm(enumerate(cams)):
         smcam[i] = scipy.misc.imresize(c[:,:,80:-80],(64,64),'cubic','RGB').transpose((2,0,1))
 
-    logs = h5py.File(logfiles[2],'r')
+    logs = h5py.File(l,'r')
     ptrs = logs['cam1_ptr'].value
 
     # Line logs up to correct frames
@@ -63,6 +63,12 @@ for c,l in zip(camfiles,logfiles):
     gas[abs_start:abs_end] = logs['gas'].value[starts]
     brake[abs_start:abs_end] = logs['brake'].value[starts]
 
+# scale
+spds = (spds - np.min(spds))/(np.max(spds)-np.min(spds))
+accel = (accel - np.min(accel))/(np.max(accel)-np.min(accel))
+steer = (steer - np.min(steer))/(np.max(steer)-np.min(steer))
+gas = (gas - np.min(gas))/(np.max(gas)-np.min(gas))
+brake = (brake - np.min(brake))/(np.max(brake)-np.min(brake))
 
 np.savez('simple_data.npz',
         imgs=all_imgs,
