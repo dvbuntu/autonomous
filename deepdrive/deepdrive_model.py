@@ -108,6 +108,10 @@ dense_2 = Dropout(0.5)(dense_2)
 output = Dense(6, activation='linear', name = 'gtanet_fctop')(dense_2)
 
 model = Model(input=[inputs], output=[output])
+adam = Adam(lr=0.01)
+model.compile(loss=['mse'],
+              optimizer=adam,
+              metrics=['mse'])
 
 # 227 MB, as advertised
 Wm = model.get_weights()
@@ -150,4 +154,27 @@ Wm[19] = b[6]
 Wm[20] = W[7]
 Wm[21] = b[7]
 
+np.savez_compressed('deepdrive_wgts.keras.npz',Wm)
+Wm = np.load('deepdrive_wgts.keras.npz')['arr_0']
+
+# set the new weights
+model.set_weights(Wm)
+
 # grab some example data and upsample
+imgs = np.load('../data/imgs_arr_big.npz')['arr_0']
+# Switch back to BGR for caffe style
+imgs = imgs[:,::-1,:,:]
+speedx = np.load('../data/speedx_arr_big.npz')['arr_0']
+targets = np.load('../data/targets_arr_big.npz')['arr_0']
+
+import scipy.misc
+num = 100
+upscaled = np.zeros((num,3,227,227),dtype=np.float32)
+for i in range(num):
+    upscaled[i] = scipy.misc.imresize(imgs[i],(227,227),'cubic','RGB').transpose((2,0,1))
+
+preds = model.predict([upscaled])
+steer_preds = preds[:,5].reshape(num,)
+# derp, his steering isn't scaled like mine, his is -1 to 1
+plt.plot(np.array([steer_preds.reshape(len(steer_preds)),targets[:num,0]*2-1]).T,'.')
+
