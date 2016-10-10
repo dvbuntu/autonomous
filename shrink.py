@@ -33,6 +33,28 @@ dfiles = sorted(glob.glob('data/*.h5'))
 #train_0487.h5
 #train_0488.h5
 #train_0489.h5
+# 2nd wave, renamed to be forced to end of list
+#wtrain_0011.h5
+#wtrain_0012.h5
+#wtrain_0013.h5
+#wtrain_0014.h5
+#wtrain_0015.h5
+#wtrain_0016.h5
+#wtrain_0017.h5
+#wtrain_0018.h5
+#wtrain_0019.h5
+#wtrain_0020.h5
+#wtrain_0021.h5
+#wtrain_0022.h5
+#wtrain_0023.h5
+#wtrain_0024.h5
+#wtrain_0025.h5
+#wtrain_0026.h5
+#wtrain_0027.h5
+#wtrain_0028.h5
+#wtrain_0029.h5
+#wtrain_0030.h5
+
 
 
 all_imgs = []
@@ -126,6 +148,9 @@ for dfile in tqdm(dfiles):
         all_targets.extend(np.array(targets,dtype=np.float16))
 
 # Bad frame regions
+# will need to go back and determine where new frames should go
+# or...force them to the end...
+# and watch new frames for bad behavior
 bad = [(5000,5300),(7100,9200),(17500,19000),(21500,25300)]
 bad_idx = list()
 junk = [bad_idx.extend(list(range(s,e))) for (s,e) in bad]

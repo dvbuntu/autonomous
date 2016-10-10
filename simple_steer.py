@@ -39,33 +39,52 @@ real_in = Input(shape=(2,), name='real_input')
 frame_in = Input(shape=(3,nrows,ncols), name='img_input')
 
 # convolution for image input
-conv1 = Convolution2D(6,3,3,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
+conv1 = Convolution2D(24,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
 conv_l1 = conv1(frame_in)
 Econv_l1 = ELU()(conv_l1)
 pool_l1 = MaxPooling2D(pool_size=(2,2))(Econv_l1)
 
-conv2 = Convolution2D(8,3,3,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
+conv2 = Convolution2D(32,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
 conv_l2 = conv2(pool_l1)
 Econv_l2 = ELU()(conv_l2)
 pool_l2 = MaxPooling2D(pool_size=(2,2))(Econv_l2)
 drop_l2 = Dropout(dp)(pool_l2)
 
-conv3 = Convolution2D(16,3,3,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
+conv3 = Convolution2D(40,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
 conv_l3 = conv3(drop_l2)
 Econv_l3 = ELU()(conv_l3)
 pool_l3 = MaxPooling2D(pool_size=(2,2))(Econv_l3)
-
 drop_l3 = Dropout(dp)(pool_l3)
 
-flat = Flatten()(drop_l3)
+conv4 = Convolution2D(40,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
+conv_l4 = conv3(drop_l3)
+Econv_l4 = ELU()(conv_l3)
+pool_l4 = MaxPooling2D(pool_size=(2,2))(Econv_l3)
+drop_l4 = Dropout(dp)(pool_l3)
+
+conv5 = Convolution2D(48,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
+conv_l5 = conv5(drop_l4)
+Econv_l5 = ELU()(conv_l5)
+pool_l5 = MaxPooling2D(pool_size=(2,2))(Econv_l5)
+drop_l5 = Dropout(dp)(pool_l5)
+
+flat = Flatten()(drop_l5)
 
 M = merge([flat,real_in], mode='concat', concat_axis=1)
 
-D1 = Dense(32,W_regularizer=l1(wr), init='lecun_uniform')(M)
+D1 = Dense(256,W_regularizer=l1(wr), init='lecun_uniform')(M)
 ED1 = ELU()(D1)
 DED1 = Dropout(dp)(ED1)
 
-S1 = Dense(64,W_regularizer=l1(wr), init='lecun_uniform')(DED1)
+D2 = Dense(128,W_regularizer=l1(wr), init='lecun_uniform')(DED1)
+ED2 = ELU()(D2)
+DED2 = Dropout(dp)(ED2)
+
+D3 = Dense(128,W_regularizer=l1(wr), init='lecun_uniform')(DED2)
+ED3 = ELU()(D3)
+DED3 = Dropout(dp)(ED3)
+
+S1 = Dense(64,W_regularizer=l1(wr), init='lecun_uniform')(DED3)
 ES1 = ELU()(S1)
 
 # Custom activation to clamp values to 0-1
@@ -112,7 +131,7 @@ Steer_out = Dense(1, activation='linear', name='steer_out', init='lecun_uniform'
 model = Model(input=[real_in, frame_in], output=[Steer_out])
 
 sgd = SGD(lr=0.003)
-adam = Adam(lr=0.001)
+adam = Adam(lr=0.01)
 
 
 model.compile(loss=['mse'],
@@ -122,20 +141,20 @@ model.compile(loss=['mse'],
 # Switch to the compressed data input
 # Huzzah!
 
-imgs = np.load('data/imgs_arr_big.npz')['arr_0']
-speedx = np.load('data/speedx_arr_big.npz')['arr_0']
-targets = np.load('data/targets_arr_big.npz')['arr_0']
+imgs = np.load('data/imgs_arr_2.npz')['arr_0']
+speedx = np.load('data/speedx_arr_2.npz')['arr_0']
+targets = np.load('data/targets_arr_2.npz')['arr_0']
 nb_epoch = 100
-mini_epoch = 10
+mini_epoch = 5
 num_steps = int(nb_epoch/mini_epoch)
-for step in tqdm(range(5,num_steps)):
+for step in tqdm(range(0,num_steps)):
     h = model.fit([speedx, imgs], {'steer_out':targets[:,0]},
                     batch_size = 32, nb_epoch=mini_epoch, verbose=1,
                     validation_split=0.1, shuffle=True)
-    model.save_weights('steer_nodrop_l2_big_{0}_{1:4.5}.h5'.format(step,h.history['val_loss'][-1]),overwrite=True)
+    model.save_weights('steer_nodrop_l2_big2_{0}_{1:4.5}.h5'.format(step,h.history['val_loss'][-1]),overwrite=True)
 
-model.save_weights('steer_only_l2_big_final.h5',overwrite=True)
-model.load_weights('steer_only_l2_big_final.h5')
+model.save_weights('steer_only_l2_big2_final.h5',overwrite=True)
+model.load_weights('steer_only_l2_big2_final.h5')
 
 W = model.get_weights()
 
@@ -186,6 +205,7 @@ for wfile in tqdm(weights):
     mse.append(metrics.mean_squared_error(targets[val_idx:,0],steer_preds))
 
 
+plt.plot(np.array([steer_preds.reshape(len(steer_preds)),targets[val_idx:,0]]).T,'.')
 plt.plot(mse)
 
 import matplotlib.animation as animation
