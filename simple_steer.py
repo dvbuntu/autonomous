@@ -30,7 +30,7 @@ imgsize = 64
 nrows = 64
 ncols = 64
 wr = 0.00001
-dp = 0.
+dp = 0.2
 
 # speed, accel, distance, angle
 real_in = Input(shape=(2,), name='real_input')
@@ -131,7 +131,7 @@ Steer_out = Dense(1, activation='linear', name='steer_out', init='lecun_uniform'
 model = Model(input=[real_in, frame_in], output=[Steer_out])
 
 sgd = SGD(lr=0.003)
-adam = Adam(lr=0.01)
+adam = Adam(lr=0.001)
 
 
 model.compile(loss=['mse'],
