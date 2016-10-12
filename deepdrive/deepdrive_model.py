@@ -161,11 +161,11 @@ Wm = np.load('deepdrive_wgts.keras.npz')['arr_0']
 model.set_weights(Wm)
 
 # grab some example data and upsample
-imgs = np.load('../data/imgs_arr_big.npz')['arr_0']
+imgs = np.load('../data/imgs_arr.npz')['arr_0']
 # Switch back to BGR for caffe style
 imgs = imgs[:,::-1,:,:]
-speedx = np.load('../data/speedx_arr_big.npz')['arr_0']
-targets = np.load('../data/targets_arr_big.npz')['arr_0']
+speedx = np.load('../data/speedx_arr.npz')['arr_0']
+targets = np.load('../data/targets_arr.npz')['arr_0']
 
 import scipy.misc
 num = 100

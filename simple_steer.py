@@ -56,13 +56,13 @@ Econv_l3 = ELU()(conv_l3)
 pool_l3 = MaxPooling2D(pool_size=(2,2))(Econv_l3)
 drop_l3 = Dropout(dp)(pool_l3)
 
-conv4 = Convolution2D(40,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
-conv_l4 = conv3(drop_l3)
-Econv_l4 = ELU()(conv_l3)
-pool_l4 = MaxPooling2D(pool_size=(2,2))(Econv_l3)
-drop_l4 = Dropout(dp)(pool_l3)
+conv4 = Convolution2D(48,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
+conv_l4 = conv4(drop_l3)
+Econv_l4 = ELU()(conv_l4)
+pool_l4 = MaxPooling2D(pool_size=(2,2))(Econv_l4)
+drop_l4 = Dropout(dp)(pool_l4)
 
-conv5 = Convolution2D(48,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
+conv5 = Convolution2D(64,5,5,border_mode='same', W_regularizer=l1(wr), init='lecun_uniform')
 conv_l5 = conv5(drop_l4)
 Econv_l5 = ELU()(conv_l5)
 pool_l5 = MaxPooling2D(pool_size=(2,2))(Econv_l5)
@@ -86,43 +86,6 @@ DED3 = Dropout(dp)(ED3)
 
 S1 = Dense(64,W_regularizer=l1(wr), init='lecun_uniform')(DED3)
 ES1 = ELU()(S1)
-
-# Custom activation to clamp values to 0-1
-from keras import initializations
-from keras.engine import Layer
-import keras.backend as K
-
-class ClampedLinear(Layer):
-    '''Thresholded Linear Activation:
-    `f(x) = x for x > alpha and x < beta`
-    `f(x) = alpha for x <= alpha`.
-    `f(x) = beta for x >= beta`.
-    # Input shape
-        Arbitrary. Use the keyword argument `input_shape`
-        (tuple of integers, does not include the samples axis)
-        when using this layer as the first layer in a model.
-    # Output shape
-        Same shape as the input.
-    # Arguments
-        alpha: float >= 0. Left threshold
-        beta:  float >= 0. Right threshold
-    '''
-    def __init__(self, alpha=0., beta = 1.0, **kwargs):
-        self.supports_masking = True
-        self.alpha = K.cast_to_floatx(alpha)
-        self.beta = K.cast_to_floatx(beta)
-        super(ClampedLinear, self).__init__(**kwargs)
-    def call(self, x, mask=None):
-        y = K.maximum(x,self.alpha)
-        z = K.minimum(y,self.beta)
-        return z
-    def get_config(self):
-        config = {'alpha': float(self.alpha),
-                  'beta': float(self.beta),}
-        base_config = super(ClampedLinear, self).get_config()
-        return dict(list(base_config.items()) + list(config.items())) 
-
-clamp = ClampedLinear()
 
 #Steer_node = Dense(1, name='steer_node', init='lecun_uniform')(ES1)
 #Steer_out = Activation(clamp,name='steer_out')(Steer_node)
@@ -151,7 +114,7 @@ for step in tqdm(range(0,num_steps)):
     h = model.fit([speedx, imgs], {'steer_out':targets[:,0]},
                     batch_size = 32, nb_epoch=mini_epoch, verbose=1,
                     validation_split=0.1, shuffle=True)
-    model.save_weights('steer_nodrop_l2_big2_{0}_{1:4.5}.h5'.format(step,h.history['val_loss'][-1]),overwrite=True)
+    model.save_weights('steer_nodrop_l2_big2_fixed_{0}_{1:4.5}.h5'.format(step,h.history['val_loss'][-1]),overwrite=True)
 
 model.save_weights('steer_only_l2_big2_final.h5',overwrite=True)
 model.load_weights('steer_only_l2_big2_final.h5')
