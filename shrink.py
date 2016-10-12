@@ -160,6 +160,6 @@ speedx_arr = np.array([a for i,a in enumerate(all_speedx) if i not in bad_idx])
 targets_arr = np.array([a for i,a in enumerate(all_targets) if i not in bad_idx])
 
 # Save off Compressed data set
-np.savez('data/imgs_arr_big.npz',imgs_arr)
-np.savez('data/speedx_arr_big.npz',speedx_arr)
-np.savez('data/targets_arr_big.npz',targets_arr)
+np.savez('data/imgs_arr_big2.npz',imgs_arr)
+np.savez('data/speedx_arr_big2.npz',speedx_arr)
+np.savez('data/targets_arr_big2.npz',targets_arr)
