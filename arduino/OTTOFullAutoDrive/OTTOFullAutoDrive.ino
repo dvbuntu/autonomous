@@ -41,6 +41,9 @@ int chmax[channels];
 #define CMD_GAS 2
 #define CMD_TIME 3
 
+#define THR_DIR 0
+#define THR_THR 1
+
 unsigned long last_serial_time;
 unsigned long last_time;
 boolean BLINK = true;
@@ -62,6 +65,7 @@ const int SHOOT_DELAY = 250;
 //imu unit object
 MPU9250 ottoIMU;
 
+int thrData[2] = {0, 0};
 
 int initIMU() {
   // Read the WHO_AM_I register, this is a good test of communication
@@ -163,15 +167,52 @@ void doAction() {
         steering 1600 - 1900 map left
     */
     digitalWrite(PIN_LED1, HIGH);
-    setSteering(ch[CH_STR]);
+
+    //setSteering(ch[CH_STR]);
     /*
        Throttling:
         1100 - 1500: reverse
         1500 - 1600: no throttle
         1600 - 1900: forward
     */
-    setThrottle(ch[CH_THR]);
+    //setThrottle(ch[CH_THR]);
+    convertTHR(ch[CH_THR], thrData);
+    autoRearSteer(convertSTR(ch[CH_STR]), thrData[THR_DIR], thrData[THR_THR]);
   }
+}
+
+int convertSTR(int ch_data) {
+  int pos;
+  if (ch_data > 1100 && ch_data < 1500) { //right
+    pos = map(ch_data, 1100, 1500, 1589, 1525 );
+  } else if (ch_data > 1550 && ch_data < 1937) { //left
+    pos = map(ch_data, 1550, 1935, 1550, 1400  );
+  }
+  else {
+    pos = 1500; //straight range: 1500 - 1550 ch_str
+  }
+  return pos;
+}
+
+void convertTHR(int ch_data, int  _thrData[] ) {
+  int thr;
+  int DIR;
+  thr = ch_data;
+  //map the channel data to throttle data
+
+  if (ch_data > 1115 && ch_data < 1520) { //reverse
+    thr = map(ch_data, 1115, 1520, 255, 0 );
+    DIR = LOW;
+  } else if (ch_data > 1550 && ch_data < 1940) { //forward
+    thr = map(ch_data, 1551, 1940, 0, 255  );
+    DIR = HIGH;
+  }
+  else {
+    thr = 0; //stop
+    DIR = LOW;
+  }
+  _thrData[THR_THR] = thr;
+  _thrData[THR_DIR] = DIR;
 }
 
 void setThrottle(int ch_data) {
@@ -269,7 +310,7 @@ void autoSteer(int str) //0 - 255
 }
 
 /*
-   Automatic Throttle
+   Automatic Throttle: wheels go same speed
 */
 void autoThrottle(int DIR, int thr) {
 
@@ -291,16 +332,18 @@ void autoThrottle(int DIR, int thr) {
 
 
 //We need a direction forward or reverse. Steer value.  Throttle speed.
-void autoRearSteer(int dir, int str, int thr) {
+//str needs to be 0-255 only
+void autoRearSteer(int str, int dir, int thr) {
   int rightWheel = thr;
   int leftWheel = thr;
-  int turnSpeed = 50;
-
+  int turnSpeed = 0;
   //front wheel steering
   int pos;
+
   if (str <= 127 ) //steer right
   {
     pos = map(str, 127, 0, 1510, 1589);
+    turnSpeed = map(str, 127, 0, 0, 127);
     leftWheel = leftWheel + turnSpeed ;
     if (leftWheel > 255) {
       leftWheel = 255;
@@ -309,6 +352,7 @@ void autoRearSteer(int dir, int str, int thr) {
   else if (str > 128) //steer left
   {
     pos = map(str, 129, 255, 1490, 1400);
+    turnSpeed = map(str, 129, 255, 0, 127);
     rightWheel = rightWheel + turnSpeed ;
     if (rightWheel > 255) {
       rightWheel = 255;
@@ -322,6 +366,12 @@ void autoRearSteer(int dir, int str, int thr) {
   }
   SoftPWMServoServoWrite(PIN_STR, pos);
 
+
+  //shoot through protection
+  if ( dir != PREV_DIR) {
+    delay(SHOOT_DELAY);
+  }
+  PREV_DIR = dir;
   //special magic
   digitalWrite(PIN_M1_DIR, dir); //Forward or Backward
   digitalWrite(PIN_M2_DIR, dir); //Backward or Backward
@@ -439,7 +489,7 @@ void doAutoCommands() {
       //do commands
       //autoSteer(str);
       //autoThrottle(dir, gas);
-      autoRearSteer(dir, str, gas);
+      autoRearSteer(str, dir, gas);
     }
   }
 
@@ -464,14 +514,13 @@ void printIMU()
   ottoIMU.gx = (float)ottoIMU.gyroCount[0] * ottoIMU.gRes;
   ottoIMU.gy = (float)ottoIMU.gyroCount[1] * ottoIMU.gRes;
   ottoIMU.gz = (float)ottoIMU.gyroCount[2] * ottoIMU.gRes;
-
+  
   Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis() );
   ottoIMU.count = millis();
   ottoIMU.sumCount = 0;
   ottoIMU.sum = 0;
 
   delay(10);
-
 }
 
 void setup() {
