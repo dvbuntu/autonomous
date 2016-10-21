@@ -148,7 +148,7 @@ void doAction() {
     //char cmdBuf [MAX_CMD_BUF + 1];
     //byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
     //Turn off when not in auto
-    digitalWrite(PIN_LED1, HIGH);
+    //digitalWrite(PIN_LED1, HIGH);
     if (DEBUG_SERIAL) {
       Serial.printf("Out of Range or Powered Off\n");
     }
@@ -166,18 +166,17 @@ void doAction() {
        steering between 1500 - 1600 straight
         steering 1600 - 1900 map left
     */
-    digitalWrite(PIN_LED1, HIGH);
-
-    //setSteering(ch[CH_STR]);
+   // digitalWrite(PIN_LED1, HIGH);
+    setSteering(ch[CH_STR]);
     /*
        Throttling:
         1100 - 1500: reverse
         1500 - 1600: no throttle
         1600 - 1900: forward
     */
-    //setThrottle(ch[CH_THR]);
-    convertTHR(ch[CH_THR], thrData);
-    autoRearSteer(convertSTR(ch[CH_STR]), thrData[THR_DIR], thrData[THR_THR]);
+    setThrottle(ch[CH_THR]);
+//    convertTHR(ch[CH_THR], thrData);
+//    autoRearSteer(convertSTR(ch[CH_STR]), thrData[THR_DIR], thrData[THR_THR]);
   }
 }
 
@@ -273,7 +272,7 @@ void setSteering(int ch_data) {
     pos = 1500; //straight range: 1500 - 1550 ch_str
   }
 
-
+  //TODO: Record the value written to the servo: should go into global data struct
   SoftPWMServoServoWrite(PIN_STR, pos);
   if (DEBUG_SERIAL) {
     Serial.printf("str: ch: %d servo: %d\n", ch_data, pos);
@@ -284,7 +283,9 @@ void setSteering(int ch_data) {
 /*
    Auto Steering
 */
-
+/*
+ * TODO: Convert to receiveing microseconds
+ */
 void autoSteer(int str) //0 - 255
 {
   int pos;
@@ -301,7 +302,7 @@ void autoSteer(int str) //0 - 255
     pos = 1500;
   }
 
-
+  //TODO: Record the value written to the servo: should go into global data struct
   SoftPWMServoServoWrite(PIN_STR, pos);
   if (DEBUG_SERIAL) {
     Serial.printf("str: ch: %d servo: %d\n", str, pos);
@@ -502,8 +503,13 @@ void doAutoCommands() {
 /*
    printIMU to serial port
 */
-void printIMU()
+void printData()
 {
+  /*
+   * TODO: steering microseconds
+   *       throttle microseconds
+   * 
+   */
   ottoIMU.readAccelData(ottoIMU.accelCount);  // Read the x/y/z adc values
   ottoIMU.getAres();
   ottoIMU.ax = (float)ottoIMU.accelCount[0] * ottoIMU.aRes; // - accelBias[0];
@@ -514,7 +520,7 @@ void printIMU()
   ottoIMU.gx = (float)ottoIMU.gyroCount[0] * ottoIMU.gRes;
   ottoIMU.gy = (float)ottoIMU.gyroCount[1] * ottoIMU.gRes;
   ottoIMU.gz = (float)ottoIMU.gyroCount[2] * ottoIMU.gRes;
-  
+
   Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis() );
   ottoIMU.count = millis();
   ottoIMU.sumCount = 0;
@@ -541,7 +547,12 @@ void setup() {
   SoftPWMServoPWMWrite(PIN_M2_PWM, 0);
 
   initIMU();
-  delay(2000);
+  for (int ii = 0; ii < 10; ii++) {
+    digitalWrite(PIN_LED1, ii % 2);
+    delay(200);
+  }
+  digitalWrite(PIN_LED1, LOW);
+
   /*
     //initIMU: if not reachable stop
     if (!initIMU()) {
@@ -561,7 +572,7 @@ void loop() {
 
   if ((millis() - last_serial_time) > 100)
   {
-    printIMU();
+    printData();
     last_serial_time = millis();
   }
 }
