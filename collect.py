@@ -48,6 +48,8 @@ if not debug:
 else:
     ser = open('/home/ubuntu/proj/autonomous/test_collect.csv')
 
+# initialize speeds
+speeds = np.zeros(3,dtype=np.float32)
 
 # setup storage
 imgs = np.zeros((num_frames,3,64,64),dtype=np.uint8)
@@ -70,25 +72,43 @@ try:
             ## Read acceleration information (and time, TODO)
             d = ser.readline()
             ## most recent line
-            data = list(map(int,str(d,'ascii').split(',')))
+            #data = list(map(int,str(d,'ascii').split(',')))
         else:
             d = ser.readline()
             line = d.strip()
             data = list(map(int,line.split(',')))
         # Record all in convenient format
-        steer = data[0]
-        direction = data[1]
-        if direction:
-            gas = data[2]
-        else:
-            gas = -1*data[2]
-        time = data[3]
-        speed = data[4]
-        accel = data[5]
+        accel = np.array([float(d[0]),float(d[1]),float(d[2])], dtype=np.float16)
+        gx = float(d[3])
+        gy = float(d[4])
+        gz = float(d[5])
+        time = int(data[6])
+        steer_raw = int(data[7])
+        gas_raw = int(data[8])
+        #direction = data[1]
+        #if direction:
+        #    gas = data[2]
+        #else:
+        #    gas = -1*data[2]
+        #time = data[3]
+        #speed = data[4]
+        #accel = data[5]
+        accel[2] -= 1 # subtract accel due to gravity, maybe the car can fly :p
+        # rescale inputs ( decide on max speed and accel of vehicle), clamp values to these
+        accel = accel / 10.
+        # update speeds, accel is scaled to be m/s**2 at this point
+        # so just multiply by seconds elapsed
+        speeds = speeds + accel*(t-t_old)/1000.
+        # now shift the accel
+        accel += 0.5
+        # compute magnitude of speed and accel
+        mspeed = np.sqrt(np.sum(speeds*speeds))
+        maccel = np.sqrt(np.sum(accel*accel))
+
         # Stuff into appropriate arrays
         imgs[idx] = np.array(img,dtype=np.uint8)
-        speedx[idx] = np.array([speed,accel],dtype=np.float16)
-        targets[idx] = np.array([steer,gas],dtype=np.float16)
+        speedx[idx] = np.array([mspeed,maccel],dtype=np.float16)
+        targets[idx] = np.array([steer_raw,gas_raw],dtype=np.float16)
         # increment counter, maybe save
         idx += 1
         if idx % num_frames == 0:
