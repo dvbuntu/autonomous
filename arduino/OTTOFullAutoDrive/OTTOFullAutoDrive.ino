@@ -41,6 +41,10 @@ int chmax[channels];
 #define CMD_GAS 2
 #define CMD_TIME 3
 
+#define THR_DIR 0
+#define THR_THR 1
+
+unsigned long last_serial_time;
 unsigned long last_time;
 boolean BLINK = true;
 
@@ -61,8 +65,10 @@ const int SHOOT_DELAY = 250;
 //imu unit object
 MPU9250 ottoIMU;
 
-//Autonomous Mode info
-boolean AUTOMODE = false;
+int thrData[2] = {0, 0};
+
+int log_thr = 0;
+int log_steer = 0;
 
 int initIMU() {
   // Read the WHO_AM_I register, this is a good test of communication
@@ -85,7 +91,7 @@ int initIMU() {
     // communication
     byte maddr = ottoIMU.readByte(AK8963_ADDRESS, WHO_AM_I_AK8963);
     if (DEBUG_SERIAL) {
-      Serial.printf("AK8963 I AM %02x  I should be %02x \n",maddr,0x48);
+      Serial.printf("AK8963 I AM %02x  I should be %02x \n", maddr, 0x48);
     }
     // Get magnetometer calibration from AK8963 ROM
     ottoIMU.initAK8963(ottoIMU.magCalibration);
@@ -97,7 +103,7 @@ int initIMU() {
   else
   {
     if (DEBUG_SERIAL) {
-      Serial.printf("Could not connect to MPU9250: 0x %02x\n",addr);
+      Serial.printf("Could not connect to MPU9250: 0x %02x\n", addr);
     }
     //while (1) ; // Loop forever if communication doesn't happen
     return false;
@@ -122,7 +128,7 @@ void doAction() {
   }//end kill switch
 
   //check if auto on
-  if (ch[CH_AUTO] > 1500 || AUTOMODE == true) {
+  if (ch[CH_AUTO] > 1500 && ch[CH_AUTO] < 1900) {
     //Turn on when auto
     digitalWrite(PIN_LED1, HIGH);
     if (DEBUG_SERIAL) {
@@ -133,12 +139,19 @@ void doAction() {
     if (Serial.available() > 0) {
       doAutoCommands();
     }
+    if (ch[CH_AUTO] > 1900)
+    {
+      autoSpin();
+    }
     return;
   }
   else if (ch[CH_STR] == 0 ) //check for RCCommands
   {
+    Serial.flush();
+    //char cmdBuf [MAX_CMD_BUF + 1];
+    //byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
     //Turn off when not in auto
-    digitalWrite(PIN_LED1, HIGH);
+    //digitalWrite(PIN_LED1, HIGH);
     if (DEBUG_SERIAL) {
       Serial.printf("Out of Range or Powered Off\n");
     }
@@ -147,12 +160,16 @@ void doAction() {
   }
   else
   {
+    //empty  serial buffer
+    //char cmdBuf [MAX_CMD_BUF + 1];
+    //byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
+    Serial.flush();
     /*
        steering 1100 - 1500 map left
        steering between 1500 - 1600 straight
         steering 1600 - 1900 map left
     */
-    digitalWrite(PIN_LED1, HIGH);
+   // digitalWrite(PIN_LED1, HIGH);
     setSteering(ch[CH_STR]);
     /*
        Throttling:
@@ -161,7 +178,43 @@ void doAction() {
         1600 - 1900: forward
     */
     setThrottle(ch[CH_THR]);
+//    convertTHR(ch[CH_THR], thrData);
+//    autoRearSteer(convertSTR(ch[CH_STR]), thrData[THR_DIR], thrData[THR_THR]);
   }
+}
+
+int convertSTR(int ch_data) {
+  int pos;
+  if (ch_data > 1100 && ch_data < 1500) { //right
+    pos = map(ch_data, 1100, 1500, 1589, 1525 );
+  } else if (ch_data > 1550 && ch_data < 1937) { //left
+    pos = map(ch_data, 1550, 1935, 1550, 1400  );
+  }
+  else {
+    pos = 1500; //straight range: 1500 - 1550 ch_str
+  }
+  return pos;
+}
+
+void convertTHR(int ch_data, int  _thrData[] ) {
+  int thr;
+  int DIR;
+  thr = ch_data;
+  //map the channel data to throttle data
+
+  if (ch_data > 1115 && ch_data < 1520) { //reverse
+    thr = map(ch_data, 1115, 1520, 255, 0 );
+    DIR = LOW;
+  } else if (ch_data > 1550 && ch_data < 1940) { //forward
+    thr = map(ch_data, 1551, 1940, 0, 255  );
+    DIR = HIGH;
+  }
+  else {
+    thr = 0; //stop
+    DIR = LOW;
+  }
+  _thrData[THR_THR] = thr;
+  _thrData[THR_DIR] = DIR;
 }
 
 void setThrottle(int ch_data) {
@@ -222,7 +275,7 @@ void setSteering(int ch_data) {
     pos = 1500; //straight range: 1500 - 1550 ch_str
   }
 
-
+  //TODO: Record the value written to the servo: should go into global data struct
   SoftPWMServoServoWrite(PIN_STR, pos);
   if (DEBUG_SERIAL) {
     Serial.printf("str: ch: %d servo: %d\n", ch_data, pos);
@@ -233,7 +286,9 @@ void setSteering(int ch_data) {
 /*
    Auto Steering
 */
-
+/*
+ * TODO: Convert to receiveing microseconds
+ */
 void autoSteer(int str) //0 - 255
 {
   int pos;
@@ -250,7 +305,7 @@ void autoSteer(int str) //0 - 255
     pos = 1500;
   }
 
-
+  //TODO: Record the value written to the servo: should go into global data struct
   SoftPWMServoServoWrite(PIN_STR, pos);
   if (DEBUG_SERIAL) {
     Serial.printf("str: ch: %d servo: %d\n", str, pos);
@@ -259,7 +314,7 @@ void autoSteer(int str) //0 - 255
 }
 
 /*
-   Automatic Throttle
+   Automatic Throttle: wheels go same speed
 */
 void autoThrottle(int DIR, int thr) {
 
@@ -278,6 +333,64 @@ void autoThrottle(int DIR, int thr) {
   }
   delay(25);
 }
+
+
+//We need a direction forward or reverse. Steer value.  Throttle speed.
+//str needs to be 0-255 only
+void autoRearSteer(int str, int dir, int thr) {
+  int rightWheel = thr;
+  int leftWheel = thr;
+  int turnSpeed = 0;
+  //front wheel steering
+  int pos;
+
+  if (str <= 127 ) //steer right
+  {
+    pos = map(str, 127, 0, 1510, 1589);
+    turnSpeed = map(str, 127, 0, 0, 127);
+    leftWheel = leftWheel + turnSpeed ;
+    if (leftWheel > 255) {
+      leftWheel = 255;
+    }
+  }
+  else if (str > 128) //steer left
+  {
+    pos = map(str, 129, 255, 1490, 1400);
+    turnSpeed = map(str, 129, 255, 0, 127);
+    rightWheel = rightWheel + turnSpeed ;
+    if (rightWheel > 255) {
+      rightWheel = 255;
+    }
+  }
+  else
+  {
+    pos = 1500;
+    rightWheel = thr;
+    leftWheel = thr;
+  }
+  SoftPWMServoServoWrite(PIN_STR, pos);
+
+
+  //shoot through protection
+  if ( dir != PREV_DIR) {
+    delay(SHOOT_DELAY);
+  }
+  PREV_DIR = dir;
+  //special magic
+  digitalWrite(PIN_M1_DIR, dir); //Forward or Backward
+  digitalWrite(PIN_M2_DIR, dir); //Backward or Backward
+  SoftPWMServoPWMWrite(PIN_M1_PWM, leftWheel); //these aren't servos use pwm
+  SoftPWMServoPWMWrite(PIN_M2_PWM, rightWheel);//these aren't servos use pwm
+
+}
+
+void autoSpin() {
+  digitalWrite(PIN_M1_DIR, 0); //Forward
+  digitalWrite(PIN_M2_DIR, 1); //Backward
+  SoftPWMServoPWMWrite(PIN_M1_PWM, 255); //these aren't servos use pwm
+  SoftPWMServoPWMWrite(PIN_M2_PWM, 255);//these aren't servos use pwm
+}
+
 
 /*
    Find and do the autonmous commands
@@ -353,11 +466,11 @@ void doAutoCommands() {
         break;
       case CMD_TIME:
         time = atoi(command);
-        /* 
-         *  Remove time check 
-        if (time < last_time) {
+        /*
+            Remove time check
+          if (time < last_time) {
           return;
-        }
+          }
         */
         last_time = time;
         if (DEBUG_SERIAL) {
@@ -378,8 +491,9 @@ void doAutoCommands() {
         Serial.printf("str: %d, dir: %d, gas: %d, time: %lu\n", str, dir, gas, time);
       }
       //do commands
-      autoSteer(str);
-      autoThrottle(dir, gas);
+      //autoSteer(str);
+      //autoThrottle(dir, gas);
+      autoRearSteer(str, dir, gas);
     }
   }
 
@@ -392,8 +506,13 @@ void doAutoCommands() {
 /*
    printIMU to serial port
 */
-void printIMU()
+void printData()
 {
+  /*
+   * TODO: steering microseconds
+   *       throttle microseconds
+   * 
+   */
   ottoIMU.readAccelData(ottoIMU.accelCount);  // Read the x/y/z adc values
   ottoIMU.getAres();
   ottoIMU.ax = (float)ottoIMU.accelCount[0] * ottoIMU.aRes; // - accelBias[0];
@@ -405,13 +524,13 @@ void printIMU()
   ottoIMU.gy = (float)ottoIMU.gyroCount[1] * ottoIMU.gRes;
   ottoIMU.gz = (float)ottoIMU.gyroCount[2] * ottoIMU.gRes;
 
-  Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis() );
+  Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(),
+  ch[CH_STR], ch[CH_THR]);
   ottoIMU.count = millis();
   ottoIMU.sumCount = 0;
   ottoIMU.sum = 0;
 
   delay(10);
-
 }
 
 void setup() {
@@ -427,11 +546,17 @@ void setup() {
   digitalWrite(PIN_KILL, LOW);
   digitalWrite(PIN_M1_DIR, LOW);
   digitalWrite(PIN_M2_DIR, LOW);
+  last_serial_time = millis();
   SoftPWMServoPWMWrite(PIN_M1_PWM, 0);
   SoftPWMServoPWMWrite(PIN_M2_PWM, 0);
 
   initIMU();
-  delay(2000);
+  for (int ii = 0; ii < 10; ii++) {
+    digitalWrite(PIN_LED1, ii % 2);
+    delay(200);
+  }
+  digitalWrite(PIN_LED1, LOW);
+
   /*
     //initIMU: if not reachable stop
     if (!initIMU()) {
@@ -448,7 +573,12 @@ void setup() {
 
 void loop() {
   doAction();
-  printIMU();
+
+  if ((millis() - last_serial_time) > 100)
+  {
+    printData();
+    last_serial_time = millis();
+  }
 }
 
 //Function: get The RC Control infomration
