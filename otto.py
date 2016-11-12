@@ -12,10 +12,12 @@ import argparse
 parser = argparse.ArgumentParser(description='Steer Otto, the autonomous tractor.')
 parser.add_argument('-d','--debug', action='store_true', default=False)
 parser.add_argument('-n','--no-video', action='store_true', default=False)
+parser.add_argument('-f','--failsafe', action='store_true', default=False)
 
 args = parser.parse_args()
 debug = args.debug
 video = not args.no_video 
+failsafe = args.failsafe
 
 import serial
 
@@ -62,6 +64,7 @@ def backup2():
 # setup model
 print("setting up model")
 from current_model import model
+adam = Adam(lr=0.001)
 model.compile(loss=['mse'],
               optimizer=adam,
               metrics=['mse'])
@@ -178,7 +181,8 @@ def do_loop(i=0):
     #if mspeed < 0.1:
     #    s = backup2()
     #    print('back the fun bus up')
-    s = backup1(s)
+    if failsafe:
+        s = backup1(s)
     print(' send {0}'.format(s))
     if not debug:
         try:

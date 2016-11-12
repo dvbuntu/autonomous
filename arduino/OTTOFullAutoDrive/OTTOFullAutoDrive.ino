@@ -67,6 +67,9 @@ MPU9250 ottoIMU;
 
 int thrData[2] = {0, 0};
 
+int log_thr = 0;
+int log_steer = 0;
+
 int initIMU() {
   // Read the WHO_AM_I register, this is a good test of communication
   byte addr = ottoIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
@@ -521,7 +524,8 @@ void printData()
   ottoIMU.gy = (float)ottoIMU.gyroCount[1] * ottoIMU.gRes;
   ottoIMU.gz = (float)ottoIMU.gyroCount[2] * ottoIMU.gRes;
 
-  Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis() );
+  Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(),
+  ch[CH_STR], ch[CH_THR]);
   ottoIMU.count = millis();
   ottoIMU.sumCount = 0;
   ottoIMU.sum = 0;
