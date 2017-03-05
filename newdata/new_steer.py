@@ -104,11 +104,11 @@ model.compile(loss=['mse'],
 # Switch to the compressed data input
 # Huzzah!
 
-imgs = np.load('data/imgs_arr_2.npz')['arr_0']
-speedx = np.load('data/speedx_arr_2.npz')['arr_0']
-targets = np.load('data/targets_arr_2.npz')['arr_0']
-nb_epoch = 100
-mini_epoch = 5
+imgs = np.load('imgs_2016-10-29_17:41:04.npz')['arr_0']
+speedx = np.load('speedx_2016-10-29_17:41:04.npz')['arr_0']
+targets = np.load('targets_2016-10-29_17:41:04.npz')['arr_0']
+nb_epoch = 1000
+mini_epoch = 100
 num_steps = int(nb_epoch/mini_epoch)
 for step in tqdm(range(0,num_steps)):
     h = model.fit([speedx, imgs], {'steer_out':targets[:,0]},
@@ -144,6 +144,12 @@ steer_preds = preds.reshape([-1])
 # plot predictions and actual
 plt.plot(np.array([steer_preds.reshape(len(steer_preds)),targets[:,0]]).T,'.')
 
+
+# rescale steering to 0-1 from 1100 - 1900
+scale_target_steer = (1900 - targets[:,0])/800
+scale_steer_preds = (1900 - steer_preds)/800
+
+
 # Animation!
 def get_point(s,start=0,end=63,height= 16):
     X = int(s*(end-start))
@@ -176,8 +182,8 @@ figure = plt.figure()
 imageplot = plt.imshow(np.zeros((64, 64, 3), dtype=np.uint8))
 def next_frame(i):
     im = Image.fromarray(np.array(imgs[val_idx+i].transpose(1,2,0),dtype=np.uint8))
-    p = get_point(1-steer_preds[i])
-    t = get_point(1-targets[i+val_idx,0])
+    p = get_point(1-scale_steer_preds[i])
+    t = get_point(1-scale_target_steer[i+val_idx])
     draw = ImageDraw.Draw(im) 
     draw.line((32,63, p,p),
                 fill=(255,0,0,128))
@@ -187,8 +193,9 @@ def next_frame(i):
     #if i % 10 == 0:
     #    print(i)
     return imageplot,
-animate = animation.FuncAnimation(figure, next_frame, frames=range(0,len(imgs)), interval=25, blit=False)
+animate = animation.FuncAnimation(figure, next_frame, frames=range(0,len(imgs)), interval=100, blit=False)
 plt.show()
+animate.save('new_data.gif',writer='imagemagick',dpi=50, fps=10)
 
 # Muck with default symbol cycler
 from itertools import cycle, product
