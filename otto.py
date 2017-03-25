@@ -31,7 +31,7 @@ from keras.optimizers import SGD, Adam, RMSprop
 from keras.regularizers import l2, activity_l2, l1
 from keras.utils.np_utils import to_categorical
 from keras import backend as K
-import sklearn.metrics as metrics
+import tflearn.metrics as metrics
 
 import datetime
 import time
