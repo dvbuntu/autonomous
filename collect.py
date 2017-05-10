@@ -6,6 +6,7 @@ import scipy
 import scipy.misc
 import datetime
 import time as timemod
+import logging
 
 import argparse
 
@@ -13,10 +14,25 @@ import argparse
 parser = argparse.ArgumentParser(description='Steer Otto, the autonomous tractor and collect data.')
 parser.add_argument('-n','--num_frames', action='store', default=100)
 parser.add_argument('-d','--debug', action='store_true', default=False)
+parser.add_argument('-l','--log', action='store', default='otto.log')
 
 args = parser.parse_args()
 num_frames = int(args.num_frames)
 debug = args.debug
+logfile = args.log
+
+
+# setup logfile
+logger = logging.getLogger('errlog')
+logger.setLevel(logging.INFO)
+# create file handler which logs even debug messages
+fh = logging.FileHandler(logfile)
+fh.setLevel(logging.INFO)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(fh)
 
 import serial
 
@@ -29,6 +45,7 @@ pygame.camera.init()
 
 # initialize webcam
 print('initialize webcam')
+logger.info('initialize webcam')
 cams = pygame.camera.list_cameras()
 cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
 cam.start()
@@ -41,6 +58,7 @@ speedx_file = 'speedx_{0}'.format(date.strftime(time_format))
 targets_file = 'targets_{0}'.format(date.strftime(time_format))
 
 print('connect to serial port')
+logger.info('connect to serial port')
 if not debug:
     ser = serial.Serial('/dev/ttyACM0')
     if(ser.isOpen() == False):
@@ -79,6 +97,7 @@ try:
                     data = list(map(float,str(d,'ascii').split(',')))
                 except ValueError as err:
                     print(err)
+                    logger.error(err)
                     continue
         else:
             d = ser.readline()
