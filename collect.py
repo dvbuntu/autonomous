@@ -69,13 +69,17 @@ try:
         img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,1,0)
         # Receive steering + gas (inc. direction)
         if not debug:
-            ## Read acceleration information (and time, TODO)
-            d = ser.readline()
-            ## most recent line
-            #data = list(map(int,str(d,'ascii').split(',')))
-            line = d.strip()
-            data = line.split(b',')
-            data = list(map(float,str(d,'ascii').split(',')))
+                try:
+                    ## Read acceleration information (and time, TODO)
+                    d = ser.readline()
+                    ## most recent line
+                    #data = list(map(int,str(d,'ascii').split(',')))
+                    line = d.strip()
+                    data = line.split(b',')
+                    data = list(map(float,str(d,'ascii').split(',')))
+                except ValueError as err:
+                    print(err)
+                    continue
         else:
             d = ser.readline()
             line = d.strip()
@@ -110,9 +114,9 @@ try:
         maccel = np.sqrt(np.sum(accel*accel))
 
         # Stuff into appropriate arrays
-        imgs[idx] = np.array(img,dtype=np.uint8)
-        speedx[idx] = np.array([mspeed,maccel],dtype=np.float16)
-        targets[idx] = np.array([steer_raw,gas_raw],dtype=np.float16)
+        imgs[idx % num_frames] = np.array(img,dtype=np.uint8)
+        speedx[idx % num_frames] = np.array([mspeed,maccel],dtype=np.float16)
+        targets[idx % num_frames] = np.array([steer_raw,gas_raw],dtype=np.float16)
         # increment counter, maybe save
         idx += 1
         if idx % num_frames == 0:
