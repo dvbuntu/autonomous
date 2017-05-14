@@ -6,6 +6,7 @@ import glob
 import scipy
 import scipy.misc
 import random
+import logging
 
 import argparse
 
@@ -13,11 +14,26 @@ parser = argparse.ArgumentParser(description='Steer Otto, the autonomous tractor
 parser.add_argument('-d','--debug', action='store_true', default=False)
 parser.add_argument('-n','--no-video', action='store_true', default=False)
 parser.add_argument('-f','--failsafe', action='store_true', default=False)
+parser.add_argument('-l','--log', action='store', default='otto_run.log')
 
 args = parser.parse_args()
 debug = args.debug
 video = not args.no_video 
 failsafe = args.failsafe
+logfile = args.log
+
+# setup logfile
+logger = logging.getLogger('errlog')
+logger.setLevel(logging.INFO)
+# create file handler which logs even debug messages
+fh = logging.FileHandler(logfile)
+fh.setLevel(logging.INFO)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(fh)
+
 
 import serial
 
@@ -63,6 +79,7 @@ def backup2():
 
 # setup model
 print("setting up model")
+logger.info('setting up model')
 from current_model import model
 adam = Adam(lr=0.001)
 model.compile(loss=['mse'],
@@ -75,12 +92,14 @@ model.load_weights('/home/ubuntu/proj/autonomous/steer_only_current.h5')
 
 # initialize webcam
 print('initialize webcam')
+logger.info('initialize webcam')
 cams = pygame.camera.list_cameras()
 cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
 cam.start()
 
 # make serial connection
 print('connect to serial port')
+logger.info('making serial connection')
 if not debug:
     ser = serial.Serial('/dev/ttyACM0')
     if(ser.isOpen() == False):
@@ -117,6 +136,7 @@ def get_point(s,start=0,end=63,height= 16):
 
 if video == True:
     print('setup animation')
+    logger.info('Setup Animation')
     import matplotlib.pyplot as plt
     import matplotlib.animation as animation
     #plt.ion()
@@ -152,6 +172,7 @@ def do_loop(i=0):
     # parse into list
     # save some info
     print('Saw {0}'.format(data), end='')
+    logger.info('Saw {0}'.format(data))
     # get time in ms
     now = datetime.datetime.now()
     t_old = t
@@ -184,11 +205,13 @@ def do_loop(i=0):
     if failsafe:
         s = backup1(s)
     print(' send {0}'.format(s))
+    logger.info(' send {0}'.format(s))
     if not debug:
         try:
             ser.write(s.encode('ascii'))
         except:
             print("Couldn't write, moving on")
+            logger.info('Couldn't write to serial port, skipping')
     if video == True:
         im = Image.fromarray(np.array(img.transpose(1,2,0),dtype=np.uint8))
         p = get_point(1-pred[0])
