@@ -25,7 +25,17 @@ sudo pip3 install keras
 ```
 # These instructions are for python2 instead of python3. Have to do over. :-(
 ### Install TensorFlow via Jetson Hack Instructions
+
+
+Another version of installing the Python version. It must be updated to python3 as well:
+https://syed-ahmed.gitbooks.io/nvidia-jetson-tx2-recipes/content/first-question.html
+
+
+
 http://www.jetsonhacks.com/2017/04/02/tensorflow-on-nvidia-jetson-tx2-development-kit/
+
+
+
 
 General Dependencies
 ```bash
