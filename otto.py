@@ -211,7 +211,7 @@ def do_loop(i=0):
             ser.write(s.encode('ascii'))
         except:
             print("Couldn't write, moving on")
-            logger.info('Couldn't write to serial port, skipping')
+            logger.info("Couldn't write to serial port, skipping")
     if video == True:
         im = Image.fromarray(np.array(img.transpose(1,2,0),dtype=np.uint8))
         p = get_point(1-pred[0])
