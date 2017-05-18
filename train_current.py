@@ -45,6 +45,7 @@ target_files = glob.glob(os.path.join([data_dir,'targets*.npz']))
 
 # step through each data file, doing an epoch at a time
 for n in range(num_epochs):
+    print("Starting epoch {0}".format(n))
     for i,s,t in zip(img_files, speedx_files, target_files):
         imgs = np.load(i)['arr_0']
         speedx = np.load(s)['arr_0']
@@ -53,6 +54,7 @@ for n in range(num_epochs):
                         batch_size = 32, nb_epoch=1, verbose=1,
                         validation_split=0.1, shuffle=True)
     if n % save_epochs == 0:
+        print("Saving epoch {0} to {1}".format(n,weightfile))
         model.save_weights(weightfile,overwrite=True)
 
 # final weight saving
