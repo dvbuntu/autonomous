@@ -5,7 +5,7 @@ from keras.layers import Embedding, Input, merge, ELU
 from keras.layers.recurrent import SimpleRNN, LSTM
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD, Adam, RMSprop
-from keras.regularizers import l2, activity_l2, l1
+from keras.regularizers import l2, l1
 from keras.utils.np_utils import to_categorical
 from keras import backend as K
 import sklearn.metrics as metrics
