@@ -23,8 +23,8 @@ imgsize = 64
 # frame size
 nrows = 64
 ncols = 64
-wr = 0.00000
-dp = 0.0
+wr = 0.00001
+dp = 0.125
 
 # speed, accel, distance, angle
 real_in = Input(shape=(2,), name='real_input')
