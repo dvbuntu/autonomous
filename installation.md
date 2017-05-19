@@ -3,7 +3,7 @@ OTTO Tractor Configuration
 
 ## Video 4 Linux
 ```bash
-modprobe bcm2835-v4l
+sudo modprobe bcm2835-v4l2
 ```
 
 ## Learning System
