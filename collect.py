@@ -60,9 +60,11 @@ targets_file = 'targets_{0}'.format(date.strftime(time_format))
 print('connect to serial port')
 logger.info('connect to serial port')
 if not debug:
-    ser = serial.Serial('/dev/ttyACM0')
-    if(ser.isOpen() == False):
-        ser.open()
+    try:
+        ser = serial.Serial('/dev/ttyACM0')
+    except serial.SerialException:
+        print('can not connect to serial port')
+        logger.error('can not connect to serial port')
 else:
     ser = open('/home/ubuntu/proj/autonomous/test_collect.csv')
 
