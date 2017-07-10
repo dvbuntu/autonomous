@@ -115,10 +115,7 @@ def find_app_data_dir():
     app_data_dir = None
     
     if APP_DATA_PATH_ENVIRONMENT_VARIABLE in os.environ:
-
-        environment_dir = os.environ[APP_DATA_PATH_ENVIRONMENT_VARIABLE]
-        if fileutils.is_dir_exists(environment_dir):
-            app_data_dir = environment_dir
+        app_data_dir = os.environ[APP_DATA_PATH_ENVIRONMENT_VARIABLE]
     
     if not app_data_dir:
         app_data_dir = os.path.expandvars(DEFAULT_APP_DATA_PATH)
