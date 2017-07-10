@@ -1,5 +1,14 @@
 # FUBAR Labs Autonomous PowerWheels Racing
 
+Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing compeition.
+* Autonmous Powerwheels Racing event will be Makerfaire NYC 2017
+* Autonmous Vehicle Competition via Sparkfun at Denver Makerfaire 2017
+
+## More documentation at the wiki
+
+[Autonomous Project Documenatation](https://github.com/fubarlabs/autonomous/wiki)
+
+
 Simple model in `basic_model.py`.  Currently linear with mean squared error loss (summed over outputs?)
 
 ## Inputs
