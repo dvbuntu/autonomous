@@ -1,4 +1,4 @@
-# FUBAR Labs Autonomous PowerWheels Racing
+# FUBAR Labs Autonomous Racing Vehicles
 
 Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing compeition.
 * Autonmous Powerwheels Racing event will be Makerfaire NYC 2017
