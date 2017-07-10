@@ -8,6 +8,7 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 
 [Autonomous Project Documenatation](https://github.com/fubarlabs/autonomous/wiki)
 
+## Code details
 
 Simple model in `basic_model.py`.  Currently linear with mean squared error loss (summed over outputs?)
 
