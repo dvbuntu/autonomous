@@ -8,21 +8,21 @@ from core.utils import loggingutils
 # Data Directory Structure:
 #
 #     otto_data/
-#     otto_data/app.settings
+#     otto_data/app_main.settings
 #     otto_data/collect_auto
 #     otto_data/collect_remote
 #     otto_data/logs
 
 APP_NAME = "otto"
 
-APP_CONFIG_FILE_NAME = 'app.settings'
+APP_CONFIG_FILE_NAME = 'app_main.settings'
 APP_DATA_PATH_ENVIRONMENT_VARIABLE = "OTTO_PATH"
 DEFAULT_APP_DATA_PATH = "${HOME}/otto_data"
 
 AUTONOMOUS_DATA_SUBDIR = "collect_auto"
 REMOTE_CONTROL_DATA_SUBDIR = "collect_remote"
 LOG_SUBDIR = "logs"
-LOG_FILE = "app.log"
+LOG_FILE = "app_main.log"
 
 # Settings File Properties:
 
@@ -108,7 +108,7 @@ def create_default_dirs (app_data_dir):
     
 
 def find_app_data_dir():
-    ''' Finds the app data directory either using the environment variable or
+    ''' Finds the app_main data directory either using the environment variable or
         defaulting to the user home directory. Will use the home directory if
         none is found.
     '''
@@ -124,27 +124,32 @@ def find_app_data_dir():
 
 
 def log_app_settings (app_settings, logger):
+    ''' Logs the current settings.
+    '''
 
     logger.info ("App Settings:")
-    logger.info ("    Debug Mode            " + str(app_settings.debug))
-    logger.info ("    Dir - Main            " + app_settings.app_data_dir)
-    logger.info ("    Dir - Autonomous Data " + app_settings.autonomous_data_dir)
-    logger.info ("    Dir - Remote Data     " + app_settings.remote_data_dir)
-    logger.info ("    Dir - Logs            " + app_settings.log_dir)
-    logger.info ("    Log - File            " + app_settings.log_file_path)
-    logger.info ("    Log - Console Level   " + loggingutils.level_to_string (app_settings.log_console_level))
-    logger.info ("    Log - File Level      " + loggingutils.level_to_string (app_settings.log_file_level))
-    logger.info ("    Serial Port           " + app_settings.serial_port)
+    logger.info ("Debug Mode            %s", str(app_settings.debug))
+    logger.info ("Dir - Main            %s", app_settings.app_data_dir)
+    logger.info ("Dir - Autonomous Data %s", app_settings.autonomous_data_dir)
+    logger.info ("Dir - Remote Data     %s", app_settings.remote_data_dir)
+    logger.info ("Dir - Logs            %s", app_settings.log_dir)
+    logger.info ("Log - File            %s", app_settings.log_file_path)
+    logger.info ("Log - Console Level   %s", loggingutils.level_to_string (app_settings.log_console_level))
+    logger.info ("Log - File Level      %s", loggingutils.level_to_string (app_settings.log_file_level))
+    logger.info ("Serial Port           %s", app_settings.serial_port)
 
 
 def new_default_app_settings(app_data_dir):
-    ''' Create app settings with the default app data directory and default
+    ''' Create app_main settings with the default app_main data directory and default
         setting values.
     '''
     return AppSettings(DEFAULT_DEBUG_VALUE, app_data_dir)
 
 
 def new_logger(app_settings):
+    ''' Creates a new logger that sends to the console and the file system.
+        It uses the log levels in app_settings.
+    '''
     
     logger = logging.getLogger(APP_NAME)
     logger.setLevel(min (app_settings.log_console_level, app_settings.log_file_level))
@@ -178,6 +183,8 @@ def new_logger(app_settings):
     return logger
 
 def print_app_settings (app_settings, logger):
+    ''' Debugging method to be called when the logger is misbehaving.
+    '''
     
     print ("App Settings:")
     print ("    Debug Mode            " + str(app_settings.debug))
@@ -192,6 +199,8 @@ def print_app_settings (app_settings, logger):
 
 
 def retrieve_app_settings(app_data_dir):
+    ''' Read in the app_main settings from the file system.
+    '''
     
     app_settings_path = fileutils.join(app_data_dir, APP_CONFIG_FILE_NAME)
     
