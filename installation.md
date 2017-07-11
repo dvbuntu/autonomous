@@ -1,6 +1,11 @@
 # otto
 OTTO Tractor Configuration
 
+## Video 4 Linux
+```bash
+sudo modprobe bcm2835-v4l2
+```
+
 ## Learning System
 
 Equipment: Nvidia TX2
