@@ -8,21 +8,21 @@ from core.utils import loggingutils
 # Data Directory Structure:
 #
 #     otto_data/
-#     otto_data/app.settings
+#     otto_data/app_main.settings
 #     otto_data/collect_auto
 #     otto_data/collect_remote
 #     otto_data/logs
 
 APP_NAME = "otto"
 
-APP_CONFIG_FILE_NAME = 'app.settings'
+APP_CONFIG_FILE_NAME = 'app_main.settings'
 APP_DATA_PATH_ENVIRONMENT_VARIABLE = "OTTO_PATH"
 DEFAULT_APP_DATA_PATH = "${HOME}/otto_data"
 
 AUTONOMOUS_DATA_SUBDIR = "collect_auto"
 REMOTE_CONTROL_DATA_SUBDIR = "collect_remote"
 LOG_SUBDIR = "logs"
-LOG_FILE = "app.log"
+LOG_FILE = "app_main.log"
 
 # Settings File Properties:
 
@@ -108,7 +108,7 @@ def create_default_dirs (app_data_dir):
     
 
 def find_app_data_dir():
-    ''' Finds the app data directory either using the environment variable or
+    ''' Finds the app_main data directory either using the environment variable or
         defaulting to the user home directory. Will use the home directory if
         none is found.
     '''
@@ -124,55 +124,83 @@ def find_app_data_dir():
 
 
 def log_app_settings (app_settings, logger):
-    logger.info ("App Settings")
-    logger.info ("  Debug Mode:            " + str(app_settings.debug))
-    logger.info ("  Dir - Main:            " + app_settings.app_data_dir)
-    logger.info ("  Dir - Autonomous Data: " + app_settings.autonomous_data_dir)
-    logger.info ("  Dir - Remote Data:     " + app_settings.remote_data_dir)
-    logger.info ("  Dir - Logs:            " + app_settings.log_dir)
-    logger.info ("  Log - File:            " + app_settings.log_file_path)
-    logger.info ("  Log - Console Level:   " + loggingutils.level_to_string (app_settings.log_console_level))
-    logger.info ("  Log - File Level:      " + loggingutils.level_to_string (app_settings.log_file_level))
-    logger.info ("  Serial Port:           " + app_settings.serial_port)
+    ''' Logs the current settings.
+    '''
+
+    logger.info ("App Settings:")
+    logger.info ("Debug Mode            %s", str(app_settings.debug))
+    logger.info ("Dir - Main            %s", app_settings.app_data_dir)
+    logger.info ("Dir - Autonomous Data %s", app_settings.autonomous_data_dir)
+    logger.info ("Dir - Remote Data     %s", app_settings.remote_data_dir)
+    logger.info ("Dir - Logs            %s", app_settings.log_dir)
+    logger.info ("Log - File            %s", app_settings.log_file_path)
+    logger.info ("Log - Console Level   %s", loggingutils.level_to_string (app_settings.log_console_level))
+    logger.info ("Log - File Level      %s", loggingutils.level_to_string (app_settings.log_file_level))
+    logger.info ("Serial Port           %s", app_settings.serial_port)
 
 
 def new_default_app_settings(app_data_dir):
-    ''' Create app settings with the default app data directory and default
+    ''' Create app_main settings with the default app_main data directory and default
         setting values.
     '''
     return AppSettings(DEFAULT_DEBUG_VALUE, app_data_dir)
 
 
 def new_logger(app_settings):
-    
-    logging.basicConfig(
-            format=DEFAULT_LOG_FORMAT,
-            datefmt=DEFAULT_DATE_FORMAT
-            )
+    ''' Creates a new logger that sends to the console and the file system.
+        It uses the log levels in app_settings.
+    '''
     
     logger = logging.getLogger(APP_NAME)
+    logger.setLevel(min (app_settings.log_console_level, app_settings.log_file_level))
+    logger_format = logging.Formatter(
+            fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt = "%Y-%m-%d %H:%M:%S"
+            )
     
     if app_settings.log_console_level is not None:
         console_log_handler = logging.StreamHandler()
         console_log_handler.setLevel(app_settings.log_console_level)
+        console_log_handler.setFormatter(logger_format)
         logger.addHandler(console_log_handler)
 
     if app_settings.log_file_level is not None:
         file_log_handler = logging.FileHandler(app_settings.log_file_path)
         file_log_handler.setLevel(app_settings.log_file_level)
+        file_log_handler.setFormatter(logger_format)
         logger.addHandler(file_log_handler)
         
     if app_settings.log_console_level is None and app_settings.log_file_level is None:
         # None set. Set console to Error:
         console_log_handler = logging.StreamHandler()
         console_log_handler.setLevel(logging.ERROR)
+        console_log_handler.setFormatter(logger_format)
         logger.addHandler(console_log_handler)
         
-        logger.error("No log configured. Defaulting to console log, level Error.")    
+        logger.error("No log configured. Defaulting to console log, level Error.")
+        print ("doh!")
 
     return logger
 
+def print_app_settings (app_settings, logger):
+    ''' Debugging method to be called when the logger is misbehaving.
+    '''
+    
+    print ("App Settings:")
+    print ("    Debug Mode            " + str(app_settings.debug))
+    print ("    Dir - Main            " + app_settings.app_data_dir)
+    print ("    Dir - Autonomous Data " + app_settings.autonomous_data_dir)
+    print ("    Dir - Remote Data     " + app_settings.remote_data_dir)
+    print ("    Dir - Logs            " + app_settings.log_dir)
+    print ("    Log - File            " + app_settings.log_file_path)
+    print ("    Log - Console Level   " + loggingutils.level_to_string (app_settings.log_console_level))
+    print ("    Log - File Level      " + loggingutils.level_to_string (app_settings.log_file_level))
+    print ("    Serial Port           " + app_settings.serial_port)
+
+
 def retrieve_app_settings(app_data_dir):
+    ''' Read in the app_main settings from the file system.
+    '''
     
     app_settings_path = fileutils.join(app_data_dir, APP_CONFIG_FILE_NAME)
     
@@ -184,7 +212,7 @@ def retrieve_app_settings(app_data_dir):
     settings = Settings(app_settings_path)    
     app_settings.debug = settings.get_bool(APP_CONFIG_SECTION, DEBUG_CONFIG_PROPERTY, DEFAULT_DEBUG_VALUE)
     app_settings.serial_port = settings.get_string(APP_CONFIG_SECTION, SERIAL_PORT_CONFIG_PROPERTY, DEFAULT_SERIAL_PORT_VALUE)
-    app_settings.log_config_level = settings.get_log_level(APP_CONFIG_SECTION, CONSOLE_LOG_LEVEL_PROPERTY, DEFAULT_LOG_LEVEL)
+    app_settings.log_console_level = settings.get_log_level(APP_CONFIG_SECTION, CONSOLE_LOG_LEVEL_PROPERTY, DEFAULT_LOG_LEVEL)
     app_settings.log_file_level = settings.get_log_level(APP_CONFIG_SECTION, FILE_LOG_LEVEL_PROPERTY, DEFAULT_LOG_LEVEL)
     
     return app_settings
