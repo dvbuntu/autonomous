@@ -34,7 +34,7 @@ Simple model in `basic_model.py`.  Currently linear with mean squared error loss
 
 # Notes
 
-Driving model is in `current_model.py`.  Weights are on [Google Drive](goo.gl/D1WmHQ).  Line 74 of the model will have to be changed to reflect the true location/name of the weights file.
+Driving model is in `current_model.py`.  Weights are on [Google Drive](https://goo.gl/D1WmHQ).  Line 74 of the model will have to be changed to reflect the true location/name of the weights file.
 
 ```python
 #Python Libraries
