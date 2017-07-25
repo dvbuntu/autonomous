@@ -44,7 +44,7 @@ from keras.layers import Embedding, Input, merge, ELU
 from keras.layers.recurrent import SimpleRNN, LSTM
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD, Adam, RMSprop
-from keras.regularizers import l2, activity_l2, l1
+from keras.regularizers import l2, l1
 from keras.utils.np_utils import to_categorical
 from keras import backend as K
 import tflearn.metrics as metrics
@@ -88,7 +88,7 @@ model.compile(loss=['mse'],
 
 
 # load model weights
-model.load_weights('/home/ubuntu/proj/autonomous/steer_only_current.h5')
+model.load_weights('./weights/steer_nodrop_l2_big2_fixed_0_0.0082485.h5')
 
 # initialize webcam
 print('initialize webcam')
@@ -172,7 +172,7 @@ def do_loop(i=0):
         data = list(map(float,line.split(',')))
     # parse into list
     # save some info
-    print('Saw {0}'.format(data), end='')
+    #print('Saw {0}'.format(data), end='')
     logger.info('Saw {0}'.format(data))
     # get time in ms
     now = datetime.datetime.now()
@@ -212,7 +212,7 @@ def do_loop(i=0):
             ser.write(s.encode('ascii'))
         except:
             print("Couldn't write, moving on")
-            logger.info('Couldn't write to serial port, skipping')
+            logger.info('Couldn\'t write to serial port, skipping')
     if video == True:
         im = Image.fromarray(np.array(img.transpose(1,2,0),dtype=np.uint8))
         p = get_point(1-pred[0])
