@@ -15,8 +15,6 @@ parser.add_argument('-d','--debug', action='store_true', default=False)
 parser.add_argument('-n','--no-video', action='store_true', default=False)
 parser.add_argument('-f','--failsafe', action='store_true', default=False)
 parser.add_argument('-l','--log', action='store', default='otto_run.log')
-parser.add_argument('-w','--weights', action='store', default='/home/ubuntu/proj/autonomous/steer_only_current.h5')
-parser.add_argument('-s','--serial_dev', action='store', default='/dev/ttyACM0')
 
 args = parser.parse_args()
 debug = args.debug
@@ -46,7 +44,7 @@ from keras.layers import Embedding, Input, merge, ELU
 from keras.layers.recurrent import SimpleRNN, LSTM
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD, Adam, RMSprop
-from keras.regularizers import l2, activity_l2, l1
+from keras.regularizers import l2, l1
 from keras.utils.np_utils import to_categorical
 from keras import backend as K
 import tflearn.metrics as metrics
@@ -90,7 +88,7 @@ model.compile(loss=['mse'],
 
 
 # load model weights
-model.load_weights(args.weights)
+model.load_weights('./weights/steer_nodrop_l2_big2_fixed_0_0.0082485.h5')
 
 # initialize webcam
 print('initialize webcam')
@@ -103,9 +101,10 @@ cam.start()
 print('connect to serial port')
 logger.info('making serial connection')
 if not debug:
-    ser = serial.Serial(args.serial_dev)
-    if(ser.isOpen() == False):
-        ser.open()
+    try:
+        ser = serial.Serial('/dev/ttyACM0')
+    except serial.SerialException:
+        print('can not connect to serial port')
     ser.writeTimeout = 3
 else:
     ser = open('/home/ubuntu/proj/autonomous/test_data.csv')
@@ -173,7 +172,7 @@ def do_loop(i=0):
         data = list(map(float,line.split(',')))
     # parse into list
     # save some info
-    print('Saw {0}'.format(data), end='')
+    #print('Saw {0}'.format(data), end='')
     logger.info('Saw {0}'.format(data))
     # get time in ms
     now = datetime.datetime.now()
@@ -213,7 +212,7 @@ def do_loop(i=0):
             ser.write(s.encode('ascii'))
         except:
             print("Couldn't write, moving on")
-            logger.info("Couldn't write to serial port, skipping")
+            logger.info('Couldn\'t write to serial port, skipping')
     if video == True:
         im = Image.fromarray(np.array(img.transpose(1,2,0),dtype=np.uint8))
         p = get_point(1-pred[0])
