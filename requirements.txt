@@ -1,2 +1,21 @@
 # Python Package Requirements.
 # Use pip.
+scipy
+keras
+argparse
+numpy
+h5py
+tflearn
+pillow
+matplotlib
+sklearn
+tqdm
+pyserial
+scipy
+pygame
+tensorflow
+
+
+
+
+
