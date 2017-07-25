@@ -102,3 +102,13 @@ ENV/
 
 .project
 .pydevproject
+
+# Weight files
+*.h5
+
+# data files
+*.npz
+
+# swap files
+*~
+*.swp
