@@ -39,19 +39,20 @@ data_dir = args.data_dir
 from current_model import model
 
 # last 10% of every file provides validation...
-img_files = glob.glob(os.path.join([data_dir,'imgs*.npz'])) 
-speedx_files = glob.glob(os.path.join([data_dir,'speedx*.npz'])) 
-target_files = glob.glob(os.path.join([data_dir,'targets*.npz'])) 
+img_files = glob.glob(os.path.join(data_dir,'imgs*.npz')) 
+speedx_files = glob.glob(os.path.join(data_dir,'speedx*.npz')) 
+target_files = glob.glob(os.path.join(data_dir,'targets*.npz')) 
 
 # step through each data file, doing an epoch at a time
 for n in range(num_epochs):
     print("Starting epoch {0}".format(n))
-    for i,s,t in zip(img_files, speedx_files, target_files):
+    for i,s,t in zip(sorted(img_files), sorted(speedx_files), sorted(target_files)):
+        print(i, s, t)
         imgs = np.load(i)['arr_0']
         speedx = np.load(s)['arr_0']
         targets = np.load(t)['arr_0']
         h = model.fit([speedx, imgs], [targets[:,0]],
-                        batch_size = 32, nb_epoch=1, verbose=1,
+                        batch_size = 32, epochs=1, verbose=1,
                         validation_split=0.1, shuffle=True)
     if n % save_epochs == 0:
         print("Saving epoch {0} to {1}".format(n,weightfile))
