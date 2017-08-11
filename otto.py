@@ -5,6 +5,7 @@ import h5py
 import glob
 import scipy
 import scipy.misc
+import cv2
 import random
 import logging
 
@@ -55,11 +56,7 @@ import time
 cnt = 0
 
 from PIL import Image, ImageDraw
-import pygame
-import pygame.camera
-from pygame.locals import *
-pygame.init()
-pygame.camera.init()
+
 
 # backup condition
 def backup1(s):
@@ -93,9 +90,7 @@ model.load_weights('./weights/steer_nodrop_l2_big2_fixed_0_0.0082485.h5')
 # initialize webcam
 print('initialize webcam')
 logger.info('initialize webcam')
-cams = pygame.camera.list_cameras()
-cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
-cam.start()
+cam = cv2.VideoCapture(0)
 
 # make serial connection
 print('connect to serial port')
@@ -153,7 +148,8 @@ def do_loop(i=0):
     global ser
     global cnt
 # get image as numpy array
-    img = pygame.surfarray.array3d(cam.get_image())
+    retval, img = cam.read()
+
     # throw away non-square sides (left and rightmost 20 cols)
     img = img[20:-20]
     # Shrink to 64x64
@@ -238,4 +234,4 @@ else:
         do_loop()
 # cleanup
 ser.close()
-cam.stop()
+cam.release()

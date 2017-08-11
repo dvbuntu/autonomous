@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import scipy
 import scipy.misc
+import cv2
 import datetime
 import time as timemod
 import logging
@@ -37,18 +38,12 @@ logger.addHandler(fh)
 import serial
 
 from PIL import Image, ImageDraw
-import pygame
-import pygame.camera
-from pygame.locals import *
-pygame.init()
-pygame.camera.init()
 
 # initialize webcam
 print('initialize webcam')
 logger.info('initialize webcam')
-cams = pygame.camera.list_cameras()
-cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
-cam.start()
+# cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
+cam = cv2.VideoCapture(0)
 
 time_format = '%Y-%m-%d_%H:%M:%S'
 date = datetime.datetime.now()
@@ -82,7 +77,10 @@ try:
     while(True):
         # Maybe send 'Ok, ready' to the serial port
         # take web footage (every second or whatever)
-        img = pygame.surfarray.array3d(cam.get_image())
+        # img = pygame.surfarray.array3d(cam.get_image())
+        retval, img = cam.read()
+
+
         ## throw away non-square sides (left and rightmost 20 cols)
         img = img[20:-20]
         ## Shrink to 64x64
@@ -158,5 +156,6 @@ except:
     np.savez(imgs_file,imgs[:idx])
     np.savez(speedx_file,speedx[:idx])
     np.savez(targets_file,targets[:idx])
+    cam.release()
     raise
 
