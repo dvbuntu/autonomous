@@ -218,7 +218,7 @@ def do_loop(i=0):
         imageplot.set_array(im)
     #if i % 10 == 0:
     #    print(i)
-    time.sleep(1)
+    time.sleep(.1)
     cnt += 1
     return imageplot,
 
