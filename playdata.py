@@ -36,7 +36,10 @@ for i,s,t in zip(sorted(img_files), sorted(speedx_files), sorted(target_files)):
     print(im)
     # cv2.imshow('im', im)
     plt.imshow(im.transpose(1,2,0))
+    plt.pause(.2)
+    plt.draw()
 
+plt.close()
 # cv2.destroyAllWindows()
 
 
