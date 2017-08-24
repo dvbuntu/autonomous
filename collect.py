@@ -1,4 +1,5 @@
 import os
+import sys
 import math
 import numpy as np
 import glob
@@ -43,6 +44,8 @@ from PIL import Image, ImageDraw
 print('initialize webcam')
 logger.info('initialize webcam')
 cam = cv2.VideoCapture(0)
+timemod.sleep(3) # let camera warm up
+
 
 time_format = '%Y-%m-%d_%H:%M:%S'
 date = datetime.datetime.now()
@@ -76,12 +79,12 @@ try:
     while(True):
         # Maybe send 'Ok, ready' to the serial port
         # take web footage (every second or whatever)
-        # img = pygame.surfarray.array3d(cam.get_image())
         retval, img = cam.read()
-       # cv2.imshow('cam: `{cam_num}, `{img_num++}``', img)
-
 
         ## throw away non-square sides (left and rightmost 20 cols)
+        if img is None:
+            print("camera is not reading images")
+            break
         img = img[20:-20]
         ## Shrink to 64x64
         img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,0,1)
@@ -152,11 +155,17 @@ try:
             imgs[:] = 0
             speedx[:] = 0
             targets[:] = 0
-        timemod.sleep(1)
+        # timemod.sleep(1) # force pause for one photo a second
+
 except:
     np.savez(imgs_file,imgs[:idx])
     np.savez(speedx_file,speedx[:idx])
     np.savez(targets_file,targets[:idx])
+    print("Unexpected error: ", sys.exc_info()[0])
+    raise Exception('global exception')
+
+finally:
     cam.release()
-    raise
+    print("Finally: Camera release")
+
 
