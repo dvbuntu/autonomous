@@ -42,15 +42,14 @@ from PIL import Image, ImageDraw
 # initialize webcam
 print('initialize webcam')
 logger.info('initialize webcam')
-# cam = pygame.camera.Camera(cams[0],(64,64),'RGB')
 cam = cv2.VideoCapture(0)
 
 time_format = '%Y-%m-%d_%H:%M:%S'
 date = datetime.datetime.now()
 
-imgs_file = 'imgs_{0}'.format(date.strftime(time_format))
-speedx_file = 'speedx_{0}'.format(date.strftime(time_format))
-targets_file = 'targets_{0}'.format(date.strftime(time_format))
+imgs_file = './data/imgs_{0}'.format(date.strftime(time_format))
+speedx_file = './data/speedx_{0}'.format(date.strftime(time_format))
+targets_file = './data/targets_{0}'.format(date.strftime(time_format))
 
 print('connect to serial port')
 logger.info('connect to serial port')
@@ -79,12 +78,13 @@ try:
         # take web footage (every second or whatever)
         # img = pygame.surfarray.array3d(cam.get_image())
         retval, img = cam.read()
+       # cv2.imshow('cam: `{cam_num}, `{img_num++}``', img)
 
 
         ## throw away non-square sides (left and rightmost 20 cols)
         img = img[20:-20]
         ## Shrink to 64x64
-        img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,1,0)
+        img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,0,1)
         # Receive steering + gas (inc. direction)
         if not debug:
                 try:
@@ -92,6 +92,7 @@ try:
                     d = ser.readline()
                     ## most recent line
                     #data = list(map(int,str(d,'ascii').split(',')))
+                    #print(d, 'ascii')
                     line = d.strip()
                     data = line.split(b',')
                     data = list(map(float,str(d,'ascii').split(',')))
