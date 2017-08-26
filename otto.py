@@ -85,7 +85,7 @@ model.compile(loss=['mse'],
 
 
 # load model weights
-model.load_weights('./weights/steer_nodrop_l2_big2_fixed_0_0.0082485.h5')
+model.load_weights('./weights/steer_nodrop_l2_big2_fixed_0_0.0082485.h5', by_name=True )
 
 # initialize webcam
 print('initialize webcam')
