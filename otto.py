@@ -151,6 +151,9 @@ def do_loop(i=0):
     retval, img = cam.read()
 
     # throw away non-square sides (left and rightmost 20 cols)
+    if img is None:
+        print("camera is not reading images")
+        raise Exception("Camera is not reading images")
     img = img[20:-20]
     # Shrink to 64x64
     img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,1,0)
@@ -222,16 +225,22 @@ def do_loop(i=0):
     cnt += 1
     return imageplot,
 
+try:
+    print('big rocket go now')
+    if video == True:
+        animate = animation.FuncAnimation(figure, do_loop, interval=25,blit=False)
+        print('started animation')
+        plt.show()
+        print('should show animation')
+    else:
+        while True:
+            do_loop()
+except:
+    print("Unexpected error: ", sys.exc_info()[0])
+    raise Exception('global exception')
 
-print('big rocket go now')
-if video == True:
-    animate = animation.FuncAnimation(figure, do_loop, interval=25,blit=False)
-    print('started animation')
-    plt.show()
-    print('should show animation')
-else:
-    while True:
-        do_loop()
-# cleanup
-ser.close()
-cam.release()
+finally: 
+    # cleanup
+    ser.close()
+    cam.release()
+
