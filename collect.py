@@ -63,7 +63,7 @@ if not debug:
         print('can not connect to serial port')
         logger.error('can not connect to serial port')
 else:
-    ser = open('/home/ubuntu/proj/autonomous/test_collect.csv')
+    ser = open('./symdata/testdata.csv')
 
 # initialize speeds
 speeds = np.zeros(3,dtype=np.float32)
@@ -82,9 +82,8 @@ try:
         retval, img = cam.read()
 
         ## throw away non-square sides (left and rightmost 20 cols)
-        if img is None:
+        if retval == False:
             print("camera is not reading images")
-            break
         img = img[20:-20]
         ## Shrink to 64x64
         img = scipy.misc.imresize(img,(64,64),'cubic','RGB').transpose(2,0,1)
