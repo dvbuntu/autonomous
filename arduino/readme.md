@@ -4,7 +4,7 @@
 
 * Platform IO for Python
 ```bash
-sudo pip3 install -U platformio
+sudo pip install -U platformio
 ```
 
 * Install the chipKIT  platform for platformio
