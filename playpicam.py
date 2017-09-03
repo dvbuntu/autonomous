@@ -9,22 +9,24 @@ import matplotlib.animation as animation
 import argparse
 import time
 
-img_file = 'testfile.npz'
+#img_file = 'testfile.npz'
+img_files = glob.glob('imgs*.npz')
 
 plt.ion()
 
-imgs = np.load(img_file)['arr_0']
+#imgs = np.load(img_file)['arr_0']
 
-
-print('imgs: ', imgs.shape)
-# print(imgs)
-for im in imgs:
-  #print(im.shape)
-  # print(im)
-  # cv2.imshow('im', im)
-  plt.imshow(im.transpose(1,2,0))
-  plt.pause(0.001)
-  plt.draw()
+for i in img_files :
+  imgs = np.load(i)['arr_0']
+  print('imgs: ', imgs.shape)
+  idx=0
+  for im in imgs:
+    #plt.imshow(im.transpose(1,2,0))
+    plt.imshow(im)
+    plt.pause(0.001)
+    plt.draw()
+    print(idx)
+    idx+=1
 
 plt.close()
 
