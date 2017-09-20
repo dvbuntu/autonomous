@@ -83,8 +83,26 @@ void setup()
 void printData(float ax, float ay, float az, float gx, float gy, float gz, unsigned long time, int str, int thr )
 {
 
-  Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n",
-                ax, ay,  az, gx, gy, gz, millis(), str, thr);
+ // Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n",
+ //               ax, ay,  az, gx, gy, gz, millis(), str, thr);
+  Serial.print(ax);
+  Serial.print(",");
+  Serial.print(ay);
+  Serial.print(",");
+  Serial.print(az);
+  Serial.print(",");
+  Serial.print(gx);
+  Serial.print(",");
+  Serial.print(gy);
+  Serial.print(",");
+  Serial.print(gz);
+  Serial.print(",");
+  Serial.print(millis());
+  Serial.print(",");
+  Serial.print(str);
+  Serial.print(",");
+  Serial.print(thr);
+  Serial.println();
 
 }
 
