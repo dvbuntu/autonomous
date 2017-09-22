@@ -8,7 +8,7 @@
 #define CMD_AUTO 0
 #define CMD_STR 1
 #define CMD_THR 2
-
+#define CMD_TIME 3
 
 const int PIN_STR = 9;
 const int PIN_THR = 7;
@@ -111,6 +111,7 @@ void doAutoCommands() {
   int cmd_cnt = 0;
   char cmdBuf[MAX_CMD_BUF + 1];
 
+  int auton;
   int str;
   int thr;
   unsigned int time;
@@ -121,6 +122,7 @@ void doAutoCommands() {
   while (command != 0) {
     switch (cmd_cnt) {
     case CMD_AUTO:
+      auton = atoi(command);	
       break;
     case CMD_STR:
       str = atoi(command);
@@ -140,6 +142,19 @@ void doAutoCommands() {
         Serial.printf("%d, %d\n", cmd_cnt, thr);
       }
       break;
+    case CMD_TIME:
+      time = atoi(command);
+        /*
+            Remove time check
+          if (time < last_time) {
+          return;
+          }
+        */
+      last_time = time;
+      if (DEBUG_SERIAL) {
+          Serial.printf("%d, %lu\n", cmd_cnt, time);
+       }
+       break;
     default:
       if (DEBUG_SERIAL) {
         Serial.println("NOOP");
