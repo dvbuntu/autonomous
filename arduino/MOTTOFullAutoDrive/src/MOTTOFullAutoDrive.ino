@@ -4,7 +4,7 @@
 #include <Servo.h>
 
 #define DEBUG_SERIAL 1
-#define MAX_CMD_BUF 15
+#define MAX_CMD_BUF 17 
 #define CMD_AUTO 0
 #define CMD_STR 1
 #define CMD_THR 2
@@ -184,13 +184,14 @@ void doAutoCommands() {
 
       ServoSTR.writeMicroseconds(str);
       ServoTHR.writeMicroseconds(thr);
+      if (DEBUG_SERIAL) {
+	      Serial.printf("DONE COMMANDS: %lu, %lu\n", str, thr);
+      }
     }
   }
 
-  delay(100);
-  if (DEBUG_SERIAL) {
-    Serial.printf("DONE COMMANDS: %lu\n", millis());
-  }
+  //delay(100);
+  
 }
 
 void doAction() {
@@ -275,7 +276,9 @@ void loop() {
 
   //doAction();
 
-  doAutoCommands();
+	if (Serial.available() > 0) {
+		doAutoCommands();
+	}
 
-  delay(10);
+  //delay(10);
 }
