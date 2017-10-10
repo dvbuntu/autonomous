@@ -55,15 +55,16 @@ void doRCAction() {
 
 // RC Actions
   if (ch[KILL] > 1500 ) {
-    Serial.println("KILL HIGH");
+    Serial.println("AUTO ON");
   }
   else {
-    Serial.println("KILL LOW");
+    Serial.println("AUTO OFF");
   }
 
   if (ch[STR] == 0 )
   {
     Serial.printf("Out of Range or Powered Off\n");
+    Serial.println("This should be the same as a kill switch");
     //set brake
     //kill the machine
   }
@@ -109,6 +110,6 @@ void setup() {
 void loop() {
   getRCInfo();
   doRCAction();
-
+  delay(250);
 }
 
