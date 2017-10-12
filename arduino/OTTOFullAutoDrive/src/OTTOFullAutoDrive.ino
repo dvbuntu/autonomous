@@ -9,7 +9,7 @@
 #include "MPU9250.h"
 
 #define DEBUG_SERIAL false
-#define MAX_CMD_BUF  40
+#define MAX_CMD_BUF  20
 
 /*
    Setup RC Controller
@@ -35,7 +35,6 @@ int chmax[channels];
 /*
     Automatic Set Up
 */
-#define MAX_CMD_BUF  20
 #define CMD_STR 0
 #define CMD_DIR 1
 #define CMD_GAS 2
@@ -139,9 +138,12 @@ void doAction() {
     if (Serial.available() > 0) {
       doAutoCommands();
     }
-    if (ch[CH_AUTO] > 1900)
+    if (ch[CH_AUTO] > 2000)
     {
-      autoSpin();
+      if (DEBUG_SERIAL) 
+      {
+      Serial.printf("Greater than 2000\n");
+      }
     }
     return;
   }
@@ -178,8 +180,6 @@ void doAction() {
         1600 - 1900: forward
     */
     setThrottle(ch[CH_THR]);
-//    convertTHR(ch[CH_THR], thrData);
-//    autoRearSteer(convertSTR(ch[CH_STR]), thrData[THR_DIR], thrData[THR_THR]);
   }
 }
 
@@ -223,11 +223,11 @@ void setThrottle(int ch_data) {
   thr = ch_data;
   //map the channel data to throttle data
 
-  if (ch_data > 1115 && ch_data < 1520) { //reverse
-    thr = map(ch_data, 1115, 1520, 255, 0 );
+  if (ch_data > 1000 && ch_data < 1520) { //reverse
+    thr = map(ch_data, 1000, 1520, 255, 0 );
     DIR = LOW;
-  } else if (ch_data > 1550 && ch_data < 1940) { //forward
-    thr = map(ch_data, 1551, 1940, 0, 255  );
+  } else if (ch_data > 1550 && ch_data < 2000) { //forward
+    thr = map(ch_data, 1551, 2000, 0, 255  );
     DIR = HIGH;
   }
   else {
@@ -252,7 +252,7 @@ void setThrottle(int ch_data) {
 }
 
 void setSteering(int ch_data) {
-  int pos;
+  int pos = ch_data;
   //map the channel data to steering data
   /*
      ch[1]_str:
@@ -265,15 +265,6 @@ void setSteering(int ch_data) {
      center:  1500
      right: 1582: 1633
   */
-
-  if (ch_data > 1100 && ch_data < 1500) { //right
-    pos = map(ch_data, 1100, 1500, 1589, 1525 );
-  } else if (ch_data > 1550 && ch_data < 1937) { //left
-    pos = map(ch_data, 1550, 1935, 1550, 1400  );
-  }
-  else {
-    pos = 1500; //straight range: 1500 - 1550 ch_str
-  }
 
   //TODO: Record the value written to the servo: should go into global data struct
   SoftPWMServoServoWrite(PIN_STR, pos);
@@ -332,63 +323,6 @@ void autoThrottle(int DIR, int thr) {
     Serial.printf("thr: dir: %d, pwm: %d\n", DIR, thr);
   }
   delay(25);
-}
-
-
-//We need a direction forward or reverse. Steer value.  Throttle speed.
-//str needs to be 0-255 only
-void autoRearSteer(int str, int dir, int thr) {
-  int rightWheel = thr;
-  int leftWheel = thr;
-  int turnSpeed = 0;
-  //front wheel steering
-  int pos;
-
-  if (str <= 127 ) //steer right
-  {
-    pos = map(str, 127, 0, 1510, 1589);
-    turnSpeed = map(str, 127, 0, 0, 127);
-    leftWheel = leftWheel + turnSpeed ;
-    if (leftWheel > 255) {
-      leftWheel = 255;
-    }
-  }
-  else if (str > 128) //steer left
-  {
-    pos = map(str, 129, 255, 1490, 1400);
-    turnSpeed = map(str, 129, 255, 0, 127);
-    rightWheel = rightWheel + turnSpeed ;
-    if (rightWheel > 255) {
-      rightWheel = 255;
-    }
-  }
-  else
-  {
-    pos = 1500;
-    rightWheel = thr;
-    leftWheel = thr;
-  }
-  SoftPWMServoServoWrite(PIN_STR, pos);
-
-
-  //shoot through protection
-  if ( dir != PREV_DIR) {
-    delay(SHOOT_DELAY);
-  }
-  PREV_DIR = dir;
-  //special magic
-  digitalWrite(PIN_M1_DIR, dir); //Forward or Backward
-  digitalWrite(PIN_M2_DIR, dir); //Backward or Backward
-  SoftPWMServoPWMWrite(PIN_M1_PWM, leftWheel); //these aren't servos use pwm
-  SoftPWMServoPWMWrite(PIN_M2_PWM, rightWheel);//these aren't servos use pwm
-
-}
-
-void autoSpin() {
-  digitalWrite(PIN_M1_DIR, 0); //Forward
-  digitalWrite(PIN_M2_DIR, 1); //Backward
-  SoftPWMServoPWMWrite(PIN_M1_PWM, 255); //these aren't servos use pwm
-  SoftPWMServoPWMWrite(PIN_M2_PWM, 255);//these aren't servos use pwm
 }
 
 
@@ -493,7 +427,6 @@ void doAutoCommands() {
       //do commands
       //autoSteer(str);
       //autoThrottle(dir, gas);
-      autoRearSteer(str, dir, gas);
     }
   }
 
