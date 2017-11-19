@@ -4,6 +4,14 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 * Autonmous Powerwheels Racing event will be Makerfaire NYC 2017
 * Autonmous Vehicle Competition via Sparkfun at Denver Makerfaire 2017
 
+## Quickstart
+```
+git clone https://github.com/fubarlabs/autonomous
+cd autonomous
+virtualenv auto -p python3 
+source env/bin/activate
+pip install -r requirements.txt
+```
 ## More documentation at the wiki
 
 [Autonomous Project Documenatation](https://github.com/fubarlabs/autonomous/wiki)
