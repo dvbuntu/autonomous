@@ -5,6 +5,8 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 * Autonmous Vehicle Competition via Sparkfun at Denver Makerfaire 2017
 
 ## Quickstart
+
+### Projecect Code
 ```
 git clone https://github.com/fubarlabs/autonomous
 cd autonomous
@@ -12,6 +14,20 @@ virtualenv auto -p python3
 source env/bin/activate
 pip install -r requirements.txt
 ```
+
+### Fubarino SD / Arduino Code
+Collection Code
+```
+
+
+```
+Full Auto Code
+```
+
+```
+### Training code
+
+
 ## More documentation at the wiki
 
 [Autonomous Project Documenatation](https://github.com/fubarlabs/autonomous/wiki)
