@@ -6,13 +6,6 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 
 ## Quickstart
 
-### Note for Arduino
-Code is installed from the Raspberry PI using PLatform IO
-```python2.7
-sudo pip install platformio
-
-```
-Platform IO is only Python 2.7 but it can program the Arduino. In our chase it's the Fubarion SD board.
 
 
 ### Car Code
@@ -23,6 +16,15 @@ virtualenv auto -p python3
 source auto/bin/activate
 pip install -r requirements.txt
 ```
+
+### Note for Arduino
+Code is installed from the Raspberry PI using PLatform IO
+```python2.7
+sudo pip install platformio
+
+```
+Platform IO is only Python 2.7 but it can program the Arduino. In our chase it's the Fubarion SD board.
+
 
 ### Fubarino SD / Arduino Code
 
