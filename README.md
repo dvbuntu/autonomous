@@ -16,6 +16,8 @@ pip install -r requirements.txt
 ```
 
 ### Fubarino SD / Arduino Code
+
+MOTTO: Small RC Car
 Collection Code
 ```
 
@@ -25,6 +27,18 @@ Full Auto Code
 ```
 
 ```
+
+OTTO: Power Wheels Autonomus
+Collection Code
+```
+
+```
+Full Auto Code
+```
+
+```
+
+
 ### Training code
 
 
