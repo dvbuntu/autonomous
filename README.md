@@ -6,12 +6,12 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 
 ## Quickstart
 
-### Projecect Code
+### Car Code
 ```
 git clone https://github.com/fubarlabs/autonomous
 cd autonomous
 virtualenv auto -p python3 
-source env/bin/activate
+source auto/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -25,7 +25,7 @@ MOTTOServoDtaSampleDelay.ino
 ```
 Full Auto Code
 ```
-MOTTOFullAutoDrive
+MOTTOFullAutoDrive.ino
 ```
 
 OTTO: Power Wheels Autonomus
