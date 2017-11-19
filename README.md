@@ -6,6 +6,15 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 
 ## Quickstart
 
+### Note for Arduino
+Code is installed from the Raspberry PI using PLatform IO
+```python2.7
+sudo pip install platformio
+
+```
+Platform IO is only Python 2.7 but it can program the Arduino. In our chase it's the Fubarion SD board.
+
+
 ### Car Code
 ```
 git clone https://github.com/fubarlabs/autonomous
@@ -17,26 +26,35 @@ pip install -r requirements.txt
 
 ### Fubarino SD / Arduino Code
 
-MOTTO: Small RC Car
-Collection Code
+Arduino code location: ./autonomous/arduino
 ```
-MOTTOServoDtaSampleDelay.ino
+cd arduino
 
 ```
-Full Auto Code
+MOTTO: Small RC Car
+Collection Code: MOTTOServoDtaSampleDelay.ino
+
 ```
-MOTTOFullAutoDrive.ino
+cd MOTTOServoDataSampleDelay
+pio run -t upload
+```
+Full Auto Code: MOTTOFullAutoDrive.ino
+
+```
+cd MOTTOFUllAutoDrive.ino
+pio run -t upload
 ```
 
 OTTO: Power Wheels Autonomus
-Collection Code
+Collection Code: NewOTTOFullAutoDrive.ino
 ```
-NewOTTOFUllAutoDrive.ino
+cd NewOTTOFUllAutoDrive.ino
+pio run -t upload
 ```
-Full Auto Code
+Full Auto Code:  NewOTTOFullAutoDrive.ino
 ```
-NewOTTOFUllAutoDrive.ino
-
+cd NewOTTOFUllAutoDrive.ino
+pio run -t upload
 ```
 
 
