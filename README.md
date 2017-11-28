@@ -29,6 +29,11 @@ sudo pip3 uninstall mock
 sudo pip3 install mock
 ```
 
+Raspberry PI open cv installation:
+```
+```
+
+The actual car code:
 ```
 git clone https://github.com/fubarlabs/autonomous
 cd autonomous
