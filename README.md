@@ -9,6 +9,26 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 
 
 ### Car Code
+Prepare your PI
+```
+sudo apt-getupdate
+sudo apt-get install python3-pip python3-dev
+```
+Get TensorFlow for PI installed (http://www.instructables.com/id/Google-Tensorflow-on-Rapsberry-Pi/)
+```
+wget https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases/download/v1.0.1/tensorflow-1.0.1-cp34-cp34m-linux_armv7l.whl
+```
+Install Tensorflow for Python 3.4
+```
+sudo pip3 install tensorflow-1.0.1-cp34-cp34m-linux_armv7l.whl
+```
+
+Fix a potential error message:
+```
+sudo pip3 uninstall mock
+sudo pip3 install mock
+```
+
 ```
 git clone https://github.com/fubarlabs/autonomous
 cd autonomous
