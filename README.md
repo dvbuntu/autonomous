@@ -83,6 +83,15 @@ Full Auto Code:  NewOTTOFullAutoDrive.ino
 cd NewOTTOFUllAutoDrive.ino
 pio run -t upload
 ```
+### Data Collection Code
+Data collection is done as a Raspberry PI service. The folder services contains:
+1. ottologger.py
+2. ottologger.service
+
+1. Copy ottologger.py /usr/local/bin
+2. register ottologer.service as a system service
+3. Switch on pin 4 enables and disables collection
+4. LED on pin 11 shows the status of collection
 
 
 ### Training code
