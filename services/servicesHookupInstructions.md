@@ -11,3 +11,6 @@ To check status of ottoMicroLogger.py:
 	sudo systemctl status ottoMicroLogger.service
 To see output of ottoMicroLogger.py for debugging:
 	sudo journalctl -u ottoMicroLogger.service
+
+
+
