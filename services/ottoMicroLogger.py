@@ -92,12 +92,62 @@ button_copy_to_SDcard = 17
 button_read_from_SDcard = 27
 button_run_autonomous = 22
 
-switch_power_On_Off = 10
+switch_shutdown_RPi = 10
 switch_collect_data = 9
 
-# LEDpowerStatusOfRPi = hardwired to +3.3 pin of RPi
+# LEDpowerStatusOfRPi = hardwired to +3.3 volt pin #1 of RPi
 LED_collect_data = 5
-LED_power_On_Off = 6
+LED_shutdown_RPi = 6
+
+# -------- Switch / Button use cheatsheet --------- 
+#
+# 	Switch / Button			STATE			MEANING
+#	--------------------------------------------------------------
+#	switch_collect_data		OFF (down)		Stop collection data if doing that		
+#							ON (up)			Start collecting data
+#
+#	switch_shutdown_RPi		OFF (down)		Not in use, Normal operation		
+#							ON (up)			Gracefully shutdown RPi
+#
+#	button_copy_to_SDcard	pushed			Copy collected data to SD card
+#							up				Not in use
+#
+#	button_read_from_SDcard	pushed			Read training data to from card
+#							up				Not in use
+#
+#	button_run_autonomous	pushed			Put car in autonomous mode
+#							up				Not in use
+#
+
+# -------- LED status cheatsheet --------- 
+#
+# 	LED						STATE			MEANING
+#	--------------------------------------------------------------
+#	LED_copy_to_SDcard		OFF				Not in use		
+#							ON				Copy in progress
+#							BLINKING		Error during copy
+#
+#	LED_read_from_SDcard	OFF				Not in use		
+#							ON				Copy in progress
+#							BLINKING		Error during read
+#
+#	LED_autonomous			OFF				Not in use		
+#							ON				Car running autonomously
+#							BLINKING		Autonomous error
+#
+#	LED_collect_data		OFF				Not in use		
+#							ON				Data collection in progress
+#							BLINKING		Error during data collection
+#
+#	LED_shutdown_RPi		OFF				Not in use		
+#							ON				System A-OK
+#							BLINKING		Tried to shut down without copying collected data to SD card
+#
+#	LED_collect_data		both BLINKING	One or both switches not in off position on startup
+#	LED_shutdown_RPi
+#
+#	LEDpowerStatusOfRPi		OFF				No power to RPi		
+#							ON				RPi has +3.3 volts on pin #1
 
 # -------- Button/switch constants --------- 
 # button push or switch position-up connects to ground, 
@@ -134,18 +184,18 @@ def callback_button_autonomous( channel ):
 	run_in_autonomous_mode()
 	GPIO.output( LED_autonomous, LED_Off )
 	  
-def callback_switch_power_On_Off( channel ):  
-	GPIO.output( LED_power_On_Off, LED_On )
+def callback_switch_shutdown_RPi( channel ):  
+	GPIO.output( LED_shutdown_RPi, LED_On )
 	power_On_Off_gracefully()
 	
 	# blink the LED as a warning to turn the switch off
 	LED_state = LED_On
-	while( GPIO.input( switch_power_On_Off ) == ON ):
-		GPIO.output( LED_power_On_Off, LED_state )
+	while( GPIO.input( switch_shutdown_RPi ) == ON ):
+		GPIO.output( LED_shutdown_RPi, LED_state )
 		time.sleep( .25 )
 		LED_state = LED_state ^ 1		# XOR bit 0 to turn the LED off or on
 		
-	GPIO.output( LED_power_On_Off, LED_Off )
+	GPIO.output( LED_shutdown_RPi, LED_Off )
 		 
 def callback_switch_collect_data( channel ):  
 	GPIO.output( LED_collect_data, LED_On )
@@ -168,24 +218,22 @@ def power_On_Off_gracefully():
 	x=1		# dummy line of code until function is defined
 
 def collect_data():
-	collector=DataCollector()
+    collector=DataCollector()
 
-	with picamera.PiCamera() as camera:
-		#Note: these are just parameters to set up the camera, so the order is not important
-		camera.resolution=(64, 64) #final image size
-		camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-		camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-		camera.start_recording(collector, format='rgb')
-
-		if debug:
-			camera.start_preview() #displays video while it's being recorded
-			input('Press enter to stop recording') # will cause hang waiting for user input
-
-		else : #we are not in debug mode, assume data collection is happening
-			while( GPIO.input( switch_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
-				pass
-	 
-		camera.stop_recording()      
+    with picamera.PiCamera() as camera:
+      #Note: these are just parameters to set up the camera, so the order is not important
+      camera.resolution=(64, 64) #final image size
+      camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+      camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+      camera.start_recording(collector, format='rgb')
+      
+      if debug:
+        camera.start_preview() #displays video while it's being recorded
+        input('Press enter to stop recording') # will cause hang waiting for user input
+      else : #we are not in debug mode, assume data collection is happening
+        GPIO.wait_for_edge( switch_collect_data, GPIO.RISING ) #waits until falling edge is observed from toggle
+        
+      camera.stop_recording()      
 
 # ---------------- main program ------------------------------------- 
 GPIO.setmode( GPIO.BCM )  
@@ -195,20 +243,20 @@ GPIO.setwarnings( False )
 GPIO.setup( button_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( button_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( button_read_from_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( switch_power_On_Off, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( switch_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( switch_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 
 GPIO.setup( LED_copy_to_SDcard, GPIO.OUT )
 GPIO.setup( LED_read_from_SDcard, GPIO.OUT )
 GPIO.setup( LED_autonomous, GPIO.OUT )
-GPIO.setup( LED_power_On_Off, GPIO.OUT )
+GPIO.setup( LED_shutdown_RPi, GPIO.OUT )
 GPIO.setup( LED_collect_data, GPIO.OUT )
 
 # blink LEDs as an alarm if either switch has been left in the ON (up) position
 LED_state = LED_On
 
-while(( GPIO.input( switch_power_On_Off ) == ON ) or ( GPIO.input( switch_collect_data ) == ON )):
-	GPIO.output( LED_power_On_Off, LED_state )
+while(( GPIO.input( switch_shutdown_RPi ) == ON ) or ( GPIO.input( switch_collect_data ) == ON )):
+	GPIO.output( LED_shutdown_RPi, LED_state )
 	GPIO.output( LED_collect_data, LED_state )
 	time.sleep( .25 )
 	LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
@@ -217,14 +265,14 @@ while(( GPIO.input( switch_power_On_Off ) == ON ) or ( GPIO.input( switch_collec
 GPIO.output( LED_copy_to_SDcard, LED_Off )
 GPIO.output( LED_read_from_SDcard, LED_Off )
 GPIO.output( LED_autonomous, LED_Off )
-GPIO.output( LED_power_On_Off, LED_Off )
+GPIO.output( LED_shutdown_RPi, LED_Off )
 GPIO.output( LED_collect_data, LED_Off )
           	  
 # setup callback routines for handling falling edge detection  
 GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
 GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
 GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
-GPIO.add_event_detect( switch_power_On_Off, GPIO.FALLING, callback=callback_switch_power_On_Off, bouncetime=300 )  
+GPIO.add_event_detect( switch_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
 GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
  
 # input("Press Enter when ready\n>")  
