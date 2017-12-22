@@ -159,82 +159,116 @@ UP = GPIO.HIGH		# HIGH signal on GPIO pin means button is UP
 LED_On = GPIO.HIGH
 LED_Off = GPIO.LOW
 
-# -------------- callback functions from button/switch activity ------------------     
-def callback_button_copy_to_SDcard( channel ):  
-	GPIO.output( LED_copy_to_SDcard, LED_On )
-	button_state = PUSHED
-	while ( button_state == PUSHED ):
-		button_state = GPIO.input( button_copy_to_SDcard )
-	copy_data_to_SDcard()
-	GPIO.output( LED_copy_to_SDcard, LED_Off )
-	
-def callback_button_read_from_SDcard( channel ):  
-	GPIO.output( LED_read_from_SDcard, LED_On )
-	button_state = PUSHED
-	while ( button_state == PUSHED ):
-		button_state = GPIO.input( button_read_from_SDcard )
-	read_data_from_SDcard()
-	GPIO.output( LED_read_from_SDcard, LED_Off )
-	  
-def callback_button_autonomous( channel ):  
-	GPIO.output( LED_autonomous, LED_On )
-	button_state = PUSHED
-	while ( button_state == PUSHED ):
-		button_state = GPIO.input( button_run_autonomous )
-	run_in_autonomous_mode()
-	GPIO.output( LED_autonomous, LED_Off )
-	  
-def callback_switch_shutdown_RPi( channel ):  
-	GPIO.output( LED_shutdown_RPi, LED_On )
-	power_On_Off_gracefully()
-	
-	# blink the LED as a warning to turn the switch off
-	LED_state = LED_On
-	while( GPIO.input( switch_shutdown_RPi ) == ON ):
-		GPIO.output( LED_shutdown_RPi, LED_state )
-		time.sleep( .25 )
-		LED_state = LED_state ^ 1		# XOR bit 0 to turn the LED off or on
+def turn_ON_LED( which_LED ):
+	GPIO.output( which_LED, LED_On )
+
+def turn_OFF_LED( which_LED ):
+	GPIO.output( which_LED, LED_Off )
+
+def turn_OFF_ALL_LEDs( ):
+	turn_OFF_LED( LED_copy_to_SDcard )
+	turn_OFF_LED( LED_read_from_SDcard )
+	turn_OFF_LED( LED_autonomous )
+	turn_OFF_LED( LED_shutdown_RPi )
+	turn_OFF_LED( LED_collect_data )
 		
-	GPIO.output( LED_shutdown_RPi, LED_Off )
-		 
-def callback_switch_collect_data( channel ):  
-	GPIO.output( LED_collect_data, LED_On )
-	collect_data() 
+def blink_LED( which_LED ):
+	turn_OFF_ALL_LEDs( )
+	on_off_state = 1
 	
-	# user pushed switch off to exit collect_data routine
-	GPIO.output( LED_collect_data, LED_Off ) 
+	# blink LED forever or until user pushes button or switch which triggers another interrupt
+	while( True ):		
+		GPIO.output( which_LED, on_off_state )
+		on_off_state = on_off_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+		
 
 # -------- Functions called by callback functions --------- 
-def copy_data_to_SDcard():
-	x=1		# dummy line of code until function is defined
+def callback_button_copy_to_SDcard( channel ): 
+	try:
+		turn_ON_LED( LED_copy_to_SDcard )
+		button_state = PUSHED
+		while ( button_state == PUSHED ):
+			button_state = GPIO.input( button_copy_to_SDcard )
+		
+		# do the copying ....
+		
+		turn_OFF_LED( LED_copy_to_SDcard )
+	
+	except ValueError as err:
+      		print( err ) 
+      		blink( LED_copy_to_SDcard )
 
-def read_data_from_SDcard():
-	x=1		# dummy line of code until function is defined
+# ------------------------------------------------- 
+def callback_button_read_from_SDcard( channel ): 
+	try:
+		turn_ON_LED( LED_read_from_SDcard )
+		button_state = PUSHED
+		while ( button_state == PUSHED ):
+			button_state = GPIO.input( button_read_from_SDcard )
+		
+		# do the reading ....
+		
+		turn_OFF_LED( LED_read_from_SDcard )
+	
+	except ValueError as err:
+      		print( err ) 
+      		blink( LED_read_from_SDcard )
 
-def run_in_autonomous_mode():
-	x=1		# dummy line of code until function is defined
+# ------------------------------------------------- 
+def callback_button_autonomous( channel ):  
+	try:
+		turn_ON_LED( LED_autonomous )
+		button_state = PUSHED
+		while ( button_state == PUSHED ):
+			button_state = GPIO.input( button_run_autonomous )
+		
+		# go do autonomous ....
+		
+		turn_OFF_LED( LED_autonomous )
+	
+	except ValueError as err:
+      		print( err ) 
+      		blink( LED_autonomous )
 
-def power_On_Off_gracefully():
-	x=1		# dummy line of code until function is defined
+# ------------------------------------------------- 
+def callback_switch_shutdown_RPi( channel ):
+	try:
+		
+		# do the graceful shutdown
+		
+		turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
+	
+	except ValueError as err:
+      		print( err ) 
+      		blink( LED_shutdown_RPi )
 
-def collect_data():
-    collector=DataCollector()
+# ------------------------------------------------- 
+def callback_switch_collect_data( channel ):  
+	try:
+		turn_ON_LED( LED_collect_data )
+    		collector=DataCollector()
 
-    with picamera.PiCamera() as camera:
-      #Note: these are just parameters to set up the camera, so the order is not important
-      camera.resolution=(64, 64) #final image size
-      camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-      camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-      camera.start_recording(collector, format='rgb')
+    		with picamera.PiCamera() as camera:
+      			#Note: these are just parameters to set up the camera, so the order is not important
+      			camera.resolution=(64, 64) #final image size
+      			camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+      			camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+      			camera.start_recording(collector, format='rgb')
       
-      if debug:
-        camera.start_preview() #displays video while it's being recorded
-        input('Press enter to stop recording') # will cause hang waiting for user input
-      else : #we are not in debug mode, assume data collection is happening
-        GPIO.wait_for_edge( switch_collect_data, GPIO.RISING ) #waits until falling edge is observed from toggle
+      		if debug:
+        		camera.start_preview() #displays video while it's being recorded
+        		input('Press enter to stop recording') # will cause hang waiting for user input
+      		
+      		else : #we are not in debug mode, assume data collection is happening
+        		GPIO.wait_for_edge( switch_collect_data, GPIO.RISING ) #waits until falling edge is observed from toggle
         
-      camera.stop_recording()      
-
+		camera.stop_recording()   		
+		turn_OFF_LED( LED_collect_data )
+	
+	except ValueError as err:
+      		print( err ) 
+      		blink( LED_collect_data )
+      		
 # ---------------- main program ------------------------------------- 
 GPIO.setmode( GPIO.BCM )  
 GPIO.setwarnings( False )  
@@ -261,13 +295,8 @@ while(( GPIO.input( switch_shutdown_RPi ) == ON ) or ( GPIO.input( switch_collec
 	time.sleep( .25 )
 	LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
 	
-# turn all LED's off
-GPIO.output( LED_copy_to_SDcard, LED_Off )
-GPIO.output( LED_read_from_SDcard, LED_Off )
-GPIO.output( LED_autonomous, LED_Off )
-GPIO.output( LED_shutdown_RPi, LED_Off )
-GPIO.output( LED_collect_data, LED_Off )
-          	  
+turn_OFF_ALL_LEDs( )
+         	  
 # setup callback routines for handling falling edge detection  
 GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
 GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
@@ -278,7 +307,7 @@ GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_swit
 # input("Press Enter when ready\n>")  
     
 while ( True ):
-	x=1		# dummy line of code for while loop
+	pass		# dummy line of code for while loop
 	
-GPIO.cleanup()       # clean up GPIO on CTRL+C exit  
-GPIO.cleanup()       # clean up GPIO on normal exit  
+GPIO.cleanup()		# clean up GPIO on CTRL+C exit  
+GPIO.cleanup()		# clean up GPIO on normal exit  
