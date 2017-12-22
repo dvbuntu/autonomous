@@ -1,9 +1,9 @@
 [Unit]
-Description=Data logging for Otto
+Description=Data logging for ottoMicro car
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/ottologger.py
+ExecStart=/usr/local/bin/ottoMicroLogger.py
 Restart=always
 StandardOutput=journal
 
