@@ -101,53 +101,53 @@ LED_shutdown_RPi = 6
 
 # -------- Switch / Button use cheatsheet --------- 
 #
-# 	Switch / Button				STATE			MEANING
+# 	Switch / Button			STATE			MEANING
 #	--------------------------------------------------------------
-#	switch_collect_data			OFF (down)		Stop collection data if doing that		
-#								ON (up)			Start collecting data
+#	switch_collect_data		OFF (down)		Stop collection data if doing that		
+#					ON (up)			Start collecting data
 #
-#	switch_shutdown_RPi			OFF (down)		Not in use, Normal operation		
-#								ON (up)			Gracefully shutdown RPi
+#	switch_shutdown_RPi		OFF (down)		Not in use, Normal operation		
+#					ON (up)			Gracefully shutdown RPi
 #
 #	button_copy_to_SDcard		pushed			Copy collected data to SD card
-#								up				Not in use
+#					up			Not in use
 #
 #	button_read_from_SDcard		pushed			Read training data to from card
-#								up				Not in use
+#					up			Not in use
 #
 #	button_run_autonomous		pushed			Put car in autonomous mode
-#								up				Not in use
+#					up			Not in use
 #
 
 # -------- LED status cheatsheet --------- 
 #
 # 	LED							STATE			MEANING
 #	--------------------------------------------------------------
-#	LED_copy_to_SDcard			OFF				Not in use		
-#								ON				Copy in progress
-#								BLINKING		Error during copy
+#	LED_copy_to_SDcard		OFF			Not in use		
+#					ON			Copy in progress
+#					BLINKING		Error during copy
 #
-#	LED_read_from_SDcard		OFF				Not in use		
-#								ON				Copy in progress
-#								BLINKING		Error during read
+#	LED_read_from_SDcard		OFF			Not in use		
+#					ON			Copy in progress
+#					BLINKING		Error during read
 #
-#	LED_autonomous				OFF				Not in use		
-#								ON				Car running autonomously
-#								BLINKING		Autonomous error
+#	LED_autonomous			OFF			Not in use		
+#					ON			Car running autonomously
+#					BLINKING		Autonomous error
 #
-#	LED_collect_data			OFF				Not in use		
-#								ON				Data collection in progress
-#								BLINKING		Error during data collection
+#	LED_collect_data		OFF			Not in use		
+#					ON			Data collection in progress
+#					BLINKING		Error during data collection
 #
-#	LED_shutdown_RPi			OFF				Not in use		
-#								ON				System A-OK
-#								BLINKING		Tried to shut down without copying collected data to SD card
+#	LED_shutdown_RPi		OFF			Not in use		
+#					ON			System A-OK
+#					BLINKING		Tried to shut down without copying collected data to SD card
 #
-#	LED_collect_data			both BLINKING	One or both switches not in off position on startup
+#	LED_collect_data		both BLINKING		One or both switches not in off position on startup
 #	LED_shutdown_RPi
 #
-#	LEDpowerStatusOfRPi			OFF				No power to RPi		
-#								ON				RPi has +3.3 volts on pin #1
+#	LEDpowerStatusOfRPi		OFF			No power to RPi		
+#					ON			RPi has +3.3 volts on pin #1
 
 # -------- Button/switch constants --------- 
 # button push or switch position-up connects to ground, 
