@@ -160,11 +160,6 @@ UP = GPIO.HIGH		# HIGH signal on GPIO pin means button is UP
 LED_On = GPIO.HIGH
 LED_Off = GPIO.LOW
 
-gError_Text= "no error"
-g_An_Error_Is_Being_Processed_Now = False
-print( g_An_Error_Is_Being_Processed_Now )
-
-g_Button_Down_Count = 0
 
 def turn_ON_LED( which_LED ):
 	GPIO.output( which_LED, LED_On )
@@ -339,6 +334,11 @@ GPIO.add_event_detect( switch_shutdown_RPi, GPIO.FALLING, callback=callback_swit
 GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
 # input("Press Enter when ready\n>")  
+gError_Text= "no error"
+g_An_Error_Is_Being_Processed_Now = False
+print( g_An_Error_Is_Being_Processed_Now )
+
+g_Button_Down_Count = 0
 
 while ( True ):
 	pass		# dummy line of code for while loop
