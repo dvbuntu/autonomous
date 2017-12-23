@@ -235,18 +235,19 @@ def callback_button_autonomous( channel ):
 		gError_Text = "Error"
 #		while( True ):
 #			pass
-# 		button_held_count = 12
-# 		LED_state = LED_On
-# 		# blink LED forever unless user clears the error by holding down button for 3 seconds
-# 		while( button_held_count != 0 ):		
-# 			GPIO.output( LED_autonomous, LED_state )
-# 			time.sleep( .25 )	
-# 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
-# 			if( GPIO.input( button_run_autonomous ) != PUSHED ):
-# 				button_held_count = 12		# button not held down, reset the count
-# 			else:
-# 				button_held_count = button_held_count - 1
-# 		turn_OFF_LED( LED_autonomous )
+		button_held_count = 12
+#		LED_state = LED_On
+		# blink LED forever unless user clears the error by holding down button for 3 seconds
+		while( button_held_count != 0 ):		
+			GPIO.output( LED_autonomous, LED_state )
+			time.sleep( .25 )	
+			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+			button_held_count = button_held_count - 1
+				
+#			if( GPIO.input( button_run_autonomous ) != PUSHED ):
+#				button_held_count = 12		# button not held down, reset the count
+#			else:
+#		turn_OFF_LED( LED_autonomous )
 	turn_OFF_LED( LED_autonomous )
 
 # ------------------------------------------------- 
