@@ -177,7 +177,7 @@ def blink_LED( which_LED ):
 	turn_OFF_ALL_LEDs( )
 	LED_state = 1
 	
-	print( "blinking"
+	print( "blinking" )
 	
 	# blink LED forever or until user pushes button or switch which triggers another interrupt
 	while( True ):		
