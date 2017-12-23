@@ -221,7 +221,7 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 	try:
-		print ( gError_Text )
+#		print ( gError_Text )
 		turn_ON_LED( LED_autonomous )
 		button_state = PUSHED
 		while ( button_state == PUSHED ):
