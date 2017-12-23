@@ -204,6 +204,10 @@ def handle_button_exception( which_button, which_LED ):
 		pass
 	g_user_just_cleared_error = True	
 
+
+	GPIO.remove_event_detect(which_button)
+
+
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
 
@@ -348,6 +352,10 @@ while(( GPIO.input( switch_shutdown_RPi ) == ON ) or ( GPIO.input( switch_collec
 turn_OFF_ALL_LEDs( )
 
 # setup callback routines for handling falling edge detection  
+# ??? is this true ???   Note that in this case, the callback functions are run sequentially, 
+#	not concurrently. This is because there is only one thread used for callbacks, 
+#	in which every callback is run, in the order in which they have been defined.
+
 GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
 GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
 GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
