@@ -177,8 +177,6 @@ def blink_LED( which_LED ):
 	turn_OFF_ALL_LEDs( )
 	LED_state = 1
 	
-	print( "blinking" )
-	
 	# blink LED forever or until user pushes button or switch which triggers another interrupt
 	while( True ):		
 		GPIO.output( which_LED, LED_state )
@@ -199,7 +197,7 @@ def callback_button_copy_to_SDcard( channel ):
 		turn_OFF_LED( LED_copy_to_SDcard )
 	
 	except:
-		print( "error" ) 
+		print( "copy to SD error" ) 
 		blink_LED( LED_copy_to_SDcard )
 
 # ------------------------------------------------- 
@@ -215,7 +213,7 @@ def callback_button_read_from_SDcard( channel ):
 		turn_OFF_LED( LED_read_from_SDcard )
 	
 	except:
-		print( "error" ) 
+		print( "read from SD error" ) 
 		blink_LED( LED_read_from_SDcard )
 
 # ------------------------------------------------- 
@@ -231,9 +229,8 @@ def callback_button_autonomous( channel ):
 		turn_OFF_LED( LED_autonomous )
 	
 	except:
-		print( "error" ) 
+		print( "autonomous error" ) 
 		blink_LED( LED_autonomous )
-		print( "blink past" ) 
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
@@ -244,7 +241,7 @@ def callback_switch_shutdown_RPi( channel ):
 		turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
 	
 	except:
-		print( "error" ) 
+		print( "shutdown error" ) 
 		blink_LED( LED_shutdown_RPi )
 
 # ------------------------------------------------- 
@@ -272,7 +269,7 @@ def callback_switch_collect_data( channel ):
 		turn_OFF_LED( LED_collect_data )
 	
 	except:
-		print( "error" ) 
+		print( "data collection error" ) 
 		blink_LED( LED_collect_data )
 		
 # ---------------- main program ------------------------------------- 
