@@ -252,7 +252,7 @@ def callback_button_autonomous( channel ):
 		while( error_not_cleared ):
 			if( GPIO.input( button_run_autonomous ) == PUSHED ):
 				g_Button_Down_Count = g_Button_Down_Count - 1
-				if( g_Button_Down_Count <= 0 )
+				if( g_Button_Down_Count <= 0 ):
 					error_not_cleared = False
 					
 			GPIO.output( LED_autonomous, LED_state )
