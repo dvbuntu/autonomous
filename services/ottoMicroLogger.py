@@ -244,14 +244,23 @@ def callback_button_autonomous( channel ):
 		
 		if( g_An_Error_Is_Being_Processed_Now == False ):
 			print( "autonomous exception" )
-			g_Button_Down_Count = 12
 			g_An_Error_Is_Being_Processed_Now = True
 			LED_state = LED_On
-			
-		while( g_Button_Down_Count != 0 ):		
+		
+		error_not_cleared = true	
+		g_Button_Down_Count = 12
+		while( error_not_cleared ):
+			if(( GPIO.input( button_run_autonomous ) == PUSHED ):
+				g_Button_Down_Count = g_Button_Down_Count - 1
+				if( g_Button_Down_Count <= 0 )
+					error_not_cleared = False
+					
 			GPIO.output( LED_autonomous, LED_state )
 			time.sleep( .25 )	
 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+
+
+				
 
 	turn_OFF_LED( LED_autonomous )
 
