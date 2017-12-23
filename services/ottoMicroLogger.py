@@ -221,19 +221,23 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 
-	global g_An_Error_Is_Being_Processed_Now
+	global g_User_Just_Cleared_Error
 	global g_Button_Down_Count
 	
 	try:
-		turn_ON_LED( LED_autonomous )
-		button_state = PUSHED
-		# wait for button to be released before continuing
-		while ( button_state == PUSHED ):
-			button_state = GPIO.input( button_run_autonomous )
+		if( g_User_Just_Cleared_Error ):
+			g_User_Just_Cleared_Error = False	
+		
+		else:
+			turn_ON_LED( LED_autonomous )
+			button_state = PUSHED
+			# wait for button to be released before continuing
+			while ( button_state == PUSHED ):
+				button_state = GPIO.input( button_run_autonomous )
 	
-		# go do autonomous ....
-		print( "exception" )
-		x = y / x	# force an exception
+			# go do autonomous ....
+			print( "exception" )
+			x = y / x	# force an exception
 	
 	except:
 		LED_state = LED_On
@@ -254,7 +258,7 @@ def callback_button_autonomous( channel ):
 		# don't leave until user releases button
 		while( GPIO.input( button_run_autonomous ) == PUSHED ):
 			pass
-		time.sleep( .5 )
+		g_User_Just_Cleared_Error = True
 
 				
 
@@ -337,7 +341,7 @@ GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_swit
 # input("Press Enter when ready\n>")  
 
 gError_Text= "no error"
-g_An_Error_Is_Being_Processed_Now = False
+g_User_Just_Cleared_Error = False
 
 g_Button_Down_Count = 0
 
