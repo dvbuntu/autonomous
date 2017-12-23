@@ -221,12 +221,13 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 
-	global g_User_Just_Cleared_Error
-	global g_Button_Down_Count
+	global g_user_just_cleared_error
 	
 	try:
-		if( g_User_Just_Cleared_Error ):
-			g_User_Just_Cleared_Error = False	
+		# if the user just cleared an error, another button press will immediately be detected
+		#	so we skip over processing this  
+		if( g_user_just_cleared_error ):
+			g_user_just_cleared_error = False	
 		
 		else:
 			turn_ON_LED( LED_autonomous )
@@ -241,24 +242,25 @@ def callback_button_autonomous( channel ):
 	
 	except:
 		LED_state = LED_On
+		button_down_count = 6
+		# blink the LED until the user holds down the button for 3 seconds
 		error_not_cleared = True	
-		g_Button_Down_Count = 6
-		while( error_not_cleared ):
+		while( error_not_cleared ):	
 			if( GPIO.input( button_run_autonomous ) == PUSHED ):
-				g_Button_Down_Count = g_Button_Down_Count - 1
-				if( g_Button_Down_Count <= 0 ):
+				button_down_count = button_down_count - 1
+				if( button_down_count <= 0 ):
 					error_not_cleared = False
 					
-			GPIO.output( LED_autonomous, LED_state )
+			GPIO.output( LED_autonomous, LED_state )	# blink the LED to show the error
 			time.sleep( .25 )	
 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 
-		turn_OFF_LED( LED_autonomous )
+		turn_OFF_LED( LED_autonomous )		# show the user the error has been cleared
 		
 		# don't leave until user releases button
 		while( GPIO.input( button_run_autonomous ) == PUSHED ):
 			pass
-		g_User_Just_Cleared_Error = True
+		g_user_just_cleared_error = True	# set this flag so another interrupt doesn't immediately occur
 
 				
 
@@ -340,10 +342,8 @@ GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_swit
 
 # input("Press Enter when ready\n>")  
 
-gError_Text= "no error"
-g_User_Just_Cleared_Error = False
+g_user_just_cleared_error = False
 
-g_Button_Down_Count = 0
 
 while ( True ):
 	pass		# dummy line of code for while loop
