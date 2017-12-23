@@ -224,7 +224,7 @@ def callback_button_autonomous( channel ):
 			button_state = GPIO.input( button_run_autonomous )
 		
 		# go do autonomous ....
-		
+		x = y / x	# try to force an exception
 		turn_OFF_LED( LED_autonomous )
 	
 	except ValueError as err:
