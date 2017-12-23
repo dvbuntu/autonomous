@@ -199,7 +199,7 @@ def callback_button_copy_to_SDcard( channel ):
 		turn_OFF_LED( LED_copy_to_SDcard )
 	
 	except:
-		print( err ) 
+		print( "error" ) 
 		blink( LED_copy_to_SDcard )
 
 # ------------------------------------------------- 
@@ -215,7 +215,7 @@ def callback_button_read_from_SDcard( channel ):
 		turn_OFF_LED( LED_read_from_SDcard )
 	
 	except:
-		print( err ) 
+		print( "error" ) 
 		blink( LED_read_from_SDcard )
 
 # ------------------------------------------------- 
@@ -231,7 +231,7 @@ def callback_button_autonomous( channel ):
 		turn_OFF_LED( LED_autonomous )
 	
 	except:
-		print( err ) 
+		print( "error" ) 
 		blink( LED_autonomous )
 		print( "blink past" ) 
 
@@ -244,7 +244,7 @@ def callback_switch_shutdown_RPi( channel ):
 		turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
 	
 	except:
-		print( err ) 
+		print( "error" ) 
 		blink( LED_shutdown_RPi )
 
 # ------------------------------------------------- 
@@ -272,7 +272,7 @@ def callback_switch_collect_data( channel ):
 		turn_OFF_LED( LED_collect_data )
 	
 	except:
-		print( err ) 
+		print( "error" ) 
 		blink( LED_collect_data )
 		
 # ---------------- main program ------------------------------------- 
