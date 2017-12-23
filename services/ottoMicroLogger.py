@@ -175,16 +175,30 @@ def turn_OFF_ALL_LEDs( ):
 	turn_OFF_LED( LED_collect_data )
 		
 def blink_LED( which_LED ):
-	turn_OFF_ALL_LEDs( )
-	LED_state = 1
-	
-	# blink LED forever or until user pushes button or switch which triggers another interrupt
-	while( True ):		
-		GPIO.output( which_LED, LED_state )
+	pass
+
+
+def handle_button_exception( which_button, which_LED ):
+	LED_state = LED_On
+	button_down_count = 6
+	# blink the LED until the user holds down the button for 3 seconds
+	error_not_cleared = True	
+	while( error_not_cleared ):	
+		if( GPIO.input( which_button ) == PUSHED ):
+			button_down_count = button_down_count - 1
+			if( button_down_count <= 0 ):
+				error_not_cleared = False
+				
+		GPIO.output( which_LED, LED_state )	# blink the LED to show the error
 		time.sleep( .25 )	
 		LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
-		
 
+	turn_OFF_LED( which_LED )		# show the user the error has been cleared
+	
+	# don't leave until user releases button
+	while( GPIO.input( which_button ) == PUSHED ):
+		pass
+	g_user_just_cleared_error = True	# set this flag so another interrupt doesn't immediately occur
 
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
@@ -215,8 +229,7 @@ def callback_button_read_from_SDcard( channel ):
 		turn_OFF_LED( LED_read_from_SDcard )
 	
 	except:
-		print( "read from SD error" ) 
-		blink_LED( LED_read_from_SDcard )
+		handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -237,7 +250,7 @@ def callback_button_autonomous( channel ):
 				button_state = GPIO.input( button_run_autonomous )
 	
 			# go do autonomous ....
-			print( "exception" )
+			print( "autonomous exception" )
 			x = y / x	# force an exception
 	
 	except:
