@@ -268,19 +268,19 @@ def callback_button_autonomous( channel ):
 	try:
 		# if the user just cleared an error, another button press will immediately be detected
 		#	so we skip over the code if this global variable is true 
-		if( g_user_just_cleared_error ):
-			g_user_just_cleared_error = False	
-		
-		else:
-			turn_ON_LED( LED_autonomous )
-			button_state = PUSHED
-			while ( button_state == PUSHED ):
-				button_state = GPIO.input( button_run_autonomous )
-		
-			# do the autonomous ....
-			x = y / x	# force an exception for debugging
-		
-			turn_OFF_LED( LED_autonomous )
+# 		if( g_user_just_cleared_error ):
+# 			g_user_just_cleared_error = False	
+# 		
+# 		else:
+		turn_ON_LED( LED_autonomous )
+		button_state = PUSHED
+		while ( button_state == PUSHED ):
+			button_state = GPIO.input( button_run_autonomous )
+	
+		# do the autonomous ....
+		x = y / x	# force an exception for debugging
+	
+		turn_OFF_LED( LED_autonomous )
 	except:
 		print( "autonomous exception" )
 		handle_button_exception( button_run_autonomous, LED_autonomous )
