@@ -183,7 +183,6 @@ def handle_button_exception( which_button, which_LED ):
 	# set this flag so another interrupt doesn't immediately occur after processing this one
 	global g_user_just_cleared_error
 
-	GPIO.remove_event_detect(which_button)
 	
 	LED_state = LED_On
 	button_down_count = 6
@@ -205,8 +204,7 @@ def handle_button_exception( which_button, which_LED ):
 	while( GPIO.input( which_button ) == PUSHED ):
 		pass
 	g_user_just_cleared_error = True	
-#	time.sleep( .25 )
-	GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
+	time.sleep( .25 )
 
 
 
@@ -283,7 +281,9 @@ def callback_button_autonomous( channel ):
 		turn_OFF_LED( LED_autonomous )
 	except:
 		print( "autonomous exception" )
+		GPIO.remove_event_detect(button_run_autonomous)
 		handle_button_exception( button_run_autonomous, LED_autonomous )
+		GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
