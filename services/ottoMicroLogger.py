@@ -183,6 +183,8 @@ def handle_button_exception( which_button, which_LED ):
 	# set this flag so another interrupt doesn't immediately occur after processing this one
 	global g_user_just_cleared_error
 
+	GPIO.remove_event_detect(which_button)
+	
 	LED_state = LED_On
 	button_down_count = 6
 	# blink the LED until the user holds down the button for 3 seconds
@@ -205,7 +207,6 @@ def handle_button_exception( which_button, which_LED ):
 	g_user_just_cleared_error = True	
 
 
-	GPIO.remove_event_detect(which_button)
 
 
 # -------- Functions called by callback functions --------- 
