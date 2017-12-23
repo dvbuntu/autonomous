@@ -250,7 +250,7 @@ def callback_button_autonomous( channel ):
 		error_not_cleared = true	
 		g_Button_Down_Count = 12
 		while( error_not_cleared ):
-			if(( GPIO.input( button_run_autonomous ) == PUSHED ):
+			if( GPIO.input( button_run_autonomous ) == PUSHED ):
 				g_Button_Down_Count = g_Button_Down_Count - 1
 				if( g_Button_Down_Count <= 0 )
 					error_not_cleared = False
