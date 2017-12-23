@@ -244,7 +244,9 @@ def callback_button_read_from_SDcard( channel ):
 		turn_OFF_LED( LED_read_from_SDcard )
 	except:
 		print( "card read from card exception" )
+		GPIO.remove_event_detect(button_read_from_SDcard)
 		handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
+		GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
