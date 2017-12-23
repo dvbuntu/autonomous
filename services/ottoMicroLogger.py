@@ -179,6 +179,9 @@ def blink_LED( which_LED ):
 
 
 def handle_button_exception( which_button, which_LED ):
+	# set this flag so another interrupt doesn't immediately occur after processing this one
+	global g_user_just_cleared_error
+
 	LED_state = LED_On
 	button_down_count = 6
 	# blink the LED until the user holds down the button for 3 seconds
@@ -198,7 +201,7 @@ def handle_button_exception( which_button, which_LED ):
 	# don't leave until user releases button
 	while( GPIO.input( which_button ) == PUSHED ):
 		pass
-	g_user_just_cleared_error = True	# set this flag so another interrupt doesn't immediately occur
+	g_user_just_cleared_error = True	
 
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
