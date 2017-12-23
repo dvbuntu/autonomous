@@ -232,6 +232,7 @@ def callback_button_autonomous( channel ):
 			button_state = GPIO.input( button_run_autonomous )
 	
 		# go do autonomous ....
+		print( "exception" )
 		x = y / x	# force an exception
 	
 	except:
