@@ -225,10 +225,12 @@ def callback_button_read_from_SDcard( channel ):
 			button_state = GPIO.input( button_read_from_SDcard )
 		
 		# do the reading ....
+		x = y / x	# force an exception
 		
 		turn_OFF_LED( LED_read_from_SDcard )
 	
 	except:
+		print( "card read exception" )
 		handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
 
 # ------------------------------------------------- 
