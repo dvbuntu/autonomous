@@ -178,10 +178,10 @@ def blink_LED( which_LED ):
 	LED_state = 1
 	
 	# blink LED forever or until user pushes button or switch which triggers another interrupt
-#	while( True ):		
-#		GPIO.output( which_LED, LED_state )
-#		time.sleep( .25 )	
-#		LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+	while( True ):		
+		GPIO.output( which_LED, LED_state )
+		time.sleep( .25 )	
+		LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 		
 
 # -------- Functions called by callback functions --------- 
@@ -231,6 +231,7 @@ def callback_button_autonomous( channel ):
 	except ValueError as err:
 		print( err ) 
 		blink( LED_autonomous )
+		print( "blink past" ) 
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
