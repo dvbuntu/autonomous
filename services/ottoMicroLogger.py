@@ -237,6 +237,7 @@ def callback_button_autonomous( channel ):
 		else:
 			if( g_Button_Down_Count > 0 ):
 				g_Button_Down_Count = g_Button_Down_Count - 1
+			print( g_Button_Down_Count )
 	
 	except:
 		print( g_An_Error_Is_Being_Processed_Now )
@@ -252,14 +253,6 @@ def callback_button_autonomous( channel ):
 			time.sleep( .25 )	
 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 
-#		while( True ):
-#			pass
-		# blink LED forever unless user clears the error by holding down button for 3 seconds
-				
-#			if( GPIO.input( button_run_autonomous ) != PUSHED ):
-#				button_held_count = 12		# button not held down, reset the count
-#			else:
-#		turn_OFF_LED( LED_autonomous )
 	turn_OFF_LED( LED_autonomous )
 
 # ------------------------------------------------- 
