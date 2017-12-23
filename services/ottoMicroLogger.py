@@ -239,6 +239,8 @@ def callback_button_autonomous( channel ):
 				g_Button_Down_Count = g_Button_Down_Count - 1
 	
 	except:
+		print( g_An_Error_Is_Being_Processed_Now )
+		
 		if( g_An_Error_Is_Being_Processed_Now == False ):
 			print( "autonomous exception" )
 			g_Button_Down_Count = 12
@@ -336,9 +338,9 @@ GPIO.add_event_detect( switch_shutdown_RPi, GPIO.FALLING, callback=callback_swit
 GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
 # input("Press Enter when ready\n>")  
+
 gError_Text= "no error"
 g_An_Error_Is_Being_Processed_Now = False
-print( g_An_Error_Is_Being_Processed_Now )
 
 g_Button_Down_Count = 0
 
