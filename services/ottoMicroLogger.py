@@ -161,8 +161,8 @@ LED_On = GPIO.HIGH
 LED_Off = GPIO.LOW
 
 gError_Text= "no error"
-gProcessing_Error = False
-gButton_Down_Count = 0
+g_An_Error_Is_Being_Processed_Now = False
+g_Button_Down_Count = 0
 
 def turn_ON_LED( which_LED ):
 	GPIO.output( which_LED, LED_On )
@@ -224,7 +224,7 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 	try:
-		if( gProcessingError == False ):
+		if( g_An_Error_Is_Being_Processed_Now == False ):
 			turn_ON_LED( LED_autonomous )
 			button_state = PUSHED
 			# wait for button to be released before continuing
@@ -234,17 +234,17 @@ def callback_button_autonomous( channel ):
 			# go do autonomous ....
 			x = y / x	# force an exception
 		else:
-			if( gButton_Down_Count > 0 ):
-				gButton_Down_Count = gButton_Down_Count - 1
+			if( g_Button_Down_Count > 0 ):
+				g_Button_Down_Count = g_Button_Down_Count - 1
 	
 	except:
-		if( gProcessingError != True ):
+		if( g_An_Error_Is_Being_Processed_Now == False ):
 			print( "autonomous exception" )
-			gButton_Down_Count = 12
-			gProcessingError = True
+			g_Button_Down_Count = 12
+			g_An_Error_Is_Being_Processed_Now = True
 			LED_state = LED_On
 			
-		while( gButton_Down_Count != 0 ):		
+		while( g_Button_Down_Count != 0 ):		
 			GPIO.output( LED_autonomous, LED_state )
 			time.sleep( .25 )	
 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
