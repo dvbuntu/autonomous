@@ -162,6 +162,8 @@ LED_Off = GPIO.LOW
 
 gError_Text= "no error"
 g_An_Error_Is_Being_Processed_Now = False
+print( g_An_Error_Is_Being_Processed_Now )
+
 g_Button_Down_Count = 0
 
 def turn_ON_LED( which_LED ):
