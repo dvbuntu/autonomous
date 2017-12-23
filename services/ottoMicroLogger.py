@@ -225,7 +225,9 @@ def callback_button_copy_to_SDcard( channel ):
 		turn_OFF_LED( LED_copy_to_SDcard )
 	except:
 		print( "card copy to card exception" )
+		GPIO.remove_event_detect(button_copy_to_SDcard)
 		handle_button_exception( button_copy_to_SDcard, LED_copy_to_SDcard )
+		GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
