@@ -178,6 +178,7 @@ def blink_LED( which_LED ):
 	pass
 
 
+# -------- Handler for clearing all button errors --------- 
 def handle_button_exception( which_button, which_LED ):
 	# set this flag so another interrupt doesn't immediately occur after processing this one
 	global g_user_just_cleared_error
@@ -205,19 +206,28 @@ def handle_button_exception( which_button, which_LED ):
 
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
-	try:
-		turn_ON_LED( LED_copy_to_SDcard )
-		button_state = PUSHED
-		while ( button_state == PUSHED ):
-			button_state = GPIO.input( button_copy_to_SDcard )
-		
-		# do the copying ....
-		
-		turn_OFF_LED( LED_copy_to_SDcard )
+
+	global g_user_just_cleared_error
 	
+	try:
+		# if the user just cleared an error, another button press will immediately be detected
+		#	so we skip over the code if this global variable is true 
+		if( g_user_just_cleared_error ):
+			g_user_just_cleared_error = False	
+		
+		else:
+			turn_ON_LED( LED_copy_to_SDcard )
+			button_state = PUSHED
+			while ( button_state == PUSHED ):
+				button_state = GPIO.input( button_copy_to_SDcard )
+		
+			# do the copying ....
+			x = y / x	# force an exception for debugging
+		
+			turn_OFF_LED( LED_copy_to_SDcard )
 	except:
-		print( "copy to SD error" ) 
-		blink_LED( LED_copy_to_SDcard )
+		print( "card copy to card exception" )
+		handle_button_exception( button_copy_to_SDcard, LED_copy_to_SDcard )
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
@@ -226,7 +236,7 @@ def callback_button_read_from_SDcard( channel ):
 	
 	try:
 		# if the user just cleared an error, another button press will immediately be detected
-		#	so we skip over processing this  
+		#	so we skip over the code if this global variable is true 
 		if( g_user_just_cleared_error ):
 			g_user_just_cleared_error = False	
 		
@@ -237,12 +247,11 @@ def callback_button_read_from_SDcard( channel ):
 				button_state = GPIO.input( button_read_from_SDcard )
 		
 			# do the reading ....
-			x = y / x	# force an exception
+			x = y / x	# force an exception for debugging
 		
 			turn_OFF_LED( LED_read_from_SDcard )
-			
 	except:
-		print( "card read exception" )
+		print( "card read from card exception" )
 		handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
 
 # ------------------------------------------------- 
@@ -252,45 +261,23 @@ def callback_button_autonomous( channel ):
 	
 	try:
 		# if the user just cleared an error, another button press will immediately be detected
-		#	so we skip over processing this  
+		#	so we skip over the code if this global variable is true 
 		if( g_user_just_cleared_error ):
 			g_user_just_cleared_error = False	
 		
 		else:
 			turn_ON_LED( LED_autonomous )
 			button_state = PUSHED
-			# wait for button to be released before continuing
 			while ( button_state == PUSHED ):
 				button_state = GPIO.input( button_run_autonomous )
-	
-			# go do autonomous ....
-			print( "autonomous exception" )
-			x = y / x	# force an exception
-	
-	except:
-		LED_state = LED_On
-		button_down_count = 6
-		# blink the LED until the user holds down the button for 3 seconds
-		error_not_cleared = True	
-		while( error_not_cleared ):	
-			if( GPIO.input( button_run_autonomous ) == PUSHED ):
-				button_down_count = button_down_count - 1
-				if( button_down_count <= 0 ):
-					error_not_cleared = False
-					
-			GPIO.output( LED_autonomous, LED_state )	# blink the LED to show the error
-			time.sleep( .25 )	
-			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
-
-		turn_OFF_LED( LED_autonomous )		# show the user the error has been cleared
 		
-		# don't leave until user releases button
-		while( GPIO.input( button_run_autonomous ) == PUSHED ):
-			pass
-		g_user_just_cleared_error = True	# set this flag so another interrupt doesn't immediately occur
-
-				
-
+			# do the autonomous ....
+			x = y / x	# force an exception for debugging
+		
+			turn_OFF_LED( LED_autonomous )
+	except:
+		print( "autonomous exception" )
+		handle_button_exception( button_run_autonomous, LED_autonomous )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
