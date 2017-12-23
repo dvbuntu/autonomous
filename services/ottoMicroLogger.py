@@ -200,7 +200,7 @@ def callback_button_copy_to_SDcard( channel ):
 	
 	except:
 		print( "error" ) 
-		blink( LED_copy_to_SDcard )
+		blink_LED( LED_copy_to_SDcard )
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
@@ -216,7 +216,7 @@ def callback_button_read_from_SDcard( channel ):
 	
 	except:
 		print( "error" ) 
-		blink( LED_read_from_SDcard )
+		blink_LED( LED_read_from_SDcard )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -232,7 +232,7 @@ def callback_button_autonomous( channel ):
 	
 	except:
 		print( "error" ) 
-		blink( LED_autonomous )
+		blink_LED( LED_autonomous )
 		print( "blink past" ) 
 
 # ------------------------------------------------- 
@@ -245,7 +245,7 @@ def callback_switch_shutdown_RPi( channel ):
 	
 	except:
 		print( "error" ) 
-		blink( LED_shutdown_RPi )
+		blink_LED( LED_shutdown_RPi )
 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
@@ -273,7 +273,7 @@ def callback_switch_collect_data( channel ):
 	
 	except:
 		print( "error" ) 
-		blink( LED_collect_data )
+		blink_LED( LED_collect_data )
 		
 # ---------------- main program ------------------------------------- 
 GPIO.setmode( GPIO.BCM )  
