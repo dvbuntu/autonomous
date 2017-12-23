@@ -225,30 +225,19 @@ def callback_button_autonomous( channel ):
 	global g_Button_Down_Count
 	
 	try:
-		if( g_An_Error_Is_Being_Processed_Now == False ):
-			turn_ON_LED( LED_autonomous )
-			button_state = PUSHED
-			# wait for button to be released before continuing
-			while ( button_state == PUSHED ):
-				button_state = GPIO.input( button_run_autonomous )
-		
-			# go do autonomous ....
-			x = y / x	# force an exception
-		else:
-			if( g_Button_Down_Count > 0 ):
-				g_Button_Down_Count = g_Button_Down_Count - 1
-			print( g_Button_Down_Count )
+		turn_ON_LED( LED_autonomous )
+		button_state = PUSHED
+		# wait for button to be released before continuing
+		while ( button_state == PUSHED ):
+			button_state = GPIO.input( button_run_autonomous )
+	
+		# go do autonomous ....
+		x = y / x	# force an exception
 	
 	except:
-		print( g_An_Error_Is_Being_Processed_Now )
-		
-		if( g_An_Error_Is_Being_Processed_Now == False ):
-			print( "autonomous exception" )
-			g_An_Error_Is_Being_Processed_Now = True
-			LED_state = LED_On
-		
+		LED_state = LED_On
 		error_not_cleared = True	
-		g_Button_Down_Count = 12
+		g_Button_Down_Count = 6
 		while( error_not_cleared ):
 			if( GPIO.input( button_run_autonomous ) == PUSHED ):
 				g_Button_Down_Count = g_Button_Down_Count - 1
