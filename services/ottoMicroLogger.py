@@ -175,13 +175,13 @@ def turn_OFF_ALL_LEDs( ):
 		
 def blink_LED( which_LED ):
 	turn_OFF_ALL_LEDs( )
-	on_off_state = 1
+	LED_state = 1
 	
 	# blink LED forever or until user pushes button or switch which triggers another interrupt
 	while( True ):		
-		GPIO.output( which_LED, on_off_state )
-		sleep( .25)	
-		on_off_state = on_off_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+		GPIO.output( which_LED, LED_state )
+		time.sleep( .25 )	
+		LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 		
 
 # -------- Functions called by callback functions --------- 
