@@ -229,7 +229,7 @@ def callback_button_autonomous( channel ):
 		
 		# go do autonomous ....
 		x = y / x	# force an exception
-		turn_OFF_LED( LED_autonomous )
+#		turn_OFF_LED( LED_autonomous )
 	
 	except:
 		print( "autonomous error" )
