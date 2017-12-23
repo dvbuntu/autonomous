@@ -236,7 +236,7 @@ def callback_button_autonomous( channel ):
 #		while( True ):
 #			pass
 		button_held_count = 12
-#		LED_state = LED_On
+		LED_state = LED_On
 		# blink LED forever unless user clears the error by holding down button for 3 seconds
 		while( button_held_count != 0 ):		
 			GPIO.output( LED_autonomous, LED_state )
