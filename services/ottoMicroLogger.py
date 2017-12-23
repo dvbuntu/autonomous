@@ -218,17 +218,26 @@ def callback_button_copy_to_SDcard( channel ):
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
-	try:
-		turn_ON_LED( LED_read_from_SDcard )
-		button_state = PUSHED
-		while ( button_state == PUSHED ):
-			button_state = GPIO.input( button_read_from_SDcard )
-		
-		# do the reading ....
-		x = y / x	# force an exception
-		
-		turn_OFF_LED( LED_read_from_SDcard )
+
+	global g_user_just_cleared_error
 	
+	try:
+		# if the user just cleared an error, another button press will immediately be detected
+		#	so we skip over processing this  
+		if( g_user_just_cleared_error ):
+			g_user_just_cleared_error = False	
+		
+		else:
+			turn_ON_LED( LED_read_from_SDcard )
+			button_state = PUSHED
+			while ( button_state == PUSHED ):
+				button_state = GPIO.input( button_read_from_SDcard )
+		
+			# do the reading ....
+			x = y / x	# force an exception
+		
+			turn_OFF_LED( LED_read_from_SDcard )
+			
 	except:
 		print( "card read exception" )
 		handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
