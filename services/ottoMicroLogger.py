@@ -233,7 +233,7 @@ def callback_button_autonomous( channel ):
 	
 	except:
 		print( "autonomous error" )
-		gError_Text = "error"
+		gError_Text = "Error"
 		while( True ):
 			pass
 # 		button_held_count = 12
