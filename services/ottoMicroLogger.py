@@ -195,7 +195,7 @@ def handle_button_exception( which_button, which_LED ):
 				error_not_cleared = False
 				
 		GPIO.output( which_LED, LED_state )	# blink the LED to show the error
-		time.sleep( .25 )	
+		time.sleep( .1 )	
 		LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 
 	turn_OFF_LED( which_LED )		# show the user the error has been cleared
@@ -204,7 +204,7 @@ def handle_button_exception( which_button, which_LED ):
 	while( GPIO.input( which_button ) == PUSHED ):
 		pass
 	g_user_just_cleared_error = True	
-	time.sleep( .25 )
+	time.sleep( .1 )
 
 
 
