@@ -220,6 +220,8 @@ def callback_button_read_from_SDcard( channel ):
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
+
+	global g_An_Error_Is_Being_Processed_Now
 	try:
 		print( g_An_Error_Is_Being_Processed_Now )
 		
