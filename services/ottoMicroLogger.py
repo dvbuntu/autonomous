@@ -253,6 +253,7 @@ def callback_button_autonomous( channel ):
 		# don't leave until user releases button
 		while( GPIO.input( button_run_autonomous ) == PUSHED ):
 			pass
+		time.sleep( .5 )
 
 				
 
