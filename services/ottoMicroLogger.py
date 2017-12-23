@@ -247,7 +247,7 @@ def callback_button_autonomous( channel ):
 			g_An_Error_Is_Being_Processed_Now = True
 			LED_state = LED_On
 		
-		error_not_cleared = true	
+		error_not_cleared = True	
 		g_Button_Down_Count = 12
 		while( error_not_cleared ):
 			if( GPIO.input( button_run_autonomous ) == PUSHED ):
