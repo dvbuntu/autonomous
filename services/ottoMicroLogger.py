@@ -248,10 +248,14 @@ def callback_button_autonomous( channel ):
 			time.sleep( .25 )	
 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 
+		turn_OFF_LED( LED_autonomous )
+		
+		# don't leave until user releases button
+		while( GPIO.input( button_run_autonomous ) == PUSHED ):
+			pass
 
 				
 
-	turn_OFF_LED( LED_autonomous )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
