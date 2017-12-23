@@ -225,12 +225,23 @@ def callback_button_autonomous( channel ):
 			button_state = GPIO.input( button_run_autonomous )
 		
 		# go do autonomous ....
-		x = y / x	# try to force an exception
+		x = y / x	# force an exception
 		turn_OFF_LED( LED_autonomous )
 	
 	except:
-		print( "autonomous error" ) 
-		blink_LED( LED_autonomous )
+		print( "autonomous error" )
+		button_held_count = 12
+		LED_state = LED_On
+		# blink LED forever unless user clears the error by holding down button for 3 seconds
+		while( button_held_count != 0 ):		
+			GPIO.output( LED_autonomous, LED_state )
+			time.sleep( .25 )	
+			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+			if( GPIO.input( button_run_autonomous ) != PUSHED ):
+				button_held_count = 12		# button not held down, reset the count
+			else:
+				button_held_count = button_held_count - 1
+		turn_OFF_LED( LED_autonomous )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
