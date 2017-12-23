@@ -224,29 +224,34 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 	try:
-		if( gProcessingError != True ):
+		if( gProcessingError == False ):
 			turn_ON_LED( LED_autonomous )
 			button_state = PUSHED
+			# wait for button to be released before continuing
 			while ( button_state == PUSHED ):
 				button_state = GPIO.input( button_run_autonomous )
 		
 			# go do autonomous ....
 			x = y / x	# force an exception
 		else:
-			gButton_Down_Count = gButton_Down_Count - 1
+			if( gButton_Down_Count > 0 ):
+				gButton_Down_Count = gButton_Down_Count - 1
 	
 	except:
-		print( "autonomous exception" )
-		gProcessingError = True
-#		while( True ):
-#			pass
-		gButton_Down_Count = 12
-		LED_state = LED_On
-		# blink LED forever unless user clears the error by holding down button for 3 seconds
+		if( gProcessingError != True ):
+			print( "autonomous exception" )
+			gButton_Down_Count = 12
+			gProcessingError = True
+			LED_state = LED_On
+			
 		while( gButton_Down_Count != 0 ):		
 			GPIO.output( LED_autonomous, LED_state )
 			time.sleep( .25 )	
 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+
+#		while( True ):
+#			pass
+		# blink LED forever unless user clears the error by holding down button for 3 seconds
 				
 #			if( GPIO.input( button_run_autonomous ) != PUSHED ):
 #				button_held_count = 12		# button not held down, reset the count
