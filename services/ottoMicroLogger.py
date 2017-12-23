@@ -205,7 +205,8 @@ def handle_button_exception( which_button, which_LED ):
 	while( GPIO.input( which_button ) == PUSHED ):
 		pass
 	g_user_just_cleared_error = True	
-
+	time.sleep( .25 )
+	GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
 
 
 
