@@ -249,20 +249,20 @@ def callback_switch_collect_data( channel ):
 		turn_ON_LED( LED_collect_data )
 		collector=DataCollector()
 		
-	with picamera.PiCamera() as camera:
-		#Note: these are just parameters to set up the camera, so the order is not important
-		camera.resolution=(64, 64) #final image size
-		camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-		camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-		camera.start_recording(collector, format='rgb')
+		with picamera.PiCamera() as camera:
+			#Note: these are just parameters to set up the camera, so the order is not important
+			camera.resolution=(64, 64) #final image size
+			camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+			camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+			camera.start_recording(collector, format='rgb')
 
-		if debug:
-			camera.start_preview() #displays video while it's being recorded
-			input('Press enter to stop recording') # will cause hang waiting for user input
+			if debug:
+				camera.start_preview() #displays video while it's being recorded
+				input('Press enter to stop recording') # will cause hang waiting for user input
 
-		else : #we are not in debug mode, assume data collection is happening
-			while( GPIO.input( switch_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
-				pass
+			else : #we are not in debug mode, assume data collection is happening
+				while( GPIO.input( switch_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
+					pass
 	 
 		camera.stop_recording()     
 		turn_OFF_LED( LED_collect_data )
