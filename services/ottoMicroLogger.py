@@ -52,7 +52,7 @@ class DataCollector(object):
 			print(data)
 			print("got cereal\n")
 
-		except ValueError as err:
+		except:
 			print(err)
 			return 
 			
@@ -198,7 +198,7 @@ def callback_button_copy_to_SDcard( channel ):
 		
 		turn_OFF_LED( LED_copy_to_SDcard )
 	
-	except ValueError as err:
+	except:
 		print( err ) 
 		blink( LED_copy_to_SDcard )
 
@@ -214,7 +214,7 @@ def callback_button_read_from_SDcard( channel ):
 		
 		turn_OFF_LED( LED_read_from_SDcard )
 	
-	except ValueError as err:
+	except:
 		print( err ) 
 		blink( LED_read_from_SDcard )
 
@@ -230,7 +230,7 @@ def callback_button_autonomous( channel ):
 		x = y / x	# try to force an exception
 		turn_OFF_LED( LED_autonomous )
 	
-	except ValueError as err:
+	except:
 		print( err ) 
 		blink( LED_autonomous )
 		print( "blink past" ) 
@@ -243,7 +243,7 @@ def callback_switch_shutdown_RPi( channel ):
 		
 		turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
 	
-	except ValueError as err:
+	except:
 		print( err ) 
 		blink( LED_shutdown_RPi )
 
@@ -271,7 +271,7 @@ def callback_switch_collect_data( channel ):
 		camera.stop_recording()     
 		turn_OFF_LED( LED_collect_data )
 	
-	except ValueError as err:
+	except:
 		print( err ) 
 		blink( LED_collect_data )
 		
