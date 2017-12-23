@@ -224,6 +224,8 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 	try:
+		print( g_An_Error_Is_Being_Processed_Now )
+		
 		if( g_An_Error_Is_Being_Processed_Now == False ):
 			turn_ON_LED( LED_autonomous )
 			button_state = PUSHED
