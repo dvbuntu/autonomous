@@ -160,6 +160,10 @@ UP = GPIO.HIGH		# HIGH signal on GPIO pin means button is UP
 LED_On = GPIO.HIGH
 LED_Off = GPIO.LOW
 
+gError_Text= "no error"
+gProcessing_Error = False
+gButton_Down_Count = 0
+
 def turn_ON_LED( which_LED ):
 	GPIO.output( which_LED, LED_On )
 
@@ -184,7 +188,6 @@ def blink_LED( which_LED ):
 		LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 		
 
-gError_Text= "no error"
 
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
@@ -221,28 +224,29 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 	try:
-#		print ( gError_Text )
-		turn_ON_LED( LED_autonomous )
-		button_state = PUSHED
-		while ( button_state == PUSHED ):
-			button_state = GPIO.input( button_run_autonomous )
+		if( gProcessingError != True ):
+			turn_ON_LED( LED_autonomous )
+			button_state = PUSHED
+			while ( button_state == PUSHED ):
+				button_state = GPIO.input( button_run_autonomous )
 		
-		# go do autonomous ....
-		x = y / x	# force an exception
+			# go do autonomous ....
+			x = y / x	# force an exception
+		else:
+			gButton_Down_Count = gButton_Down_Count - 1
 	
 	except:
 		print( "autonomous exception" )
-		gError_Text = "Error"
+		gProcessingError = True
 #		while( True ):
 #			pass
-		button_held_count = 12
+		gButton_Down_Count = 12
 		LED_state = LED_On
 		# blink LED forever unless user clears the error by holding down button for 3 seconds
-		while( button_held_count != 0 ):		
+		while( gButton_Down_Count != 0 ):		
 			GPIO.output( LED_autonomous, LED_state )
 			time.sleep( .25 )	
 			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
-			button_held_count = button_held_count - 1
 				
 #			if( GPIO.input( button_run_autonomous ) != PUSHED ):
 #				button_held_count = 12		# button not held down, reset the count
