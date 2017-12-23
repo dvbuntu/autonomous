@@ -180,6 +180,7 @@ def blink_LED( which_LED ):
 	# blink LED forever or until user pushes button or switch which triggers another interrupt
 	while( True ):		
 		GPIO.output( which_LED, on_off_state )
+		sleep( .25)	
 		on_off_state = on_off_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 		
 
