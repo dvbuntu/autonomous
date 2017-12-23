@@ -200,9 +200,7 @@ def handle_button_exception( which_button, which_LED ):
 
 	turn_OFF_LED( which_LED )		# show the user the error has been cleared
 	
-	# don't leave until user releases button
-	while( GPIO.input( which_button ) == PUSHED ):
-	
+	# don't leave until user releases button	
 	while True:
 		time.sleep( .1 )		# executes delay at least once
 		if ( GPIO.input( which_button ) != PUSHED): break
