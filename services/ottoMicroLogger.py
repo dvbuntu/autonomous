@@ -214,21 +214,15 @@ def callback_button_copy_to_SDcard( channel ):
 	global g_user_just_cleared_error
 	
 	try:
-		# if the user just cleared an error, another button press will immediately be detected
-		#	so we skip over the code if this global variable is true 
-		if( g_user_just_cleared_error ):
-			g_user_just_cleared_error = False	
-		
-		else:
-			turn_ON_LED( LED_copy_to_SDcard )
-			button_state = PUSHED
-			while ( button_state == PUSHED ):
-				button_state = GPIO.input( button_copy_to_SDcard )
-		
-			# do the copying ....
-			x = y / x	# force an exception for debugging
-		
-			turn_OFF_LED( LED_copy_to_SDcard )
+		turn_ON_LED( LED_copy_to_SDcard )
+		button_state = PUSHED
+		while ( button_state == PUSHED ):
+			button_state = GPIO.input( button_copy_to_SDcard )
+	
+		# do the copying ....
+		x = y / x	# force an exception for debugging
+	
+		turn_OFF_LED( LED_copy_to_SDcard )
 	except:
 		print( "card copy to card exception" )
 		handle_button_exception( button_copy_to_SDcard, LED_copy_to_SDcard )
@@ -239,21 +233,15 @@ def callback_button_read_from_SDcard( channel ):
 	global g_user_just_cleared_error
 	
 	try:
-		# if the user just cleared an error, another button press will immediately be detected
-		#	so we skip over the code if this global variable is true 
-		if( g_user_just_cleared_error ):
-			g_user_just_cleared_error = False	
-		
-		else:
-			turn_ON_LED( LED_read_from_SDcard )
-			button_state = PUSHED
-			while ( button_state == PUSHED ):
-				button_state = GPIO.input( button_read_from_SDcard )
-		
-			# do the reading ....
-			x = y / x	# force an exception for debugging
-		
-			turn_OFF_LED( LED_read_from_SDcard )
+		turn_ON_LED( LED_read_from_SDcard )
+		button_state = PUSHED
+		while ( button_state == PUSHED ):
+			button_state = GPIO.input( button_read_from_SDcard )
+	
+		# do the reading ....
+		x = y / x	# force an exception for debugging
+	
+		turn_OFF_LED( LED_read_from_SDcard )
 	except:
 		print( "card read from card exception" )
 		handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
@@ -264,12 +252,6 @@ def callback_button_autonomous( channel ):
 	global g_user_just_cleared_error
 	
 	try:
-		# if the user just cleared an error, another button press will immediately be detected
-		#	so we skip over the code if this global variable is true 
-# 		if( g_user_just_cleared_error ):
-# 			g_user_just_cleared_error = False	
-# 		
-# 		else:
 		turn_ON_LED( LED_autonomous )
 		button_state = PUSHED
 		while ( button_state == PUSHED ):
