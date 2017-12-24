@@ -197,6 +197,7 @@ def turn_OFF_LED( which_LED ):
 def handle_gadget_exception( which_gadget, which_LED ):
 
 	global gTypeOfException
+	global gExceptionHandled
 	
 	gExceptionHandled = False 
 	print ("handling exception" )
@@ -389,6 +390,11 @@ def initialize_RPi_Values():
 
 	GPIO.cleanup()		# clean up GPIO just in case
 
+	global gTypeOfException;
+	global gRecordedDataNotSaved;
+	global gShutRPiDown;
+	global gExceptionHandled;
+	
 	gTypeOfException = NONE
 	gRecordedDataNotSaved = False 
 	gShutRPiDown = False
@@ -441,13 +447,13 @@ initialize_RPi_Values()
 while ( True ):	
 	#  interrupt will return to loop even before exception is completely handled
 	if( gTypeOfException == FATAL ):
-		if( gExceptionHandled ):
-			initialize_RPi_Values()
-			print( "fatal error -> pi initialized" ) 
+	if( gExceptionHandled ):
+		initialize_RPi_Values()
+		print( "fatal error -> pi initialized" ) 
 	
 	elif( gTypeOfException == WARNING ):
-		if( gExceptionHandled ):
-			print( "warning exception handled" ) 
+	#if( gExceptionHandled ):
+		print( "warning exception handled" ) 
 	
 		
 	if( gShutRPiDown ):		
