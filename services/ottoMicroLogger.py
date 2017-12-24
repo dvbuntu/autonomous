@@ -453,8 +453,8 @@ while ( True ):
 	
 	elif( gTypeOfException == WARNING ):
 		if( gExceptionHandled ):
+			gTypeOfException = NONE	
 			print( "warning exception handled" ) 
-	
 		
 	if( gShutRPiDown ):		
 		GPIO.cleanup()		# clean up GPIO on normal exit  
