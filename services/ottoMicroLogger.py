@@ -434,8 +434,10 @@ initialize_RPi_Values()
 while ( True ):	
 	if( gTypeOfException == FATAL ):
 		initialize_RPi_Values()
+		print( "fatal error -> pi initialized" )
 	
 	if( gTypeOfException == WARNING ):
+		print( "warning error cleared ")
 		gTypeOfException = NONE
 		
 	if( gShutRPiDown ):		
