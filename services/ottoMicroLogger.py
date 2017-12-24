@@ -198,8 +198,8 @@ def handle_gadget_exception( which_gadget, which_LED ):
 	global gErrorType
 	
 	if( gErrorType == FATAL ):
-		blinkSpeed = .1
-		button_down_count = 6
+		blinkSpeed = .05
+		button_down_count = 12
 	
 	else:
 		blinkSpeed = .2
