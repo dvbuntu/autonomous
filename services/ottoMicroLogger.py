@@ -227,6 +227,7 @@ def handle_gadget_exception( which_gadget, which_LED ):
 		time.sleep( blinkSpeed )		# executes delay at least once
 		if ( GPIO.input( which_gadget ) != PUSHED): break
 		
+	print ("exception handled" )
 
 # -------- Functions called by gadget callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
