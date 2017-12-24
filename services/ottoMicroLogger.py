@@ -379,7 +379,7 @@ def callback_switch_collect_data( channel ):
 		
 
 # ------------------------------------------------- 
-def initialize_RPi_Values()
+def initialize_RPi_Values():
 
 	GPIO.setmode( GPIO.BCM )  
 	GPIO.setwarnings( False )  
