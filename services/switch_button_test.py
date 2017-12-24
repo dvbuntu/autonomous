@@ -36,7 +36,7 @@ button = 0
 switch = 1
 	
 switch_button_handler = {
-	"button_copy_to_SDcard":	button, button_copy_to_SDcard_pin, LED_copy_to_SDcard_pin, callback_button_copy_to_SDcard,
+#	"button_copy_to_SDcard":	button, button_copy_to_SDcard_pin, LED_copy_to_SDcard_pin, callback_button_copy_to_SDcard,
 	"button_read_from_SDcard":	button, button_read_from_SDcard_pin, LED_read_from_SDcard_pin, callback_button_read_from_SDcard,
 	"button_run_autonomous":	button, button_run_autonomous_pin, LED_autonomous_pin, callback_button_autonomous,
 	"switch_shutdown_RPi":		switch, switch_shutdown_RPi_pin, LED_shutdown_RPi_pin, callback_switch_shutdown_RPi,
