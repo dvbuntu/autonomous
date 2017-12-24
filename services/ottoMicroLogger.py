@@ -381,8 +381,6 @@ def callback_switch_collect_data( channel ):
 # ------------------------------------------------- 
 def initialize_RPi_Values():
 
-	GPIO.setmode( GPIO.BCM )  
-	GPIO.setwarnings( False )  
 	GPIO.cleanup()		# clean up GPIO just in case
 
 	#  falling edge detection setup for all gadgets ( buttons or switches ) 
@@ -424,6 +422,9 @@ def initialize_RPi_Values():
 
 # ---------------- MAIN PROGRAM ------------------------------------- 
 
+GPIO.setmode( GPIO.BCM )  
+GPIO.setwarnings( False )
+  
 gTypeOfException = NONE
 gRecordedDataNotSaved = False 
 gShutRPiDown = False
