@@ -445,7 +445,7 @@ while ( True ):
 			initialize_RPi_Values()
 			print( "fatal error -> pi initialized" ) 
 	
-	else if( gTypeOfException == WARNING ):
+	elif( gTypeOfException == WARNING ):
 		if( gExceptionHandled ):
 			print( "warning exception handled" ) 
 	
