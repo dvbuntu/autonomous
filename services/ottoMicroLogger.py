@@ -197,6 +197,8 @@ def handle_gadget_exception( which_gadget, which_LED ):
 
 	global gTypeOfException
 	
+	print ("handling exception" )
+	
 	if( gTypeOfException == FATAL ):
 		blinkSpeed = .1 
 		button_down_count = 6
@@ -434,7 +436,7 @@ initialize_RPi_Values()
 while ( True ):	
 	if( gTypeOfException == FATAL ):
 		initialize_RPi_Values()
-		print( "fatal error -> pi initialized" )
+		print( "fatal error -> pi initialized" ) 
 	
 	if( gTypeOfException == WARNING ):
 		print( "warning error cleared ")
