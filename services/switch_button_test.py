@@ -40,7 +40,7 @@ switch_button_handler = {
 #	"button_read_from_SDcard":	button, button_read_from_SDcard_pin, LED_read_from_SDcard_pin, callback_button_read_from_SDcard,
 #	"button_run_autonomous":	button, button_run_autonomous_pin, LED_autonomous_pin, callback_button_autonomous,
 #	"switch_shutdown_RPi":		switch, switch_shutdown_RPi_pin, LED_shutdown_RPi_pin, callback_switch_shutdown_RPi,
-	"switch_collect_data":		switch, switch_collect_data_pin, LED_collect_data_pin, callback_switch_collect_data
+	"switch_collect_data":		switch #, switch_collect_data_pin, LED_collect_data_pin, callback_switch_collect_data
 }
 
 print( switch_button_handler )
