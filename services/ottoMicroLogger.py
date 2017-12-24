@@ -184,17 +184,13 @@ class DataCollector(object):
 # LEDpowerStatusOfRPi		OFF		No power to RPi		
 #				ON		RPi has +3.3 volts on pin #1
 
-
-
+# -------- LED functions to make code clearer --------- 
 def turn_ON_LED( which_LED ):
 	GPIO.output( which_LED, LED_ON )
 
 def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )
-
-def turn_OFF_ALL_LEDs( ):
 		
-
 # -------- Handler for clearing all gadget errors --------- 
 # 	A gadget is a button or a switch. An LED is not a gadget!
 def handle_gadget_exception( which_gadget, which_LED ):
@@ -230,7 +226,7 @@ def handle_gadget_exception( which_gadget, which_LED ):
 		if ( GPIO.input( which_gadget ) != PUSHED): break
 		
 
-# -------- Functions called by callback functions --------- 
+# -------- Functions called by gadget callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
 
 	global gTypeOfException
@@ -389,7 +385,7 @@ def initialize_RPi_Values()
 	GPIO.setwarnings( False )  
 	GPIO.cleanup()		# clean up GPIO just in case
 
-	#  falling edge detection setup for all buttons and switches
+	#  falling edge detection setup for all gadgets ( buttons or switches ) 
 	GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 	GPIO.setup( BUTTON_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 	GPIO.setup( BUTTON_read_from_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
@@ -418,7 +414,7 @@ def initialize_RPi_Values()
 	turn_OFF_LED( LED_shutdown_RPi )
 	turn_OFF_LED( LED_collect_data )
 
-	# setup callback routines for handling falling edge detection  
+	# setup callback routines for gadget falling edge detection  
 	#	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
 	GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
 	GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
