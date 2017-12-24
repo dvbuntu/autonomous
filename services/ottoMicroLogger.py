@@ -55,6 +55,7 @@ gTypeOfException = NONE
 gRecordedDataNotSaved = False
 gShutRPiDown = False
 gTypeOfException = NONE
+gExceptionHandled = True
 
 # --------Old Data Collection Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
@@ -197,16 +198,18 @@ def handle_gadget_exception( which_gadget, which_LED ):
 
 	global gTypeOfException
 	
+	gExceptionHandled = False 
 	print ("handling exception" )
 	
 	if( gTypeOfException == FATAL ):
 		blinkSpeed = .1 
 		button_down_count = 6
 	
-	else:
+	else:	
 		blinkSpeed = .2
 		button_down_count = 3
-			
+		
+					
 	LED_state = LED_ON
 	# blink the LED until the user holds down the button for 3 seconds
 	error_not_cleared = True	
@@ -227,7 +230,7 @@ def handle_gadget_exception( which_gadget, which_LED ):
 		time.sleep( blinkSpeed )		# executes delay at least once
 		if ( GPIO.input( which_gadget ) != PUSHED): break
 		
-	print ("exception handled" )
+	gExceptionHandled = True 
 
 # -------- Functions called by gadget callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
@@ -389,6 +392,7 @@ def initialize_RPi_Values():
 	gTypeOfException = NONE
 	gRecordedDataNotSaved = False 
 	gShutRPiDown = False
+	gExceptionHandled = True
 	
 	#  falling edge detection setup for all gadgets ( buttons or switches ) 
 	GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
@@ -435,13 +439,16 @@ GPIO.setwarnings( False )
 initialize_RPi_Values()
 
 while ( True ):	
+	#  interrupt will return to loop even before exception is completely handled
 	if( gTypeOfException == FATAL ):
-		initialize_RPi_Values()
-		print( "fatal error -> pi initialized" ) 
+		if( gExceptionHandled ):
+			initialize_RPi_Values()
+			print( "fatal error -> pi initialized" ) 
 	
-	if( gTypeOfException == WARNING ):
-		print( "warning error cleared ")
-		gTypeOfException = NONE
+	else if( gTypeOfException == WARNING ):
+		if( gExceptionHandled ):
+			print( "warning exception handled" ) 
+	
 		
 	if( gShutRPiDown ):		
 		GPIO.cleanup()		# clean up GPIO on normal exit  
