@@ -48,8 +48,8 @@ WARNING = 1
 FATAL = 2
 
 # -------- global variables start with a little "g" --------- 
-global gErrorType = NONE
-global gShutItDown = False
+gErrorType = NONE
+gShutItDown = False
 
 time_format='%Y-%m-%d_%H-%M-%S'
 parser=argparse.ArgumentParser(description='Records camera data from the PiCamera, along with RC command data and IMU data')
