@@ -199,12 +199,13 @@ def handle_gadget_exception( which_gadget, which_LED ):
 	
 	if( gErrorType == FATAL ):
 		blinkSpeed = .1
+		button_down_count = 6
 	
 	else:
-		blinkSpeed = .4
+		blinkSpeed = .2
+		button_down_count = 3
 			
 	LED_state = LED_ON
-	button_down_count = 6
 	# blink the LED until the user holds down the button for 3 seconds
 	error_not_cleared = True	
 	while( error_not_cleared ):	
