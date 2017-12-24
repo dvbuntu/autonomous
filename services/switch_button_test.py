@@ -31,16 +31,19 @@ def callback_switch_shutdown_RPi( channel ):
 	 
 def callback_switch_collect_data( channel ):  
 	pass
-	 
-button = 0
-switch = 1
-	
+	 	
 switch_button_handler = {
-	"button_copy_to_SDcard":	{ button, button_copy_to_SDcard_pin, LED_copy_to_SDcard_pin, callback_button_copy_to_SDcard },
-	"button_read_from_SDcard":	{ button, button_read_from_SDcard_pin, LED_read_from_SDcard_pin, callback_button_read_from_SDcard },
-	"button_run_autonomous":	{ button, button_run_autonomous_pin, LED_autonomous_pin, callback_button_autonomous },
-	"switch_shutdown_RPi":		{ switch, switch_shutdown_RPi_pin, LED_shutdown_RPi_pin, callback_switch_shutdown_RPi },
-	"switch_collect_data":		{ switch, switch_collect_data_pin, LED_collect_data_pin, callback_switch_collect_data }
+	"copy_to_SDcard":	{ "type":"button", "buttonPin":button_copy_to_SDcard_pin, "ledPin":LED_copy_to_SDcard_pin, "callRoutine":callback_button_copy_to_SDcard }
+#	"read_from_SDcard":	{ "button", button_read_from_SDcard_pin, LED_read_from_SDcard_pin, callback_button_read_from_SDcard },
+#	"run_autonomous":	{ "button", button_run_autonomous_pin, LED_autonomous_pin, callback_button_autonomous },
+#	"shutdown_RPi":		{ "switch", switch_shutdown_RPi_pin, LED_shutdown_RPi_pin, callback_switch_shutdown_RPi },
+#	"collect_data":		{ "switch", switch_collect_data_pin, LED_collect_data_pin, callback_switch_collect_data }
 }
 
-print( switch_button_handler )
+GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
+GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
+GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
+GPIO.add_event_detect( switch_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
+GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
+
+print( switch_button_handler["copy_to_SDcard"] )
