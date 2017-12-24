@@ -207,7 +207,7 @@ def handle_gadget_exception( which_gadget, which_LED ):
 		button_down_count = 6
 	
 	else:	
-		blinkSpeed = .2
+		blinkSpeed = .3
 		button_down_count = 3
 		
 					
