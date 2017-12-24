@@ -393,7 +393,7 @@ GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_swit
 
 # input("Press Enter when ready\n>")  
 
-global gErrorType = NONE
+gErrorType = NONE
 
 while ( True ):
 	pass		# dummy line of code for while loop
