@@ -222,9 +222,7 @@ def callback_button_copy_to_SDcard( channel ):
 			turn_OFF_LED( LED_copy_to_SDcard )
 		except:
 			print( "card copy to card exception" )
-			GPIO.remove_event_detect(button_copy_to_SDcard)
 			handle_button_exception( button_copy_to_SDcard, LED_copy_to_SDcard )
-			GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
@@ -245,9 +243,7 @@ def callback_button_read_from_SDcard( channel ):
 			turn_OFF_LED( LED_read_from_SDcard )
 		except:
 			print( "card read from card exception" )
-			GPIO.remove_event_detect(button_read_from_SDcard)
 			handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
-			GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -268,9 +264,7 @@ def callback_button_autonomous( channel ):
 			turn_OFF_LED( LED_autonomous )
 		except:
 			print( "autonomous exception" )
-#			GPIO.remove_event_detect(button_run_autonomous)
 			handle_button_exception( button_run_autonomous, LED_autonomous )
-#			GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
