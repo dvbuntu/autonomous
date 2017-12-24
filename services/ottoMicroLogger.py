@@ -207,7 +207,7 @@ def handle_gadget_exception( which_gadget, which_LED ):
 		button_down_count = 6
 	
 	else:	
-		blinkSpeed = .2
+		blinkSpeed = .3
 		button_down_count = 3
 		
 					
@@ -445,7 +445,7 @@ GPIO.setwarnings( False )
 initialize_RPi_Values()
 
 while ( True ):	
-	#  interrupt will return to loop even before exception is completely handled
+	#  note: gadget interrupt will return to this loop even in the middle of handling an error exception
 	if( gTypeOfException == FATAL ):
 		if( gExceptionHandled ):
 			initialize_RPi_Values()
@@ -453,7 +453,6 @@ while ( True ):
 	
 	elif( gTypeOfException == WARNING ):
 		if( gExceptionHandled ):
-			gTypeOfException = NONE
 			print( "warning exception handled" ) 
 	
 		
