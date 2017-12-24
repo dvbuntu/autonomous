@@ -36,26 +36,26 @@ GPIO.setup( LED_shutdown_RPi_pin, GPIO.OUT )
 GPIO.setup( LED_collect_data_pin, GPIO.OUT )
 
 def callback_button_copy_to_SDcard( channel ): 
-	pass
+	print( switch_button_handler["copy_to_SDcard"] )
 	
 def callback_button_read_from_SDcard( channel ):
-	pass
+	print( switch_button_handler["read_from_SDcard"] )
 	 
 def callback_button_autonomous( channel ):  
-	pass
+	print( switch_button_handler["run_autonomous"] )
 	 
 def callback_switch_shutdown_RPi( channel ):
-	pass
+	print( switch_button_handler["shutdown_RPi"] )
 	 
 def callback_switch_collect_data( channel ):  
-	pass
+	print( switch_button_handler["collect_data"] )
 	 	
 switch_button_handler = {
-	"copy_to_SDcard":	{ "type":"button", "buttonPin":button_copy_to_SDcard_pin, "ledPin":LED_copy_to_SDcard_pin, "callRoutine":callback_button_copy_to_SDcard }
-#	"read_from_SDcard":	{ "button", button_read_from_SDcard_pin, LED_read_from_SDcard_pin, callback_button_read_from_SDcard },
-#	"run_autonomous":	{ "button", button_run_autonomous_pin, LED_autonomous_pin, callback_button_autonomous },
-#	"shutdown_RPi":		{ "switch", switch_shutdown_RPi_pin, LED_shutdown_RPi_pin, callback_switch_shutdown_RPi },
-#	"collect_data":		{ "switch", switch_collect_data_pin, LED_collect_data_pin, callback_switch_collect_data }
+	"copy_to_SDcard":	{ "type":"button", "gadgetPin":button_copy_to_SDcard_pin, "ledPin":LED_copy_to_SDcard_pin, "callRoutine":callback_button_copy_to_SDcard },
+	"read_from_SDcard":	{ "type":"button", "gadgetPin":button_read_from_SDcard_pin, "ledPin":LED_read_from_SDcard_pin, "callRoutine":callback_button_read_from_SDcard },
+	"run_autonomous":	{ "type":"button", "gadgetPin":button_run_autonomous_pin, "ledPin":LED_autonomous_pin, "callRoutine":callback_button_autonomous },
+	"shutdown_RPi":		{ "type":"switch", "gadgetPin":switch_shutdown_RPi_pin, "ledPin":LED_shutdown_RPi_pin, "callRoutine":callback_switch_shutdown_RPi },
+	"collect_data":		{ "type":"switch", "gadgetPin":switch_collect_data_pin, "ledPin":LED_collect_data_pin, "callRoutine":callback_switch_collect_data }
 }
 
 GPIO.add_event_detect( button_copy_to_SDcard_pin, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
@@ -65,3 +65,8 @@ GPIO.add_event_detect( switch_shutdown_RPi_pin, GPIO.FALLING, callback=callback_
 GPIO.add_event_detect( switch_collect_data_pin, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
 print( switch_button_handler["copy_to_SDcard"]["buttonPin"] )
+
+while( True ):
+	pass
+	
+	
