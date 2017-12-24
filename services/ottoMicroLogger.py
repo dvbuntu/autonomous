@@ -46,11 +46,17 @@ LED_OFF = GPIO.LOW
 NONE = 0
 WARNING = 1
 FATAL = 2
+NO_SD_CARD_WARNING = 3
+AUTONOMOUS_WARNING = 4
+RECORDED_DATA_NOT_SAVED = 5
 
-# -------- global variables start with a little "g" --------- 
-gErrorType = NONE
-gShutItDown = False
+# -------- define global variables which start with a little "g" --------- 
+gTypeOfException = NONE
+gRecordedDataNotSaved = False
+gShutRPiDown = False
+gTypeOfException = NONE
 
+# --------Old Data Collection Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
 parser=argparse.ArgumentParser(description='Records camera data from the PiCamera, along with RC command data and IMU data')
 parser.add_argument('-n', '--num_frames', action='store', default=100, help='specify the number of frames per data file')
@@ -147,6 +153,9 @@ class DataCollector(object):
 
 # -------- LED status cheatsheet --------- 
 #
+# 	SLOW blink -> WARNING ERROR
+#	FAST blink -> FATAL ERROR
+#
 # LED				STATE		MEANING
 # --------------------------------------------------------------
 # LED_copy_to_SDcard		OFF		Not in use		
@@ -184,21 +193,16 @@ def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )
 
 def turn_OFF_ALL_LEDs( ):
-	turn_OFF_LED( LED_copy_to_SDcard )
-	turn_OFF_LED( LED_read_from_SDcard )
-	turn_OFF_LED( LED_autonomous )
-	turn_OFF_LED( LED_shutdown_RPi )
-	turn_OFF_LED( LED_collect_data )
 		
 
 # -------- Handler for clearing all gadget errors --------- 
 # 	A gadget is a button or a switch. An LED is not a gadget!
 def handle_gadget_exception( which_gadget, which_LED ):
 
-	global gErrorType
+	global gTypeOfException
 	
-	if( gErrorType == FATAL ):
-		blinkSpeed = .1
+	if( gTypeOfException == FATAL ):
+		blinkSpeed = .1 
 		button_down_count = 6
 	
 	else:
@@ -229,7 +233,7 @@ def handle_gadget_exception( which_gadget, which_LED ):
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
 
-	global gErrorType
+	global gTypeOfException
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
@@ -246,16 +250,23 @@ def callback_button_copy_to_SDcard( channel ):
 	
 			turn_OFF_LED( LED_copy_to_SDcard )
 		except:
-			print( "card copy to card exception" )
+			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
+
+			if( returnedError = NO_SD_CARD_WARNING ):			
+				print( "copy error: card not found" )
+				gTypeOfException = WARNING	
+				
+			else:			
+				print( "copy error: I/O" )
+				gTypeOfException = FATAL	
 			
-			gErrorType = WARNING	# **** THIS IS SET FOR DEBUGGING ONLY ****
 			
 			handle_gadget_exception( BUTTON_copy_to_SDcard, LED_copy_to_SDcard )
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
 
-	global gErrorType
+	global gTypeOfException
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
@@ -272,16 +283,22 @@ def callback_button_read_from_SDcard( channel ):
 	
 			turn_OFF_LED( LED_read_from_SDcard )
 		except:
-			print( "card read from card exception" )
+			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
 			
-			gErrorType = FATAL	# **** THIS IS SET FOR DEBUGGING ONLY ****
+			if( returnedError = NO_SD_CARD_WARNING ):			
+				print( "read error: card not found" )
+				gTypeOfException = WARNING	
+				
+			else:			
+				print( "read error: I/O" )
+				gTypeOfException = FATAL	
 			
 			handle_gadget_exception( BUTTON_read_from_SDcard, LED_read_from_SDcard )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 
-	global gErrorType
+	global gTypeOfException
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
@@ -298,16 +315,22 @@ def callback_button_autonomous( channel ):
 	
 			turn_OFF_LED( LED_autonomous )
 		except:
-			print( "autonomous exception" )
-			
-			gErrorType = WARNING	# **** THIS IS SET FOR DEBUGGING ONLY ****
+			returnedError = AUTONOMOUS_WARNING	# **** set for debugging ****
+
+			if( returnedError = AUTONOMOUS_WARNING ):			
+				print( "autonomous error warning" )
+				gTypeOfException = WARNING	
+				
+			else:			
+				print( "autonomous error fatal" )
+				gTypeOfException = FATAL	
 			
 			handle_gadget_exception( BUTTON_run_autonomous, LED_autonomous )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
 
-	global gErrorType
+	global gTypeOfException
 
 	try:
 		
@@ -316,16 +339,18 @@ def callback_switch_shutdown_RPi( channel ):
 		turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
 	
 	except:
-		print( "shutdown error" ) 
-			
-		gErrorType = FATAL	# **** THIS IS SET FOR DEBUGGING ONLY ****
-			
+		returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
+		
+		if( returnedError = RECORDED_DATA_NOT_SAVED ):			
+			print( "shutdown error: recorded data not saved" )
+			gTypeOfException = WARNING	
+								
 		handle_gadget_exception( SWITCH_shutdown_RPi, LED_shutdown_RPi )
 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
 
-	global gErrorType
+	global gTypeOfException
 
 	try:
 		turn_ON_LED( LED_collect_data )
@@ -352,52 +377,69 @@ def callback_switch_collect_data( channel ):
 	except:
 		print( "data collection error" ) 
 			
-		gErrorType = FATAL	# **** THIS IS SET FOR DEBUGGING ONLY ****
+		gTypeOfException = FATAL	# **** THIS IS SET FOR DEBUGGING ONLY ****
 			
 		handle_gadget_exception( SWITCH_collect_data, LED_collect_data )
 		
-# ---------------- main program ------------------------------------- 
-GPIO.setmode( GPIO.BCM )  
-GPIO.setwarnings( False )  
 
-#  falling edge detection setup for all buttons and switches
-GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( BUTTON_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( BUTTON_read_from_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( SWITCH_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( SWITCH_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+# ------------------------------------------------- 
+def initialize_RPi_Values()
 
-GPIO.setup( LED_copy_to_SDcard, GPIO.OUT )
-GPIO.setup( LED_read_from_SDcard, GPIO.OUT )
-GPIO.setup( LED_autonomous, GPIO.OUT )
-GPIO.setup( LED_shutdown_RPi, GPIO.OUT )
-GPIO.setup( LED_collect_data, GPIO.OUT )
+	GPIO.setmode( GPIO.BCM )  
+	GPIO.setwarnings( False )  
+	GPIO.cleanup()		# clean up GPIO just in case
 
-# blink LEDs as an alarm if either switch has been left in the ON (up) position
-LED_state = LED_ON
+	#  falling edge detection setup for all buttons and switches
+	GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+	GPIO.setup( BUTTON_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+	GPIO.setup( BUTTON_read_from_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+	GPIO.setup( SWITCH_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+	GPIO.setup( SWITCH_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 
-while(( GPIO.input( SWITCH_shutdown_RPi ) == ON ) or ( GPIO.input( SWITCH_collect_data ) == ON )):
-	GPIO.output( LED_shutdown_RPi, LED_state )
-	GPIO.output( LED_collect_data, LED_state )
-	time.sleep( .25 )
-	LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
+	GPIO.setup( LED_copy_to_SDcard, GPIO.OUT )
+	GPIO.setup( LED_read_from_SDcard, GPIO.OUT )
+	GPIO.setup( LED_autonomous, GPIO.OUT )
+	GPIO.setup( LED_shutdown_RPi, GPIO.OUT )
+	GPIO.setup( LED_collect_data, GPIO.OUT )
+
+	# blink LEDs as an alarm if either switch has been left in the ON (up) position
+	LED_state = LED_ON
+
+	while(( GPIO.input( SWITCH_shutdown_RPi ) == ON ) or ( GPIO.input( SWITCH_collect_data ) == ON )):
+		GPIO.output( LED_shutdown_RPi, LED_state )
+		GPIO.output( LED_collect_data, LED_state )
+		time.sleep( .25 )
+		LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
 	
-turn_OFF_ALL_LEDs( )
+	# turn off all LEDs for initialization
+	turn_OFF_LED( LED_copy_to_SDcard )
+	turn_OFF_LED( LED_read_from_SDcard )
+	turn_OFF_LED( LED_autonomous )
+	turn_OFF_LED( LED_shutdown_RPi )
+	turn_OFF_LED( LED_collect_data )
 
-# setup callback routines for handling falling edge detection  
-#	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
-GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
-GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
-GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
-GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
-GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
+	# setup callback routines for handling falling edge detection  
+	#	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
+	GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
+	GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
+	GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
+	GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
+	GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
-# input("Press Enter when ready\n>")  
+# ---------------- MAIN PROGRAM ------------------------------------- 
 
-gErrorType = NONE
+gTypeOfException = NONE
+gRecordedDataNotSaved = False 
+gShutRPiDown = False
 
-while ( True ):
-	pass		# dummy line of code for while loop
+initialize_RPi_Values()
+
+while ( True ):	
+	if( gTypeOfException == FATAL ):
+		initialize_RPi_Values()
+		
+	if( gShutRPiDown ):		
+		GPIO.cleanup()		# clean up GPIO on normal exit  
+		break		
 	
-GPIO.cleanup()		# clean up GPIO on CTRL+C exit  
-GPIO.cleanup()		# clean up GPIO on normal exit  
+
