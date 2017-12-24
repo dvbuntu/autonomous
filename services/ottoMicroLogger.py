@@ -212,8 +212,11 @@ def handle_button_exception( which_button, which_LED ):
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
 
-	global g_user_just_cleared_error
+	# Contrary to the falling edge detection set up previously, sometimes an interrupt
+	#	will occur on the RISING edge. These must be disregarded
 	
+	if( GPIO.input( button_copy_to_SDcard ) == 1 ): break
+		
 	try:
 		turn_ON_LED( LED_copy_to_SDcard )
 		button_state = PUSHED
@@ -233,8 +236,10 @@ def callback_button_copy_to_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
 
-	global g_user_just_cleared_error
-	
+	# Contrary to the falling edge detection set up previously, sometimes an interrupt
+	#	will occur on the RISING edge. These must be disregarded
+	if( GPIO.input( button_read_from_SDcard ) == 1 ): break
+		
 	try:
 		turn_ON_LED( LED_read_from_SDcard )
 		button_state = PUSHED
@@ -254,8 +259,10 @@ def callback_button_read_from_SDcard( channel ):
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 
-	global g_user_just_cleared_error
-	
+	# Contrary to the falling edge detection set up previously, sometimes an interrupt
+	#	will occur on the RISING edge. These must be disregarded
+	if( GPIO.input( button_run_autonomous ) == 1 ): break
+		
 	try:
 		turn_ON_LED( LED_autonomous )
 		button_state = PUSHED
