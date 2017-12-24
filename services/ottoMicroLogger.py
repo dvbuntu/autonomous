@@ -383,6 +383,10 @@ def initialize_RPi_Values():
 
 	GPIO.cleanup()		# clean up GPIO just in case
 
+	gTypeOfException = NONE
+	gRecordedDataNotSaved = False 
+	gShutRPiDown = False
+	
 	#  falling edge detection setup for all gadgets ( buttons or switches ) 
 	GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 	GPIO.setup( BUTTON_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
@@ -424,16 +428,15 @@ def initialize_RPi_Values():
 
 GPIO.setmode( GPIO.BCM )  
 GPIO.setwarnings( False )
-  
-gTypeOfException = NONE
-gRecordedDataNotSaved = False 
-gShutRPiDown = False
 
 initialize_RPi_Values()
 
 while ( True ):	
 	if( gTypeOfException == FATAL ):
 		initialize_RPi_Values()
+	
+	if( gTypeOfException == WARNING ):
+		gTypeOfException = NONE
 		
 	if( gShutRPiDown ):		
 		GPIO.cleanup()		# clean up GPIO on normal exit  
