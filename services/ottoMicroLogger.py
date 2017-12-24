@@ -447,13 +447,13 @@ initialize_RPi_Values()
 while ( True ):	
 	#  interrupt will return to loop even before exception is completely handled
 	if( gTypeOfException == FATAL ):
-	#if( gExceptionHandled ):
-		initialize_RPi_Values()
-		print( "fatal error -> pi initialized" ) 
+		if( gExceptionHandled ):
+			initialize_RPi_Values()
+			print( "fatal error -> pi initialized" ) 
 	
 	elif( gTypeOfException == WARNING ):
-	#if( gExceptionHandled ):
-		print( "warning exception handled" ) 
+		if( gExceptionHandled ):
+			print( "warning exception handled" ) 
 	
 		
 	if( gShutRPiDown ):		
