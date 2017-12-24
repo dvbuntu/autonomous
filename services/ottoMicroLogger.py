@@ -180,9 +180,6 @@ def blink_LED( which_LED ):
 
 # -------- Handler for clearing all button errors --------- 
 def handle_button_exception( which_button, which_LED ):
-	# set this flag so another interrupt doesn't immediately occur after processing this one
-	global g_user_just_cleared_error
-
 	
 	LED_state = LED_On
 	button_down_count = 6
@@ -205,79 +202,75 @@ def handle_button_exception( which_button, which_LED ):
 		time.sleep( .1 )		# executes delay at least once
 		if ( GPIO.input( which_button ) != PUSHED): break
 		
-	g_user_just_cleared_error = True	
-
-
 
 # -------- Functions called by callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
-	
-	if( GPIO.input( button_copy_to_SDcard ) == 1 ): break
+	if( GPIO.input( button_copy_to_SDcard ) == PUSHED ): 
 		
-	try:
-		turn_ON_LED( LED_copy_to_SDcard )
-		button_state = PUSHED
-		while ( button_state == PUSHED ):
-			button_state = GPIO.input( button_copy_to_SDcard )
+		try:
+			turn_ON_LED( LED_copy_to_SDcard )
+			button_state = PUSHED
+			while ( button_state == PUSHED ):
+				button_state = GPIO.input( button_copy_to_SDcard )
 	
-		# do the copying ....
-		x = y / x	# force an exception for debugging
+			# do the copying ....
+			x = y / x	# force an exception for debugging
 	
-		turn_OFF_LED( LED_copy_to_SDcard )
-	except:
-		print( "card copy to card exception" )
-		GPIO.remove_event_detect(button_copy_to_SDcard)
-		handle_button_exception( button_copy_to_SDcard, LED_copy_to_SDcard )
-		GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
+			turn_OFF_LED( LED_copy_to_SDcard )
+		except:
+			print( "card copy to card exception" )
+			GPIO.remove_event_detect(button_copy_to_SDcard)
+			handle_button_exception( button_copy_to_SDcard, LED_copy_to_SDcard )
+			GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
-	if( GPIO.input( button_read_from_SDcard ) == 1 ): break
+	if( GPIO.input( button_read_from_SDcard ) == PUSHED ): 
 		
-	try:
-		turn_ON_LED( LED_read_from_SDcard )
-		button_state = PUSHED
-		while ( button_state == PUSHED ):
-			button_state = GPIO.input( button_read_from_SDcard )
+		try:
+			turn_ON_LED( LED_read_from_SDcard )
+			button_state = PUSHED
+			while ( button_state == PUSHED ):
+				button_state = GPIO.input( button_read_from_SDcard )
 	
-		# do the reading ....
-		x = y / x	# force an exception for debugging
+			# do the reading ....
+			x = y / x	# force an exception for debugging
 	
-		turn_OFF_LED( LED_read_from_SDcard )
-	except:
-		print( "card read from card exception" )
-		GPIO.remove_event_detect(button_read_from_SDcard)
-		handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
-		GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
+			turn_OFF_LED( LED_read_from_SDcard )
+		except:
+			print( "card read from card exception" )
+			GPIO.remove_event_detect(button_read_from_SDcard)
+			handle_button_exception( button_read_from_SDcard, LED_read_from_SDcard )
+			GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
-	if( GPIO.input( button_run_autonomous ) == 1 ): break
+	if( GPIO.input( button_run_autonomous ) == PUSHED ): 
 		
-	try:
-		turn_ON_LED( LED_autonomous )
-		button_state = PUSHED
-		while ( button_state == PUSHED ):
-			button_state = GPIO.input( button_run_autonomous )
+		try:
+			turn_ON_LED( LED_autonomous )
+			button_state = PUSHED
+			while ( button_state == PUSHED ):
+				button_state = GPIO.input( button_run_autonomous )
 	
-		# do the autonomous ....
-		x = y / x	# force an exception for debugging
+			# do the autonomous ....
+			x = y / x	# force an exception for debugging
 	
-		turn_OFF_LED( LED_autonomous )
-	except:
-		print( "autonomous exception" )
-		GPIO.remove_event_detect(button_run_autonomous)
-		handle_button_exception( button_run_autonomous, LED_autonomous )
-		GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
+			turn_OFF_LED( LED_autonomous )
+		except:
+			print( "autonomous exception" )
+			GPIO.remove_event_detect(button_run_autonomous)
+			handle_button_exception( button_run_autonomous, LED_autonomous )
+			GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
@@ -359,8 +352,6 @@ GPIO.add_event_detect( switch_shutdown_RPi, GPIO.FALLING, callback=callback_swit
 GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
 # input("Press Enter when ready\n>")  
-
-g_user_just_cleared_error = False
 
 
 while ( True ):
