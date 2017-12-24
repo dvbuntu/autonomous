@@ -248,7 +248,7 @@ def callback_button_copy_to_SDcard( channel ):
 		except:
 			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
 
-			if( returnedError = NO_SD_CARD_WARNING ):			
+			if( returnedError == NO_SD_CARD_WARNING ):			
 				print( "copy error: card not found" )
 				gTypeOfException = WARNING	
 				
@@ -281,7 +281,7 @@ def callback_button_read_from_SDcard( channel ):
 		except:
 			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
 			
-			if( returnedError = NO_SD_CARD_WARNING ):			
+			if( returnedError == NO_SD_CARD_WARNING ):			
 				print( "read error: card not found" )
 				gTypeOfException = WARNING	
 				
@@ -313,7 +313,7 @@ def callback_button_autonomous( channel ):
 		except:
 			returnedError = AUTONOMOUS_WARNING	# **** set for debugging ****
 
-			if( returnedError = AUTONOMOUS_WARNING ):			
+			if( returnedError == AUTONOMOUS_WARNING ):			
 				print( "autonomous error warning" )
 				gTypeOfException = WARNING	
 				
@@ -337,7 +337,7 @@ def callback_switch_shutdown_RPi( channel ):
 	except:
 		returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
 		
-		if( returnedError = RECORDED_DATA_NOT_SAVED ):			
+		if( returnedError == RECORDED_DATA_NOT_SAVED ):			
 			print( "shutdown error: recorded data not saved" )
 			gTypeOfException = WARNING	
 								
