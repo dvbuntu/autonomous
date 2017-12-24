@@ -58,10 +58,10 @@ switch_button_handler = {
 #	"collect_data":		{ "switch", switch_collect_data_pin, LED_collect_data_pin, callback_switch_collect_data }
 }
 
-GPIO.add_event_detect( button_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
-GPIO.add_event_detect( button_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
-GPIO.add_event_detect( button_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
-GPIO.add_event_detect( switch_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
-GPIO.add_event_detect( switch_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
+GPIO.add_event_detect( button_copy_to_SDcard_pin, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
+GPIO.add_event_detect( button_run_autonomous_pin, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
+GPIO.add_event_detect( button_read_from_SDcard_pin, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
+GPIO.add_event_detect( switch_shutdown_RPi_pin, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
+GPIO.add_event_detect( switch_collect_data_pin, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
 print( switch_button_handler["copy_to_SDcard"] )
