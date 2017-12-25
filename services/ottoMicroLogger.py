@@ -53,15 +53,16 @@ RECORDED_DATA_NOT_SAVED = 5
 # -------- define global variables which start with a little "g" --------- 
 gRecordedDataNotSaved = False
 
-# --------Old Data Collection Startup Code--------- 
+# --------Old Data Collection Command Line Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
-parser=argparse.ArgumentParser(description='Records camera data from the PiCamera, along with RC command data and IMU data')
-parser.add_argument('-n', '--num_frames', action='store', default=100, help='specify the number of frames per data file')
-parser.add_argument('-d', '--debug', action='store_true', default=False, help='displays video on screen while recording')
-#original collect script had a log flag to set up a log file, could implement
-args=parser.parse_args()
-num_frames=int(args.num_frames)
-debug=args.debug
+
+	# parser=argparse.ArgumentParser(description='Records camera data from the PiCamera, along with RC command data and IMU data')
+	# parser.add_argument('-n', '--num_frames', action='store', default=100, help='specify the number of frames per data file')
+	# parser.add_argument('-d', '--debug', action='store_true', default=False, help='displays video on screen while recording')
+	## original collect script had a log flag to set up a log file, could implement
+	# args=parser.parse_args()
+	# num_frames=int(args.num_frames)
+	# debug=args.debug
 
 #Opens serial port to the arduino:
 try:
@@ -69,14 +70,19 @@ try:
 except serial.SerialException:
 	print('Cannot connect to serial port')
 
+# -------------- Data Collector Globals -------------------------------
+gWantsToSeeVideo = True
+NUM_FRAMES = 100
+ 
 # -------------- Data Collector Object -------------------------------  
-class DataCollector(object):
+
+DataCollector(object):
 	'''this object is passed to the camera.start_recording function, which will treat it as a 
 	writable object, like a stream or a file'''
 	def __init__(self):
-		self.imgs=np.zeros((num_frames, 64, 64, 3), dtype=np.uint8) #we put the images in here
-		self.IMUdata=np.zeros((num_frames, 7), dtype=np.float32) #we put the imu data in here
-		self.RCcommands=np.zeros((num_frames, 2), dtype=np.float16) #we put the RC data in here
+		self.imgs=np.zeros((NUM_FRAMES, 64, 64, 3), dtype=np.uint8) #we put the images in here
+		self.IMUdata=np.zeros((NUM_FRAMES, 7), dtype=np.float32) #we put the imu data in here
+		self.RCcommands=np.zeros((NUM_FRAMES, 2), dtype=np.float16) #we put the RC data in here
 		self.idx=0 # this is the variable to keep track of number of frames per datafile
 		nowtime=datetime.datetime.now()
 		self.img_file='/home/pi/autonomous/data/imgs_{0}'.format(nowtime.strftime(time_format))
@@ -108,7 +114,7 @@ class DataCollector(object):
 		self.IMUdata[self.idx]=np.concatenate((accelData, gyroData, datatime))
 		self.RCcommands[self.idx]=np.array([steer_command, gas_command])
 		self.idx+=1
-		if self.idx == num_frames: #default value is 100, unless user specifies otherwise
+		if self.idx == NUM_FRAMES: #default value is 100, unless user specifies otherwise
 			self.idx=0
 			self.flush()  
 
@@ -346,12 +352,12 @@ def callback_switch_shutdown_RPi( channel ):
 			
 				else:	# You were warned once about the unsaved data, too bad
 					print( "shutdown with data unsaved" )
-					time.sleep( 1 )		# leave the LED on for 1 second to show we did something
+					time.sleep( 2 )		# leave the LED on for 2 seconds to show we did something
 					turn_OFF_LED( LED_shutdown_RPi )	
 	
 			else:	
 				print( "graceful shutdown" )
-				time.sleep( 1 )		# leave the LED on for 1 second to show we did something
+				time.sleep( 2 )		# leave the LED on for 2 second to show we did something
 				turn_OFF_LED( LED_shutdown_RPi )	
 	
 		except:
@@ -367,6 +373,7 @@ def callback_switch_shutdown_RPi( channel ):
 def callback_switch_collect_data( channel ):  
 
 	global gRecordedDataNotSaved
+	global gWantsToSeeVideo
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
@@ -383,7 +390,7 @@ def callback_switch_collect_data( channel ):
 				camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 				camera.start_recording(collector, format='rgb')
 
-				if debug:
+				if ( gWantsToSeeVideo ):
 					camera.start_preview() #displays video while it's being recorded
 					input('Press enter to stop recording') # will cause hang waiting for user input
 
