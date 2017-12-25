@@ -72,7 +72,7 @@ except serial.SerialException:
 
 # -------------- Data Collector Globals -------------------------------
 gWantsToSeeVideo = True
-gCameraIsNotRecording = True
+gCameraIsRecording = False
 NUM_FRAMES = 100
  
 # -------------- Data Collector Object -------------------------------  
@@ -388,10 +388,25 @@ def callback_switch_collect_data( channel ):
 
 	global gRecordedDataNotSaved
 	global gWantsToSeeVideo
-	global gCameraIsNotRecording
+	global gCameraIsRecording
 	
-	if( gCameraIsNotRecording ): 
+	if( gCameraIsRecording ): 
+		if( GPIO.input( SWITCH_collect_data ) == ON ): 
+			try:
+				camera.stop_recording()
+				gCameraIsRecording = False
+				turn_OFF_LED( LED_collect_data )
+			
+				gRecordedDataNotSaved = True     
 	
+			except ValueError:
+				print( "exception = ", ValueError )
+		
+		else: 
+			print( "spurious switch ON interrupt" )
+			print( "trying to stop interrupt, but another interrupt happened" )
+	
+	else:
 		# Contrary to the falling edge detection set up previously, sometimes an interrupt
 		#	will occur on the RISING edge. These must be disregarded
 		if( GPIO.input( SWITCH_collect_data ) == ON ): 
@@ -405,19 +420,10 @@ def callback_switch_collect_data( channel ):
 					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
 					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 					camera.start_recording(collector, format='rgb')
-					gCameraIsNotRecording = False
+					gCameraIsRecording = True
 					if ( gWantsToSeeVideo ):
 						camera.start_preview() #displays video while it's being recorded
-					
-					while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
-						pass
- 
-				camera.stop_recording()
-				gCameraIsNotRecording = True
-				turn_OFF_LED( LED_collect_data )
-			
-				gRecordedDataNotSaved = True     
-
+					 
 			except ValueError:
 				print( "exception = ", ValueError )
 				
@@ -434,17 +440,17 @@ def callback_switch_collect_data( channel ):
 	
 				handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 		else: 
-			print( "spurious switch interrupt" )
+			print( "spurious switch OFF interrupt" )
 			print( "camera is recording, but another interrupt happened" )
 		
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
 
 	global gRecordedDataNotSaved
-	global gCameraIsNotRecording
+	global gCameraIsRecording
 	
 	gRecordedDataNotSaved = False 
-	gCameraIsNotRecording = True 
+	gCameraIsRecording = False 
 	
 	# blink LEDs as an alarm if either switch has been left in the ON (up) position
 	LED_state = LED_ON
@@ -466,7 +472,7 @@ def initialize_RPi_Stuff():
 # ---------------- MAIN PROGRAM ------------------------------------- 
 
 GPIO.setmode( GPIO.BCM )  
-GPIO.setwarnings( True )
+GPIO.setwarnings( False )
 
 #  falling edge detection setup for all gadgets ( buttons or switches ) 
 GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
