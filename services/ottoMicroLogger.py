@@ -194,8 +194,9 @@ def turn_OFF_LED( which_LED ):
 		
 # -------- Handler for clearing all gadget errors --------- 
 # 	A gadget is a button or a switch. An LED is not a gadget!
-def handle_gadget_exception( which_gadget, which_LED, message ):
+def handle_gadget_exception( kindOfException, which_gadget, which_LED, message ):
 
+	# these variables are polled in the Main Program Loop
 	global gTypeOfException
 	global gExceptionHandled
 	
@@ -236,8 +237,6 @@ def handle_gadget_exception( which_gadget, which_LED, message ):
 # -------- Functions called by gadget callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
 
-	global gTypeOfException
-
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
 	if( GPIO.input( BUTTON_copy_to_SDcard ) == PUSHED ): 
@@ -256,20 +255,18 @@ def callback_button_copy_to_SDcard( channel ):
 			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
 
 			if( returnedError == NO_SD_CARD_WARNING ):			
-				print( "copy error: card not found" )
-				gTypeOfException = WARNING	
+				message = "copy to card warning: card not found"
+				kindOfException = WARNING	
 				
 			else:			
-				print( "copy error: I/O" )
-				gTypeOfException = FATAL	
+				message = "copy to card fatal error"
+				kindOfException = FATAL	
 			
 			
-			handle_gadget_exception( BUTTON_copy_to_SDcard, LED_copy_to_SDcard, "copy to SD card exception" )
+			handle_gadget_exception( kindOfException, BUTTON_copy_to_SDcard, LED_copy_to_SDcard, message )
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
-
-	global gTypeOfException
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
@@ -289,14 +286,15 @@ def callback_button_read_from_SDcard( channel ):
 			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
 			
 			if( returnedError == NO_SD_CARD_WARNING ):			
-				print( "read error: card not found" )
-				gTypeOfException = WARNING	
+				message = "read from card warning: card not found"
+				kindOfException = WARNING	
 				
 			else:			
 				print( "read error: I/O" )
-				gTypeOfException = FATAL	
+				message = "read from card fatal error"
+				kindOfException = FATAL	
 			
-			handle_gadget_exception( BUTTON_read_from_SDcard, LED_read_from_SDcard, "read from SD card exception" )
+			handle_gadget_exception( kindOfException, BUTTON_read_from_SDcard, LED_read_from_SDcard, message )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -321,19 +319,18 @@ def callback_button_autonomous( channel ):
 			returnedError = FATAL	# **** set for debugging ****
 
 			if( returnedError == AUTONOMOUS_WARNING ):			
-				print( "autonomous error warning" )
-				gTypeOfException = WARNING	
+				message = "autonomous error warning"
+				kindOfException = WARNING	
 				
 			else:			
-				print( "autonomous error fatal" )
-				gTypeOfException = FATAL	
+				message = "autonomous error fatal error"
+				kindOfException = FATAL	
 			
-			handle_gadget_exception( BUTTON_run_autonomous, LED_autonomous, "autonomous exception" )
+			handle_gadget_exception( kindOfException, BUTTON_run_autonomous, LED_autonomous, message )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
 
-	global gTypeOfException
 	global gRecordedDataNotSaved
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
@@ -359,14 +356,14 @@ def callback_switch_shutdown_RPi( channel ):
 		
 			if( returnedError == RECORDED_DATA_NOT_SAVED ):			
 				print( "shutdown error: recorded data not saved" )
-				gTypeOfException = WARNING	
+				kindOfException = WARNING	
 								
-			handle_gadget_exception( SWITCH_shutdown_RPi, LED_shutdown_RPi, "shutdown RPI exception" )
+			handle_gadget_exception( kindOfException, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
 
-	global gTypeOfException
+	global gRecordedDataNotSaved
 
 	try:
 		turn_ON_LED( LED_collect_data )
@@ -394,9 +391,20 @@ def callback_switch_collect_data( channel ):
 	except:
 		print( "data collection error" ) 
 			
-		gTypeOfException = WARNING	# **** THIS IS SET FOR DEBUGGING ONLY ****
+		kindOfException = WARNING	# **** THIS IS SET FOR DEBUGGING ONLY ****
 			
 		handle_gadget_exception( SWITCH_collect_data, LED_collect_data, "collect data exception" )
+			returnedError = FATAL	# **** set for debugging ****
+
+			if( returnedError == AUTONOMOUS_WARNING ):			
+				message = "autonomous error warning"
+				gTypeOfException = WARNING	
+				
+			else:			
+				message = "autonomous error fatal error"
+				gTypeOfException = FATAL	
+			
+			handle_gadget_exception( kindOfException, BUTTON_run_autonomous, LED_autonomous, message )
 		
 
 # ------------------------------------------------- 
