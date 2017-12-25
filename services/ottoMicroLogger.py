@@ -71,7 +71,7 @@ except serial.SerialException:
 	print('Cannot connect to serial port')
 
 # -------------- Data Collector Globals -------------------------------
-gWantsToSeeVideo = False
+gWantsToSeeVideo = True
 gCameraIsRecording = False
 gCamera = picamera.PiCamera()
 NUM_FRAMES = 100
@@ -104,6 +104,7 @@ class DataCollector(object):
 
 		except:
 			print(err)
+			print( "exception in data collection write" )
 			return 
 			
 		#Note: the data from the IMU requires some processing which does not happen here:
@@ -201,7 +202,7 @@ def turn_OFF_LED( which_LED ):
 def handle_gadget_exception( kindOfException, which_gadget, which_LED, message ):
 	
 	print ( message )
-	print("Oops!",sys.exc_info()[0],"occured.")
+	print("***", sys.exc_info()[0], "occured.")
 		
 	if( kindOfException == FATAL ):
 		blinkSpeed = .1 
@@ -232,10 +233,10 @@ def handle_gadget_exception( kindOfException, which_gadget, which_LED, message )
 		if ( GPIO.input( which_gadget ) != PUSHED): break
 	
 	if( kindOfException == FATAL ):
-		print( "fatal error handled" )
+		print( "*** fatal error handled" )
 	
 	else:	
-		print( "warning error handled" )
+		print( "*** warning error handled" )
 	
 
 # -------- Functions called by gadget callback functions --------- 
@@ -397,14 +398,14 @@ def callback_switch_collect_data( channel ):
 			try:
 				gCamera.stop_recording()
 				gCameraIsRecording = False
-				print( "camera turned off " )
+				print( "* camera turned off " )
 				turn_OFF_LED( LED_collect_data )
 			
 				gRecordedDataNotSaved = True     
 	
 			except ValueError:
-				print( "exception = ", ValueError )
-				print( "during camera turn off = " )
+				print( "* exception = ", ValueError )
+				print( "* during camera turn OFF" )
 	
 	else:
 		# Contrary to the falling edge detection set up previously, sometimes an interrupt
@@ -427,23 +428,24 @@ def callback_switch_collect_data( channel ):
 					time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
 					
 			except ValueError:
-				print( "exception = ", ValueError )
+				print( "* exception = ", ValueError )
+				print( "* during camera turn ON" )
 				
 				
 				returnedError = FATAL	# **** set for debugging ****
 
 				if( returnedError == AUTONOMOUS_WARNING ):			
-					message = "data collection warning"
+					message = "* Data collection warning"
 					kindOfException = WARNING	
 		
 				else:			
-					message = "data collection fatal error"
+					message = "* Data collection fatal error"
 					kindOfException = FATAL	
 	
 				handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 		else: 
-			print( "spurious switch OFF interrupt" )
-			print( "camera is recording, but another interrupt happened" )
+			print( "* spurious switch OFF interrupt" )
+			print( "* camera is recording, but another interrupt happened" )
 		
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
