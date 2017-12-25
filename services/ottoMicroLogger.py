@@ -413,7 +413,7 @@ def initialize_RPi_Values():
 	gShutRPiDown = False
 	gExceptionHandled = True
 	
-	GPIO.cleanup()		# clean up GPIO just in case
+	# GPIO.cleanup()		# clean up GPIO just in case
 	GPIO.setmode( GPIO.BCM )  
 	GPIO.setwarnings( False )
 	
