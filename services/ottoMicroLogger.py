@@ -211,7 +211,6 @@ def handle_gadget_exception( kindOfException, which_gadget, which_LED, message )
 		blinkSpeed = .2
 		button_down_count = 3
 		
-					
 	LED_state = LED_ON
 	# blink the LED until the user holds down the button for 3 seconds
 	error_not_cleared = True	
@@ -239,6 +238,7 @@ def callback_button_copy_to_SDcard( channel ):
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
+	
 	if( GPIO.input( BUTTON_copy_to_SDcard ) == PUSHED ): 
 		
 		try:
@@ -270,6 +270,7 @@ def callback_button_read_from_SDcard( channel ):
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
+	
 	if( GPIO.input( BUTTON_read_from_SDcard ) == PUSHED ): 
 		
 		try:
@@ -335,6 +336,7 @@ def callback_switch_shutdown_RPi( channel ):
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
+	
 	if( GPIO.input( SWITCH_shutdown_RPi ) == ON ): 
 		try:
 			# It takes two shutdown switch changes to shutdown when there is unsaved data
@@ -365,6 +367,10 @@ def callback_switch_collect_data( channel ):
 
 	global gRecordedDataNotSaved
 
+	# Contrary to the falling edge detection set up previously, sometimes an interrupt
+	#	will occur on the RISING edge. These must be disregarded
+	if( GPIO.input( SWITCH_collect_data ) == ON ): 
+	
 	try:
 		turn_ON_LED( LED_collect_data )
 		collector=DataCollector()
@@ -389,22 +395,18 @@ def callback_switch_collect_data( channel ):
 		turn_OFF_LED( LED_collect_data )
 	
 	except:
-		print( "data collection error" ) 
-			
-		kindOfException = WARNING	# **** THIS IS SET FOR DEBUGGING ONLY ****
-			
-		handle_gadget_exception( SWITCH_collect_data, LED_collect_data, "collect data exception" )
-			returnedError = FATAL	# **** set for debugging ****
+					
+		returnedError = FATAL	# **** set for debugging ****
 
-			if( returnedError == AUTONOMOUS_WARNING ):			
-				message = "autonomous error warning"
-				gTypeOfException = WARNING	
-				
-			else:			
-				message = "autonomous error fatal error"
-				gTypeOfException = FATAL	
+		if( returnedError == AUTONOMOUS_WARNING ):			
+			message = "data collection warning"
+			kindOfException = WARNING	
 			
-			handle_gadget_exception( kindOfException, BUTTON_run_autonomous, LED_autonomous, message )
+		else:			
+			message = "data collection fatal error"
+			kindOfException = FATAL	
+		
+		handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 		
 
 # ------------------------------------------------- 
