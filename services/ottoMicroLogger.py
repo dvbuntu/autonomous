@@ -394,7 +394,7 @@ def callback_switch_collect_data( channel ):
 	global gRecordedDataNotSaved
 	global gWantsToSeeVideo
 	global gCameraIsRecording
-#	global gCamera
+	global gCamera
 	global gCollector
 	
 	if( gCameraIsRecording ): 
@@ -419,7 +419,7 @@ def callback_switch_collect_data( channel ):
 			try:
 				turn_ON_LED( LED_collect_data )
 	
-				with picamera.PiCamera() as gCamera:
+				with gCamera:
 					#Note: these are just parameters to set up the camera, so the order is not important
 					gCamera.resolution=(64, 64) #final image size
 					gCamera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
