@@ -71,7 +71,7 @@ except serial.SerialException:
 	print('Cannot connect to serial port')
 
 # -------------- Data Collector Globals -------------------------------
-gWantsToSeeVideo = False
+gWantsToSeeVideo = True
 gCameraIsNotRecording = True
 NUM_FRAMES = 100
  
