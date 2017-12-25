@@ -336,28 +336,32 @@ def callback_switch_shutdown_RPi( channel ):
 	global gTypeOfException
 	global gRecordedDataNotSaved
 
-	try:
-		if( gRecordedDataNotSaved ):
+	# Contrary to the falling edge detection set up previously, sometimes an interrupt
+	#	will occur on the RISING edge. These must be disregarded
+	if( GPIO.input( BUTTON_run_autonomous ) == PUSHED ): 
+		try:
+			# It takes two shutdown switch changes to shutdown when there is unsaved data
+			if( gRecordedDataNotSaved ):
 		
-			# give another warning about not saving data
-			if( gWasWarnedAboutNotSavingData == False )
-				gWasWarnedAboutNotSavingData = True
-				print( "unsaved data warning" )
-				x = y / x	#  code to force another exception to warn of unsaved data
+				# give another warning about not saving data
+				if( gWasWarnedAboutNotSavingData == False ):
+					gWasWarnedAboutNotSavingData = True
+					print( "unsaved data warning" )
+					x = y / x	#  code to force another exception to warn of unsaved data
 			
-			else:	# You were warned once about the unsaved data, too bad
-				print( "graceful shutdown" )
+				else:	# You were warned once about the unsaved data, too bad
+					print( "graceful shutdown" )
 		
-		turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
+			turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
 	
-	except:
-		returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
+		except:
+			returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
 		
-		if( returnedError == RECORDED_DATA_NOT_SAVED ):			
-			print( "shutdown error: recorded data not saved" )
-			gTypeOfException = WARNING	
+			if( returnedError == RECORDED_DATA_NOT_SAVED ):			
+				print( "shutdown error: recorded data not saved" )
+				gTypeOfException = WARNING	
 								
-		handle_gadget_exception( SWITCH_shutdown_RPi, LED_shutdown_RPi )
+			handle_gadget_exception( SWITCH_shutdown_RPi, LED_shutdown_RPi )
 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
