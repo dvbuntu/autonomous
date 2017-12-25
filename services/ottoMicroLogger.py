@@ -403,10 +403,7 @@ def callback_switch_collect_data( channel ):
 	
 			except ValueError:
 				print( "exception = ", ValueError )
-		
-		else: 
-			print( "spurious switch ON interrupt" )
-			print( "trying to stop interrupt, but another interrupt happened" )
+				print( "during camera turn off = " )
 	
 	else:
 		# Contrary to the falling edge detection set up previously, sometimes an interrupt
