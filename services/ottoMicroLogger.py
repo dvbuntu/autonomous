@@ -393,7 +393,7 @@ def callback_switch_collect_data( channel ):
 	global gCamera
 	
 	if( gCameraIsRecording ): 
-		if( GPIO.input( SWITCH_collect_data ) == ON ): 
+		if( GPIO.input( SWITCH_collect_data ) == OFF ): 
 			try:
 				gCamera.stop_recording()
 				gCameraIsRecording = False
