@@ -194,13 +194,13 @@ def turn_OFF_LED( which_LED ):
 		
 # -------- Handler for clearing all gadget errors --------- 
 # 	A gadget is a button or a switch. An LED is not a gadget!
-def handle_gadget_exception( which_gadget, which_LED ):
+def handle_gadget_exception( which_gadget, which_LED, message ):
 
 	global gTypeOfException
 	global gExceptionHandled
 	
 	gExceptionHandled = False 
-	print ("handling exception" )
+	print ( message )
 	
 	if( gTypeOfException == FATAL ):
 		blinkSpeed = .1 
@@ -226,12 +226,11 @@ def handle_gadget_exception( which_gadget, which_LED ):
 
 	turn_OFF_LED( which_LED )		# show the user the error has been cleared
 	
-	# don't leave until user releases button	
+	# don't leave until we're sure user released button	
 	while True:
 		time.sleep( blinkSpeed )		# executes delay at least once
 		if ( GPIO.input( which_gadget ) != PUSHED): break
 	
-	print( "button down count = ", button_down_count )	
 	gExceptionHandled = True 
 
 # -------- Functions called by gadget callback functions --------- 
@@ -265,7 +264,7 @@ def callback_button_copy_to_SDcard( channel ):
 				gTypeOfException = FATAL	
 			
 			
-			handle_gadget_exception( BUTTON_copy_to_SDcard, LED_copy_to_SDcard )
+			handle_gadget_exception( BUTTON_copy_to_SDcard, LED_copy_to_SDcard, "copy to SD card exception" )
 
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
@@ -297,7 +296,7 @@ def callback_button_read_from_SDcard( channel ):
 				print( "read error: I/O" )
 				gTypeOfException = FATAL	
 			
-			handle_gadget_exception( BUTTON_read_from_SDcard, LED_read_from_SDcard )
+			handle_gadget_exception( BUTTON_read_from_SDcard, LED_read_from_SDcard, "read from SD card exception" )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -329,7 +328,7 @@ def callback_button_autonomous( channel ):
 				print( "autonomous error fatal" )
 				gTypeOfException = FATAL	
 			
-			handle_gadget_exception( BUTTON_run_autonomous, LED_autonomous )
+			handle_gadget_exception( BUTTON_run_autonomous, LED_autonomous "autonomous exception" )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
@@ -362,7 +361,7 @@ def callback_switch_shutdown_RPi( channel ):
 				print( "shutdown error: recorded data not saved" )
 				gTypeOfException = WARNING	
 								
-			handle_gadget_exception( SWITCH_shutdown_RPi, LED_shutdown_RPi )
+			handle_gadget_exception( SWITCH_shutdown_RPi, LED_shutdown_RPi, "shutdown RPI exception" )
 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
@@ -397,7 +396,7 @@ def callback_switch_collect_data( channel ):
 			
 		gTypeOfException = WARNING	# **** THIS IS SET FOR DEBUGGING ONLY ****
 			
-		handle_gadget_exception( SWITCH_collect_data, LED_collect_data )
+		handle_gadget_exception( SWITCH_collect_data, LED_collect_data, "collect data exception" )
 		
 
 # ------------------------------------------------- 
