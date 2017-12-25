@@ -338,7 +338,7 @@ def callback_switch_shutdown_RPi( channel ):
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
-	if( GPIO.input( BUTTON_run_autonomous ) == PUSHED ): 
+	if( GPIO.input( SWITCH_shutdown_RPi ) == ON ): 
 		try:
 			# It takes two shutdown switch changes to shutdown when there is unsaved data
 			if( gRecordedDataNotSaved ):
