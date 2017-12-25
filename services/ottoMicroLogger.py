@@ -71,7 +71,7 @@ except serial.SerialException:
 	print('Cannot connect to serial port')
 
 # -------------- Data Collector Globals -------------------------------
-gWantsToSeeVideo = True
+gWantsToSeeVideo = False
 gCameraIsRecording = False
 gCamera = picamera.PiCamera()
 NUM_FRAMES = 100
