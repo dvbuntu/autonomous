@@ -73,6 +73,7 @@ except serial.SerialException:
 # -------------- Data Collector Globals -------------------------------
 gWantsToSeeVideo = True
 gCameraIsRecording = False
+gCamera = {}
 NUM_FRAMES = 100
  
 # -------------- Data Collector Object -------------------------------  
@@ -389,11 +390,12 @@ def callback_switch_collect_data( channel ):
 	global gRecordedDataNotSaved
 	global gWantsToSeeVideo
 	global gCameraIsRecording
+	global gCamera
 	
 	if( gCameraIsRecording ): 
 		if( GPIO.input( SWITCH_collect_data ) == ON ): 
 			try:
-				camera.stop_recording()
+				gCamera.stop_recording()
 				gCameraIsRecording = False
 				turn_OFF_LED( LED_collect_data )
 			
@@ -414,15 +416,15 @@ def callback_switch_collect_data( channel ):
 				turn_ON_LED( LED_collect_data )
 				collector=DataCollector()
 	
-				with picamera.PiCamera() as camera:
+				with picamera.PiCamera() as gCamera:
 					#Note: these are just parameters to set up the camera, so the order is not important
-					camera.resolution=(64, 64) #final image size
-					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-					camera.start_recording(collector, format='rgb')
+					gCamera.resolution=(64, 64) #final image size
+					gCamera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+					gCamera.framerate=10 #<---- framerate (fps) determines speed of data recording
+					gCamera.start_recording(collector, format='rgb')
 					gCameraIsRecording = True
 					if ( gWantsToSeeVideo ):
-						camera.start_preview() #displays video while it's being recorded
+						gCamera.start_preview() #displays video while it's being recorded
 					 
 			except ValueError:
 				print( "exception = ", ValueError )
