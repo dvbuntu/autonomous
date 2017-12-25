@@ -402,8 +402,7 @@ def callback_switch_collect_data( channel ):
 # ------------------------------------------------- 
 def initialize_RPi_Values():
 
-	GPIO.cleanup()		# clean up GPIO just in case
-
+	
 	global gTypeOfException;
 	global gRecordedDataNotSaved;
 	global gShutRPiDown;
@@ -413,6 +412,10 @@ def initialize_RPi_Values():
 	gRecordedDataNotSaved = False 
 	gShutRPiDown = False
 	gExceptionHandled = True
+	
+	GPIO.cleanup()		# clean up GPIO just in case
+	GPIO.setmode( GPIO.BCM )  
+	GPIO.setwarnings( False )
 	
 	#  falling edge detection setup for all gadgets ( buttons or switches ) 
 	GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
@@ -453,8 +456,7 @@ def initialize_RPi_Values():
 
 # ---------------- MAIN PROGRAM ------------------------------------- 
 
-GPIO.setmode( GPIO.BCM )  
-GPIO.setwarnings( False )
+
 
 initialize_RPi_Values()
 
