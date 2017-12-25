@@ -397,6 +397,7 @@ def callback_switch_collect_data( channel ):
 			try:
 				gCamera.stop_recording()
 				gCameraIsRecording = False
+				print( "camera turned off " )
 				turn_OFF_LED( LED_collect_data )
 			
 				gRecordedDataNotSaved = True     
@@ -422,7 +423,9 @@ def callback_switch_collect_data( channel ):
 					gCameraIsRecording = True
 					if ( gWantsToSeeVideo ):
 						gCamera.start_preview() #displays video while it's being recorded
-					 
+					
+					time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
+					
 			except ValueError:
 				print( "exception = ", ValueError )
 				
