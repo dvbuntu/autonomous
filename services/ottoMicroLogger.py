@@ -409,7 +409,7 @@ def callback_switch_collect_data( channel ):
 				gRecordedDataNotSaved = True     
 
 			except args:
-				print( "exception" = args )
+				print( "exception = ", args )
 				
 				
 				returnedError = FATAL	# **** set for debugging ****
