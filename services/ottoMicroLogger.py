@@ -72,6 +72,8 @@ except serial.SerialException:
  
 # -------------- Data Collector Object -------------------------------  
 
+NUM_FRAMES = 100
+
 class DataCollector(object):
 	'''this object is passed to the camera.start_recording function, which will treat it as a 
 	writable object, like a stream or a file'''
@@ -135,7 +137,6 @@ gWantsToSeeVideo = True
 gCameraIsRecording = False
 gCamera = picamera.PiCamera()
 gCollector = DataCollector()
-NUM_FRAMES = 100
 
 
 # -------- Switch / Button use cheatsheet --------- 
