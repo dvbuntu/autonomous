@@ -396,6 +396,7 @@ def callback_switch_collect_data( channel ):
 	if( gCameraIsRecording ): 
 		if( GPIO.input( SWITCH_collect_data ) == OFF ): 
 			try:
+				print( "* camera turning off " )
 				gCamera.stop_recording()
 				gCameraIsRecording = False
 				print( "* camera turned off " )
