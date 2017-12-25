@@ -72,6 +72,7 @@ except serial.SerialException:
 
 # -------------- Data Collector Globals -------------------------------
 gWantsToSeeVideo = False
+gCameraIsNotRecording = True
 NUM_FRAMES = 100
  
 # -------------- Data Collector Object -------------------------------  
@@ -374,55 +375,63 @@ def callback_switch_collect_data( channel ):
 
 	global gRecordedDataNotSaved
 	global gWantsToSeeVideo
-
-	# Contrary to the falling edge detection set up previously, sometimes an interrupt
-	#	will occur on the RISING edge. These must be disregarded
+	global gCameraIsNotRecording
 	
-	if( GPIO.input( SWITCH_collect_data ) == ON ): 
-		try:
-			turn_ON_LED( LED_collect_data )
-			collector=DataCollector()
+	if( gCameraIsNotRecording ): 
 	
-			with picamera.PiCamera() as camera:
-				#Note: these are just parameters to set up the camera, so the order is not important
-				camera.resolution=(64, 64) #final image size
-				camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-				camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-				camera.start_recording(collector, format='rgb')
+		# Contrary to the falling edge detection set up previously, sometimes an interrupt
+		#	will occur on the RISING edge. These must be disregarded
+		if( GPIO.input( SWITCH_collect_data ) == ON ): 
+			try:
+				turn_ON_LED( LED_collect_data )
+				collector=DataCollector()
+	
+				with picamera.PiCamera() as camera:
+					#Note: these are just parameters to set up the camera, so the order is not important
+					camera.resolution=(64, 64) #final image size
+					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+					camera.start_recording(collector, format='rgb')
+					gCameraIsNotRecording = False
+					
+					if ( gWantsToSeeVideo ):
+						camera.start_preview() #displays video while it's being recorded
+						input('Press enter to stop recording') # will cause hang waiting for user input
 
-				if ( gWantsToSeeVideo ):
-					camera.start_preview() #displays video while it's being recorded
-					input('Press enter to stop recording') # will cause hang waiting for user input
-
-				else : #we are not in debug mode, assume data collection is happening
-					while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
-						pass
+					else : #we are not in debug mode, assume data collection is happening
+						while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
+							pass
  
-			camera.stop_recording()
-			turn_OFF_LED( LED_collect_data )
+				camera.stop_recording()
+				gCameraIsNotRecording = True
+				turn_OFF_LED( LED_collect_data )
 			
-			gRecordedDataNotSaved = True     
+				gRecordedDataNotSaved = True     
 
-		except:
+			except:
 				
-			returnedError = FATAL	# **** set for debugging ****
+				returnedError = FATAL	# **** set for debugging ****
 
-			if( returnedError == AUTONOMOUS_WARNING ):			
-				message = "data collection warning"
-				kindOfException = WARNING	
+				if( returnedError == AUTONOMOUS_WARNING ):			
+					message = "data collection warning"
+					kindOfException = WARNING	
 		
-			else:			
-				message = "data collection fatal error"
-				kindOfException = FATAL	
+				else:			
+					message = "data collection fatal error"
+					kindOfException = FATAL	
 	
-			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
-
+				handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
+	else: 
+		print( "camera is recording, but another interrupt happened" )
+		
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
 
-	global gRecordedDataNotSaved;
+	global gRecordedDataNotSaved
+	global gCameraIsNotRecording
 	
 	gRecordedDataNotSaved = False 
+	gCameraIsNotRecording = True 
 	
 	# blink LEDs as an alarm if either switch has been left in the ON (up) position
 	LED_state = LED_ON
