@@ -264,7 +264,6 @@ def callback_button_copy_to_SDcard( channel ):
 				message = "copy to card fatal error"
 				kindOfException = FATAL	
 			
-			
 			handle_gadget_exception( kindOfException, BUTTON_copy_to_SDcard, LED_copy_to_SDcard, message )
 
 # ------------------------------------------------- 
@@ -341,6 +340,7 @@ def callback_switch_shutdown_RPi( channel ):
 	
 	if( GPIO.input( SWITCH_shutdown_RPi ) == ON ): 
 		try:
+			turn_ON_LED( LED_shutdown_RPi )
 			# It takes two shutdown switch changes to shutdown when there is unsaved data
 			if( gRecordedDataNotSaved ):
 		
@@ -351,9 +351,12 @@ def callback_switch_shutdown_RPi( channel ):
 					x = y / x	#  code to force another exception to warn of unsaved data
 			
 				else:	# You were warned once about the unsaved data, too bad
-					print( "graceful shutdown" )
-		
-			turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
+					print( "shutdown with data unsaved" )
+					turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
+	
+			else:	
+				print( "graceful shutdown" )
+				turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
 	
 		except:
 			returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
@@ -409,7 +412,6 @@ def callback_switch_collect_data( channel ):
 				kindOfException = FATAL	
 	
 			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
-		
 
 # ------------------------------------------------- 
 def initialize_RPi_Values():
