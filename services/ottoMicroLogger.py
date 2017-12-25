@@ -73,7 +73,7 @@ except serial.SerialException:
 # -------------- Data Collector Globals -------------------------------
 gWantsToSeeVideo = True
 gCameraIsRecording = False
-gCamera = {}
+gCamera = PiCamera()
 NUM_FRAMES = 100
  
 # -------------- Data Collector Object -------------------------------  
