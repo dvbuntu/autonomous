@@ -334,10 +334,19 @@ def callback_button_autonomous( channel ):
 def callback_switch_shutdown_RPi( channel ):
 
 	global gTypeOfException
+	global gRecordedDataNotSaved
 
 	try:
+		if( gRecordedDataNotSaved ):
 		
-		# do the graceful shutdown
+			# give another warning about not saving data
+			if( gWasWarnedAboutNotSavingData == False )
+				gWasWarnedAboutNotSavingData = True
+				print( "unsaved data warning" )
+				x = y / x	#  code to force another exception to warn of unsaved data
+			
+			else:	# You were warned once about the unsaved data, too bad
+				print( "graceful shutdown" )
 		
 		turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
 	
@@ -374,13 +383,14 @@ def callback_switch_collect_data( channel ):
 				while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
 					pass
 	 
-		camera.stop_recording()     
+		camera.stop_recording()
+		gRecordedDataNotSaved = True     
 		turn_OFF_LED( LED_collect_data )
 	
 	except:
 		print( "data collection error" ) 
 			
-		gTypeOfException = FATAL	# **** THIS IS SET FOR DEBUGGING ONLY ****
+		gTypeOfException = WARNING	# **** THIS IS SET FOR DEBUGGING ONLY ****
 			
 		handle_gadget_exception( SWITCH_collect_data, LED_collect_data )
 		
