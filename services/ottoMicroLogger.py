@@ -424,8 +424,8 @@ def callback_switch_collect_data( channel ):
 					kindOfException = FATAL	
 	
 				handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
-	else: 
-		print( "camera is recording, but another interrupt happened" )
+		else: 
+			print( "camera is recording, but another interrupt happened" )
 		
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
