@@ -346,11 +346,13 @@ def callback_switch_shutdown_RPi( channel ):
 			
 				else:	# You were warned once about the unsaved data, too bad
 					print( "shutdown with data unsaved" )
-					turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
+					time.sleep( 1 )		# leave the LED on for 1 second to show we did something
+					turn_OFF_LED( LED_shutdown_RPi )	
 	
 			else:	
 				print( "graceful shutdown" )
-				turn_OFF_LED( LED_shutdown_RPi )	# this probably is not needed
+				time.sleep( 1 )		# leave the LED on for 1 second to show we did something
+				turn_OFF_LED( LED_shutdown_RPi )	
 	
 		except:
 			returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
