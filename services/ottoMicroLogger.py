@@ -207,7 +207,7 @@ def handle_gadget_exception( which_gadget, which_LED ):
 		button_down_count = 6
 	
 	else:	
-		blinkSpeed = .3
+		blinkSpeed = .2
 		button_down_count = 3
 		
 					
@@ -318,7 +318,7 @@ def callback_button_autonomous( channel ):
 	
 			turn_OFF_LED( LED_autonomous )
 		except:
-			returnedError = AUTONOMOUS_WARNING	# **** set for debugging ****
+			returnedError = FATAL	# **** set for debugging ****
 
 			if( returnedError == AUTONOMOUS_WARNING ):			
 				print( "autonomous error warning" )
