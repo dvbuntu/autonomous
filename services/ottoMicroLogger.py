@@ -203,7 +203,9 @@ def handle_gadget_exception( kindOfException, which_gadget, which_LED, message )
 	gExceptionHandled = False 
 	print ( message )
 	
-	if( gTypeOfException == FATAL ):
+	gTypeOfException = kindOfException
+	
+	if( kindOfException == FATAL ):
 		blinkSpeed = .1 
 		button_down_count = 6
 	
