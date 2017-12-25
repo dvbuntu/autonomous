@@ -394,6 +394,7 @@ def callback_switch_collect_data( channel ):
 	global gWantsToSeeVideo
 	global gCameraIsRecording
 	global gCamera
+	global gCollector
 	
 	if( gCameraIsRecording ): 
 		if( GPIO.input( SWITCH_collect_data ) == OFF ): 
