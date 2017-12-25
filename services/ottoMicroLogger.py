@@ -408,7 +408,10 @@ def callback_switch_collect_data( channel ):
 			
 				gRecordedDataNotSaved = True     
 
-			except:
+			except( RuntimeError, TypeError, NameError ):
+				print( "RuntimeError" = RuntimeError )
+				print( "TypeError" = TypeError )
+				print( "NameError" = NameError )
 				
 				returnedError = FATAL	# **** set for debugging ****
 
