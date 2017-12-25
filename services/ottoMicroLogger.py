@@ -403,7 +403,6 @@ def callback_switch_collect_data( channel ):
 # ------------------------------------------------- 
 def initialize_RPi_Values():
 
-	
 	global gTypeOfException;
 	global gRecordedDataNotSaved;
 	global gShutRPiDown;
@@ -414,23 +413,6 @@ def initialize_RPi_Values():
 	gShutRPiDown = False
 	gExceptionHandled = True
 	
-	# GPIO.cleanup()		# clean up GPIO just in case
-	GPIO.setmode( GPIO.BCM )  
-	GPIO.setwarnings( False )
-	
-	#  falling edge detection setup for all gadgets ( buttons or switches ) 
-	GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-	GPIO.setup( BUTTON_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-	GPIO.setup( BUTTON_read_from_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-	GPIO.setup( SWITCH_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-	GPIO.setup( SWITCH_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-
-	GPIO.setup( LED_copy_to_SDcard, GPIO.OUT )
-	GPIO.setup( LED_read_from_SDcard, GPIO.OUT )
-	GPIO.setup( LED_autonomous, GPIO.OUT )
-	GPIO.setup( LED_shutdown_RPi, GPIO.OUT )
-	GPIO.setup( LED_collect_data, GPIO.OUT )
-
 	# blink LEDs as an alarm if either switch has been left in the ON (up) position
 	LED_state = LED_ON
 
@@ -447,17 +429,32 @@ def initialize_RPi_Values():
 	turn_OFF_LED( LED_shutdown_RPi )
 	turn_OFF_LED( LED_collect_data )
 
-	# setup callback routines for gadget falling edge detection  
-	#	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
-	GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
-	GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
-	GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
-	GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
-	GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
 # ---------------- MAIN PROGRAM ------------------------------------- 
 
+GPIO.setmode( GPIO.BCM )  
+GPIO.setwarnings( False )
 
+#  falling edge detection setup for all gadgets ( buttons or switches ) 
+GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( BUTTON_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( BUTTON_read_from_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( SWITCH_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( SWITCH_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+
+GPIO.setup( LED_copy_to_SDcard, GPIO.OUT )
+GPIO.setup( LED_read_from_SDcard, GPIO.OUT )
+GPIO.setup( LED_autonomous, GPIO.OUT )
+GPIO.setup( LED_shutdown_RPi, GPIO.OUT )
+GPIO.setup( LED_collect_data, GPIO.OUT )
+
+# setup callback routines for gadget falling edge detection  
+#	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
+GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=300 )  
+GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=300 )  
+GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=300 )  
+GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=300 )  
+GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=300 ) 
 
 initialize_RPi_Values()
 
