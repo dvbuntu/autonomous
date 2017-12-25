@@ -69,13 +69,6 @@ try:
 	ser=serial.Serial('/dev/ttyACM0')
 except serial.SerialException:
 	print('Cannot connect to serial port')
-
-# -------------- Data Collector Globals -------------------------------
-gWantsToSeeVideo = True
-gCameraIsRecording = False
-gCamera = picamera.PiCamera()
-gCollector = DataCollector()
-NUM_FRAMES = 100
  
 # -------------- Data Collector Object -------------------------------  
 
@@ -136,6 +129,13 @@ class DataCollector(object):
 		self.IMUdata[:]=0
 		self.RCcommands[:]=0
 
+
+# -------------- Data Collector Globals -------------------------------
+gWantsToSeeVideo = True
+gCameraIsRecording = False
+gCamera = picamera.PiCamera()
+gCollector = DataCollector()
+NUM_FRAMES = 100
 
 
 # -------- Switch / Button use cheatsheet --------- 
