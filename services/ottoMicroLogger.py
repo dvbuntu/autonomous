@@ -369,44 +369,44 @@ def callback_switch_collect_data( channel ):
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
+	
 	if( GPIO.input( SWITCH_collect_data ) == ON ): 
+		try:
+			turn_ON_LED( LED_collect_data )
+			collector=DataCollector()
 	
-	try:
-		turn_ON_LED( LED_collect_data )
-		collector=DataCollector()
+			with picamera.PiCamera() as camera:
+				#Note: these are just parameters to set up the camera, so the order is not important
+				camera.resolution=(64, 64) #final image size
+				camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+				camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+				camera.start_recording(collector, format='rgb')
+
+				if debug:
+					camera.start_preview() #displays video while it's being recorded
+					input('Press enter to stop recording') # will cause hang waiting for user input
+
+				else : #we are not in debug mode, assume data collection is happening
+					while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
+						pass
+ 
+			camera.stop_recording()
+			gRecordedDataNotSaved = True     
+			turn_OFF_LED( LED_collect_data )
+
+		except:
+				
+			returnedError = FATAL	# **** set for debugging ****
+
+			if( returnedError == AUTONOMOUS_WARNING ):			
+				message = "data collection warning"
+				kindOfException = WARNING	
 		
-		with picamera.PiCamera() as camera:
-			#Note: these are just parameters to set up the camera, so the order is not important
-			camera.resolution=(64, 64) #final image size
-			camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-			camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-			camera.start_recording(collector, format='rgb')
-
-			if debug:
-				camera.start_preview() #displays video while it's being recorded
-				input('Press enter to stop recording') # will cause hang waiting for user input
-
-			else : #we are not in debug mode, assume data collection is happening
-				while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
-					pass
-	 
-		camera.stop_recording()
-		gRecordedDataNotSaved = True     
-		turn_OFF_LED( LED_collect_data )
+			else:			
+				message = "data collection fatal error"
+				kindOfException = FATAL	
 	
-	except:
-					
-		returnedError = FATAL	# **** set for debugging ****
-
-		if( returnedError == AUTONOMOUS_WARNING ):			
-			message = "data collection warning"
-			kindOfException = WARNING	
-			
-		else:			
-			message = "data collection fatal error"
-			kindOfException = FATAL	
-		
-		handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
+			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 		
 
 # ------------------------------------------------- 
