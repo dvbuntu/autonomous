@@ -76,7 +76,7 @@ NUM_FRAMES = 100
  
 # -------------- Data Collector Object -------------------------------  
 
-DataCollector(object):
+def DataCollector(object):
 	'''this object is passed to the camera.start_recording function, which will treat it as a 
 	writable object, like a stream or a file'''
 	def __init__(self):
