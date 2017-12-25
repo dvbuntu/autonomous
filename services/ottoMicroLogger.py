@@ -51,11 +51,7 @@ AUTONOMOUS_WARNING = 4
 RECORDED_DATA_NOT_SAVED = 5
 
 # -------- define global variables which start with a little "g" --------- 
-gTypeOfException = NONE
 gRecordedDataNotSaved = False
-gShutRPiDown = False
-gTypeOfException = NONE
-gExceptionHandled = True
 
 # --------Old Data Collection Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
@@ -195,16 +191,9 @@ def turn_OFF_LED( which_LED ):
 # -------- Handler for clearing all gadget errors --------- 
 # 	A gadget is a button or a switch. An LED is not a gadget!
 def handle_gadget_exception( kindOfException, which_gadget, which_LED, message ):
-
-	# these variables are polled in the Main Program Loop
-	global gTypeOfException
-	global gExceptionHandled
 	
-	gExceptionHandled = False 
 	print ( message )
-	
-	gTypeOfException = kindOfException
-	
+		
 	if( kindOfException == FATAL ):
 		blinkSpeed = .1 
 		button_down_count = 6
@@ -233,7 +222,12 @@ def handle_gadget_exception( kindOfException, which_gadget, which_LED, message )
 		time.sleep( blinkSpeed )		# executes delay at least once
 		if ( GPIO.input( which_gadget ) != PUSHED): break
 	
-	gExceptionHandled = True 
+	if( kindOfException == FATAL ):
+		print( "fatal error handled" )
+	
+	else:	
+		print( "warning error handled" )
+	
 
 # -------- Functions called by gadget callback functions --------- 
 def callback_button_copy_to_SDcard( channel ): 
@@ -396,8 +390,9 @@ def callback_switch_collect_data( channel ):
 						pass
  
 			camera.stop_recording()
-			gRecordedDataNotSaved = True     
 			turn_OFF_LED( LED_collect_data )
+			
+			gRecordedDataNotSaved = True     
 
 		except:
 				
@@ -414,17 +409,11 @@ def callback_switch_collect_data( channel ):
 			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 
 # ------------------------------------------------- 
-def initialize_RPi_Values():
+def initialize_RPi_Stuff():
 
-	global gTypeOfException;
 	global gRecordedDataNotSaved;
-	global gShutRPiDown;
-	global gExceptionHandled;
 	
-	gTypeOfException = NONE
 	gRecordedDataNotSaved = False 
-	gShutRPiDown = False
-	gExceptionHandled = True
 	
 	# blink LEDs as an alarm if either switch has been left in the ON (up) position
 	LED_state = LED_ON
@@ -469,22 +458,9 @@ GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_
 GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=50 ) 
 
-initialize_RPi_Values()
+initialize_RPi_Stuff()
 
 while ( True ):	
-	#  note: gadget interrupt will return to this loop even in the middle of handling an error exception
-	if( gTypeOfException == FATAL ):
-		if( gExceptionHandled ):
-			initialize_RPi_Values()
-			print( "fatal error -> pi initialized" ) 
-	
-	elif( gTypeOfException == WARNING ):
-		if( gExceptionHandled ):
-			gTypeOfException = NONE	
-			print( "warning exception handled" ) 
-		
-	if( gShutRPiDown ):		
-		GPIO.cleanup()		# clean up GPIO on normal exit  
-		break		
+	pass	
 	
 
