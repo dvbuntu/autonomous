@@ -230,7 +230,8 @@ def handle_gadget_exception( which_gadget, which_LED ):
 	while True:
 		time.sleep( blinkSpeed )		# executes delay at least once
 		if ( GPIO.input( which_gadget ) != PUSHED): break
-		
+	
+	print( button_down_count )	
 	gExceptionHandled = True 
 
 # -------- Functions called by gadget callback functions --------- 
