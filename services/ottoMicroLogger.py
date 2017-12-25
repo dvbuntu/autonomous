@@ -200,6 +200,7 @@ def turn_OFF_LED( which_LED ):
 def handle_gadget_exception( kindOfException, which_gadget, which_LED, message ):
 	
 	print ( message )
+	print("Oops!",sys.exc_info()[0],"occured.")
 		
 	if( kindOfException == FATAL ):
 		blinkSpeed = .1 
