@@ -328,7 +328,7 @@ def callback_button_autonomous( channel ):
 				print( "autonomous error fatal" )
 				gTypeOfException = FATAL	
 			
-			handle_gadget_exception( BUTTON_run_autonomous, LED_autonomous "autonomous exception" )
+			handle_gadget_exception( BUTTON_run_autonomous, LED_autonomous, "autonomous exception" )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
