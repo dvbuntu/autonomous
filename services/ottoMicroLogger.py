@@ -268,6 +268,9 @@ def callback_button_copy_to_SDcard( channel ):
 			
 			handle_gadget_exception( kindOfException, BUTTON_copy_to_SDcard, LED_copy_to_SDcard, message )
 
+	else: 
+		print( "spurious copy to SDcard button interrupt" )
+
 # ------------------------------------------------- 
 def callback_button_read_from_SDcard( channel ): 
 
@@ -300,6 +303,9 @@ def callback_button_read_from_SDcard( channel ):
 			
 			handle_gadget_exception( kindOfException, BUTTON_read_from_SDcard, LED_read_from_SDcard, message )
 
+	else: 
+		print( "spurious read from SDcard button interrupt" )
+
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
 
@@ -331,6 +337,9 @@ def callback_button_autonomous( channel ):
 				kindOfException = FATAL	
 			
 			handle_gadget_exception( kindOfException, BUTTON_run_autonomous, LED_autonomous, message )
+
+	else: 
+		print( "spurious autonomous button interrupt" )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
@@ -371,6 +380,9 @@ def callback_switch_shutdown_RPi( channel ):
 								
 			handle_gadget_exception( kindOfException, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
 
+	else: 
+		print( "spurious switch interrupt" )
+
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
 
@@ -394,14 +406,11 @@ def callback_switch_collect_data( channel ):
 					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 					camera.start_recording(collector, format='rgb')
 					gCameraIsNotRecording = False
-					
 					if ( gWantsToSeeVideo ):
 						camera.start_preview() #displays video while it's being recorded
-						input('Press enter to stop recording') # will cause hang waiting for user input
-
-					else : #we are not in debug mode, assume data collection is happening
-						while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
-							pass
+					
+					while( GPIO.input( SWITCH_collect_data ) == ON ):	# wait for switch OFF to stop data collecting
+						pass
  
 				camera.stop_recording()
 				gCameraIsNotRecording = True
@@ -425,6 +434,7 @@ def callback_switch_collect_data( channel ):
 	
 				handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 		else: 
+			print( "spurious switch interrupt" )
 			print( "camera is recording, but another interrupt happened" )
 		
 # ------------------------------------------------- 
