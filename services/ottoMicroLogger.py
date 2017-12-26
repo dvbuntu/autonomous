@@ -429,8 +429,8 @@ def callback_switch_collect_data( channel ):
 					if ( gWantsToSeeVideo ):
 						gCamera.start_preview() #displays video while it's being recorded
 					
-					while( True ):
-						pass
+					#while( True ):
+					#	pass
 						
 					time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
 					
