@@ -167,6 +167,7 @@ def callback_switch_collect_data( channel ):
 					pass
 					
 				camera.stop_recording()
+				gCameraIsRecording = False
 				time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
 				
 		except:
@@ -177,7 +178,13 @@ def callback_switch_collect_data( channel ):
 
 			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 	else: 
-		print( "* spurious switch OFF interrupt" )
+		print( "* another switch OFF interrupt" )
+		if( gCameraIsRecording )"
+			print( "camera is still ON" )
+		
+		else:
+			print( "camera is turned OFF" )
+			
 		print( "* camera is recording, but another interrupt happened" )
 		
 # -------- Switch / Button use cheatsheet --------- 
