@@ -171,8 +171,8 @@ def callback_switch_collect_data( channel ):
 				
 		except:
 			print( "* during camera turn ON" )
-			
-			message = "* Data collection fatal error", sys.exc_info()[0])
+			print(sys.exc_info()[0])
+			message = "* Data collection fatal error"
 			kindOfException = FATAL	
 
 			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
