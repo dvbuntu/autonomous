@@ -299,7 +299,7 @@ def callback_button_copy_to_SDcard( channel ):
 			# do the copying ....
 			test_String = "testing command line command"
 			return_code = subprocess.call(["echo", test_String ])
-			x = y / x	# **** FORCE AN EXCEPTION FOR DEBUGGING ONLY ****
+#			x = y / x	# **** FORCE AN EXCEPTION FOR DEBUGGING ONLY ****
 	
 			turn_OFF_LED( LED_copy_to_SDcard )
 		except:
