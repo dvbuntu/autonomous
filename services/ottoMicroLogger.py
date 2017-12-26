@@ -50,8 +50,6 @@ NO_SD_CARD_WARNING = 3
 AUTONOMOUS_WARNING = 4
 RECORDED_DATA_NOT_SAVED = 5
 
-# -------- define global variables which start with a little "g" --------- 
-gRecordedDataNotSaved = False
 
 # --------Old Data Collection Command Line Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
@@ -131,9 +129,53 @@ class DataCollector(object):
 		self.IMUdata[:]=0
 		self.RCcommands[:]=0
 
+# -------- define global variables which start with a little "g" --------- 
+# -------------- Data Collector Global Variables -------------------------------
+gWantsToSeeVideo = True
+gCameraIsRecording = False
+gRecordedDataNotSaved = False
 
+# ------------------------------------------------- 
+def callback_switch_collect_data( channel ):  
 
-
+	global gRecordedDataNotSaved
+	global gWantsToSeeVideo
+	
+		# Contrary to the falling edge detection set up previously, sometimes an interrupt
+		#	will occur on the RISING edge. These must be disregarded
+		if( GPIO.input( SWITCH_collect_data ) == ON ): 
+			try:
+				print( "* starting recording " )
+				turn_ON_LED( LED_collect_data )
+				
+				collector=DataCollector()
+				
+				with picamera.PiCamera() as camera:
+					#Note: these are just parameters to set up the camera, so the order is not important
+					camera.resolution=(64, 64) #final image size
+					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+					camera.start_recording( collector, format='rgb' )
+					gCameraIsRecording = True
+					if ( gWantsToSeeVideo ):
+						gCamera.start_preview() #displays video while it's being recorded
+					
+					while( GPIO.input( SWITCH_collect_data ) == ON ):
+					#	pass
+						
+					time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
+					
+			except:
+				print( "* during camera turn ON" )
+				
+				message = "* Data collection fatal error", sys.exc_info()[0])
+				kindOfException = FATAL	
+	
+				handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
+		else: 
+			print( "* spurious switch OFF interrupt" )
+			print( "* camera is recording, but another interrupt happened" )
+			
 # -------- Switch / Button use cheatsheet --------- 
 #
 # Switch / Button		STATE		MEANING
@@ -382,89 +424,14 @@ def callback_switch_shutdown_RPi( channel ):
 	else: 
 		print( "spurious switch interrupt" )
 
-# -------------- Data Collector Globals Variables -------------------------------
-gWantsToSeeVideo = True
-gCameraIsRecording = False
-#gCamera = picamera.PiCamera()
-gCollector = DataCollector()
 
-with picamera.PiCamera() as gCamera:
-	pass
-# ------------------------------------------------- 
-def callback_switch_collect_data( channel ):  
-
-	global gRecordedDataNotSaved
-	global gWantsToSeeVideo
-	global gCameraIsRecording
-	global gCamera
-	global gCollector
-	
-	if( gCameraIsRecording ): 
-		if( GPIO.input( SWITCH_collect_data ) == OFF ): 
-			try:
-				print( "* camera turning off " )
-				gCamera.stop_recording()
-				gCameraIsRecording = False
-				print( "* camera turned off " )
-				turn_OFF_LED( LED_collect_data )
-			
-				gRecordedDataNotSaved = True     
-	
-			except ValueError:
-				print( "* exception = ", ValueError )
-				print( "* during camera turn OFF" )
-	
-	else:
-		# Contrary to the falling edge detection set up previously, sometimes an interrupt
-		#	will occur on the RISING edge. These must be disregarded
-		if( GPIO.input( SWITCH_collect_data ) == ON ): 
-			try:
-				print( "* starting recording " )
-				turn_ON_LED( LED_collect_data )
-				
-				with gCamera:
-					#Note: these are just parameters to set up the camera, so the order is not important
-					gCamera.resolution=(64, 64) #final image size
-					gCamera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-					gCamera.framerate=10 #<---- framerate (fps) determines speed of data recording
-					gCamera.start_recording( gCollector, format='rgb' )
-					gCameraIsRecording = True
-					if ( gWantsToSeeVideo ):
-						gCamera.start_preview() #displays video while it's being recorded
-					
-					#while( True ):
-					#	pass
-						
-					time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
-					
-			except ValueError:
-				print( "* exception = ", ValueError )
-				print( "* during camera turn ON" )
-				
-				
-				returnedError = FATAL	# **** set for debugging ****
-
-				if( returnedError == AUTONOMOUS_WARNING ):			
-					message = "* Data collection warning"
-					kindOfException = WARNING	
-		
-				else:			
-					message = "* Data collection fatal error"
-					kindOfException = FATAL	
-	
-				handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
-		else: 
-			print( "* spurious switch OFF interrupt" )
-			print( "* camera is recording, but another interrupt happened" )
 		
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
 
 	global gRecordedDataNotSaved
-	global gCameraIsRecording
 	
 	gRecordedDataNotSaved = False 
-	gCameraIsRecording = False 
 	
 	# blink LEDs as an alarm if either switch has been left in the ON (up) position
 	LED_state = LED_ON
