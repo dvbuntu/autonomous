@@ -17,7 +17,7 @@ import RPi.GPIO as GPIO
 import subprocess
 
 # for call USB stick functions
-import file ottoUSBstickFunctions.py
+import file ottoUSBstickFunctions
 
 #	CONSTANTS are in ALL CAPS
 
