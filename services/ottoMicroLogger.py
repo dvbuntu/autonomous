@@ -385,7 +385,7 @@ def callback_switch_shutdown_RPi( channel ):
 # -------------- Data Collector Globals Variables -------------------------------
 gWantsToSeeVideo = True
 gCameraIsRecording = False
-gCamera = picamera.PiCamera()
+#gCamera = picamera.PiCamera()
 gCollector = DataCollector()
 
 # ------------------------------------------------- 
@@ -419,7 +419,7 @@ def callback_switch_collect_data( channel ):
 			try:
 				turn_ON_LED( LED_collect_data )
 	
-				with gCamera:
+				with picamera.PiCamera() as gCamera:
 					#Note: these are just parameters to set up the camera, so the order is not important
 					gCamera.resolution=(64, 64) #final image size
 					gCamera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
