@@ -333,7 +333,7 @@ def callback_button_read_from_SDcard( channel ):
 				button_state = GPIO.input( BUTTON_read_from_SDcard )
 	
 			# do the reading ....
-			x = y / x	# **** FORCE AN EXCEPTION FOR DEBUGGING ONLY ****
+			raise NameError('Raise NameError exception')
 	
 			turn_OFF_LED( LED_read_from_SDcard )
 		except:
@@ -369,7 +369,7 @@ def callback_button_autonomous( channel ):
 				button_state = GPIO.input( BUTTON_run_autonomous )
 	
 			# do the autonomous ....
-			x = y / x	# **** FORCE AN EXCEPTION FOR DEBUGGING ONLY ****
+			raise NameError('Raise NameError exception')
 	
 			turn_OFF_LED( LED_autonomous )
 		except:
