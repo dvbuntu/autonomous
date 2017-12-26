@@ -143,6 +143,7 @@ def callback_switch_collect_data( channel ):
 
 	global gRecordedDataNotSaved
 	global gWantsToSeeVideo
+	global gCameraIsRecording
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
@@ -180,13 +181,11 @@ def callback_switch_collect_data( channel ):
 	else: 
 		print( "* another switch OFF interrupt" )
 		if( gCameraIsRecording ):
-			print( "camera is still ON" )
+			print( "  camera is still ON" )
 		
 		else:
-			print( "camera is turned OFF" )
-			
-		print( "* camera is recording, but another interrupt happened" )
-		
+			print( "  camera is turned OFF" )
+					
 # -------- Switch / Button use cheatsheet --------- 
 #
 # Switch / Button		STATE		MEANING
