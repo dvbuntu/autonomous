@@ -2,7 +2,8 @@
 
 # data logger for otto micro car
 
-import sys
+import sys, os
+
 import time
 import datetime
 import picamera
