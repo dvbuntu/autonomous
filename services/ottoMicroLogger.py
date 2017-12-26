@@ -16,6 +16,9 @@ import RPi.GPIO as GPIO
 # for calling command line commands:
 import subprocess
 
+# for call USB stick functions
+import file ottoUSBstickFunctions.py
+
 #	CONSTANTS are in ALL CAPS
 
 # -------- GPIO pin numbers for ottoMicro Car --------- 
@@ -175,9 +178,7 @@ def callback_switch_collect_data( channel ):
 		except Exception as e:
 			exc_type, exc_obj, exc_tb = sys.exc_info()
 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-			print(exc_type, fname, exc_tb.tb_lineno)			
-			print( "* during camera turn ON" )
-			print(sys.exc_info()[0])
+			print(exc_type, fname, "   line number = ", exc_tb.tb_lineno)			
 			message = "* Data collection fatal error"
 			kindOfException = FATAL	
 
