@@ -374,7 +374,7 @@ def callback_switch_shutdown_RPi( channel ):
 			returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
 		
 			if( returnedError == RECORDED_DATA_NOT_SAVED ):			
-				print( "shutdown error: recorded data not saved" )
+				message = "shutdown error: recorded data not saved" 
 				kindOfException = WARNING	
 								
 			handle_gadget_exception( kindOfException, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
@@ -416,6 +416,7 @@ def callback_switch_collect_data( channel ):
 		#	will occur on the RISING edge. These must be disregarded
 		if( GPIO.input( SWITCH_collect_data ) == ON ): 
 			try:
+				print( "* starting recording " )
 				turn_ON_LED( LED_collect_data )
 				gCollector = DataCollector()
 				with picamera.PiCamera() as gCamera:
