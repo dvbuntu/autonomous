@@ -17,17 +17,17 @@ import RPi.GPIO as GPIO
 import subprocess
 
 # for call USB stick functions
-import ottoUSBstickFunctions as USBfunct
+import ottoUSBdriveFunctions as USBfunct
 
 #	CONSTANTS are in ALL CAPS
 
 # -------- GPIO pin numbers for ottoMicro Car --------- 
-LED_copy_to_SDcard = 2
-LED_read_from_SDcard = 3
+LED_copy_to_USBdrive = 2
+LED_read_from_USBdrive = 3
 LED_autonomous = 4
 
-BUTTON_copy_to_SDcard = 17
-BUTTON_read_from_SDcard = 27
+BUTTON_copy_to_USBdrive = 17
+BUTTON_read_from_USBdrive = 27
 BUTTON_run_autonomous = 22
 
 SWITCH_shutdown_RPi = 10
@@ -53,7 +53,7 @@ LED_OFF = GPIO.LOW
 NONE = 0
 WARNING = 1
 FATAL = 2
-NO_SD_CARD_WARNING = 3
+NO_USB_DRIVE_WARNING = 3
 AUTONOMOUS_WARNING = 4
 RECORDED_DATA_NOT_SAVED = 5
 
@@ -201,10 +201,10 @@ def callback_switch_collect_data( channel ):
 # SWITCH_shutdown_RPi		OFF (down)	Not in use, Normal operation		
 #				ON (up)		Gracefully shutdown RPi
 #
-# BUTTON_copy_to_SDcard		pushed		Copy collected data to SD card
+# BUTTON_copy_to_USBdrive		pushed		Copy collected data to USB drive
 #				up		Not in use
 #
-# BUTTON_read_from_SDcard	pushed		Read training data to from card
+# BUTTON_read_from_USBdrive	pushed		Read training data to from USB drive
 #				up		Not in use
 #
 # BUTTON_run_autonomous		pushed		Put car in autonomous mode
@@ -218,11 +218,11 @@ def callback_switch_collect_data( channel ):
 #
 # LED				STATE		MEANING
 # --------------------------------------------------------------
-# LED_copy_to_SDcard		OFF		Not in use		
+# LED_copy_to_USBdrive		OFF		Not in use		
 #				ON		Copy in progress
 #				BLINKING	Error during copy
 #
-# LED_read_from_SDcard		OFF		Not in use		
+# LED_read_from_USBdrive		OFF		Not in use		
 #				ON		Copy in progress
 #				BLINKING	Error during read
 #
@@ -236,7 +236,7 @@ def callback_switch_collect_data( channel ):
 #
 # LED_shutdown_RPi		OFF		Not in use		
 #				ON		System A-OK
-#				BLINKING	Tried to shut down without copying collected data to SD card
+#				BLINKING	Tried to shut down without copying collected data to USB drive
 #
 # LED_collect_data		both BLINKING	One or both switches not in off position on startup
 # LED_shutdown_RPi
@@ -294,75 +294,75 @@ def handle_gadget_exception( kindOfException, which_gadget, which_LED, message )
 	
 
 # -------- Functions called by gadget callback functions --------- 
-def callback_button_copy_to_SDcard( channel ): 
+def callback_button_copy_to_USBdrive( channel ): 
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
 	
-	if( GPIO.input( BUTTON_copy_to_SDcard ) == PUSHED ): 
+	if( GPIO.input( BUTTON_copy_to_USBdrive ) == PUSHED ): 
 		
 		try:
-			turn_ON_LED( LED_copy_to_SDcard )
+			turn_ON_LED( LED_copy_to_USBdrive )
 			button_state = PUSHED
 			while ( button_state == PUSHED ):
-				button_state = GPIO.input( BUTTON_copy_to_SDcard )
+				button_state = GPIO.input( BUTTON_copy_to_USBdrive )
 	
 			# do the copying ....
 			test_String = "testing command line command"
 			return_code = subprocess.call(["echo", test_String ])
 #			x = y / x	# **** FORCE AN EXCEPTION FOR DEBUGGING ONLY ****
 	
-			turn_OFF_LED( LED_copy_to_SDcard )
+			turn_OFF_LED( LED_copy_to_USBdrive )
 		except:
-			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
+			returnedError = NO_USB_DRIVE_WARNING	# **** set for debugging ****
 
-			if( returnedError == NO_SD_CARD_WARNING ):			
-				message = "copy to card warning: card not found"
+			if( returnedError == NO_USB_DRIVE_WARNING ):			
+				message = "copy to USB drive warning: USB drive not found"
 				kindOfException = WARNING	
 				
 			else:			
-				message = "copy to card fatal error"
+				message = "copy to USB drive fatal error"
 				kindOfException = FATAL	
 			
-			handle_gadget_exception( kindOfException, BUTTON_copy_to_SDcard, LED_copy_to_SDcard, message )
+			handle_gadget_exception( kindOfException, BUTTON_copy_to_USBdrive, LED_copy_to_USBdrive, message )
 
 	else: 
-		print( "spurious copy to SDcard button interrupt" )
+		print( "spurious copy to USBdrive button interrupt" )
 
 # ------------------------------------------------- 
-def callback_button_read_from_SDcard( channel ): 
+def callback_button_read_from_USBdrive( channel ): 
 
 	# Contrary to the falling edge detection set up previously, sometimes an interrupt
 	#	will occur on the RISING edge. These must be disregarded
 	
-	if( GPIO.input( BUTTON_read_from_SDcard ) == PUSHED ): 
+	if( GPIO.input( BUTTON_read_from_USBdrive ) == PUSHED ): 
 		
 		try:
-			turn_ON_LED( LED_read_from_SDcard )
+			turn_ON_LED( LED_read_from_USBdrive )
 			button_state = PUSHED
 			while ( button_state == PUSHED ):
-				button_state = GPIO.input( BUTTON_read_from_SDcard )
+				button_state = GPIO.input( BUTTON_read_from_USBdrive )
 	
 			# do the reading ....
 			raise NameError('Raise NameError exception')
 	
-			turn_OFF_LED( LED_read_from_SDcard )
+			turn_OFF_LED( LED_read_from_USBdrive )
 		except:
-			returnedError = NO_SD_CARD_WARNING	# **** set for debugging ****
+			returnedError = NO_USB_DRIVE_WARNING	# **** set for debugging ****
 			
-			if( returnedError == NO_SD_CARD_WARNING ):			
-				message = "read from card warning: card not found"
+			if( returnedError == NO_USB_DRIVE_WARNING ):			
+				message = "read from USB drive warning: USB drive not found"
 				kindOfException = WARNING	
 				
 			else:			
 				print( "read error: I/O" )
-				message = "read from card fatal error"
+				message = "read from USB drive fatal error"
 				kindOfException = FATAL	
 			
-			handle_gadget_exception( kindOfException, BUTTON_read_from_SDcard, LED_read_from_SDcard, message )
+			handle_gadget_exception( kindOfException, BUTTON_read_from_USBdrive, LED_read_from_USBdrive, message )
 
 	else: 
-		print( "spurious read from SDcard button interrupt" )
+		print( "spurious read from USBdrive button interrupt" )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -460,8 +460,8 @@ def initialize_RPi_Stuff():
 		LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
 	
 	# turn off all LEDs for initialization
-	turn_OFF_LED( LED_copy_to_SDcard )
-	turn_OFF_LED( LED_read_from_SDcard )
+	turn_OFF_LED( LED_copy_to_USBdrive )
+	turn_OFF_LED( LED_read_from_USBdrive )
 	turn_OFF_LED( LED_autonomous )
 	turn_OFF_LED( LED_shutdown_RPi )
 	turn_OFF_LED( LED_collect_data )
@@ -473,23 +473,23 @@ GPIO.setmode( GPIO.BCM )
 GPIO.setwarnings( False )
 
 #  falling edge detection setup for all gadgets ( buttons or switches ) 
-GPIO.setup( BUTTON_copy_to_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( BUTTON_copy_to_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( BUTTON_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( BUTTON_read_from_SDcard, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( BUTTON_read_from_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 
-GPIO.setup( LED_copy_to_SDcard, GPIO.OUT )
-GPIO.setup( LED_read_from_SDcard, GPIO.OUT )
+GPIO.setup( LED_copy_to_USBdrive, GPIO.OUT )
+GPIO.setup( LED_read_from_USBdrive, GPIO.OUT )
 GPIO.setup( LED_autonomous, GPIO.OUT )
 GPIO.setup( LED_shutdown_RPi, GPIO.OUT )
 GPIO.setup( LED_collect_data, GPIO.OUT )
 
 # setup callback routines for gadget falling edge detection  
 #	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
-GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=20 )  
+GPIO.add_event_detect( BUTTON_copy_to_USBdrive, GPIO.FALLING, callback=callback_button_copy_to_USBdrive, bouncetime=20 )  
 GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=20 )  
-GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=20 )  
+GPIO.add_event_detect( BUTTON_read_from_USBdrive, GPIO.FALLING, callback=callback_button_read_from_USBdrive, bouncetime=20 )  
 GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=150 ) 
 
