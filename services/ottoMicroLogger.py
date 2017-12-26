@@ -171,7 +171,10 @@ def callback_switch_collect_data( channel ):
 				gCameraIsRecording = False
 				time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
 				
-		except:
+		except Exception as e:
+			exc_type, exc_obj, exc_tb = sys.exc_info()
+			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+			print(exc_type, fname, exc_tb.tb_lineno)			
 			print( "* during camera turn ON" )
 			print(sys.exc_info()[0])
 			message = "* Data collection fatal error"
