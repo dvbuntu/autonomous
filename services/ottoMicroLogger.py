@@ -476,9 +476,9 @@ GPIO.setup( LED_collect_data, GPIO.OUT )
 
 # setup callback routines for gadget falling edge detection  
 #	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
-GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=5 )  
-GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=5 )  
-GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=5 )  
+GPIO.add_event_detect( BUTTON_copy_to_SDcard, GPIO.FALLING, callback=callback_button_copy_to_SDcard, bouncetime=20 )  
+GPIO.add_event_detect( BUTTON_run_autonomous, GPIO.FALLING, callback=callback_button_autonomous, bouncetime=20 )  
+GPIO.add_event_detect( BUTTON_read_from_SDcard, GPIO.FALLING, callback=callback_button_read_from_SDcard, bouncetime=20 )  
 GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=150 ) 
 
