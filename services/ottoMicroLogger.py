@@ -12,6 +12,9 @@ import serial
 import argparse
 import RPi.GPIO as GPIO  
 
+# for calling command line commands:
+import subprocess
+
 #	CONSTANTS are in ALL CAPS
 
 # -------- GPIO pin numbers for ottoMicro Car --------- 
@@ -158,11 +161,12 @@ def callback_switch_collect_data( channel ):
 					camera.start_recording( collector, format='rgb' )
 					gCameraIsRecording = True
 					if ( gWantsToSeeVideo ):
-						gCamera.start_preview() #displays video while it's being recorded
+						camera.start_preview() #displays video while it's being recorded
 					
 					while( GPIO.input( SWITCH_collect_data ) == ON ):
-					#	pass
+						pass
 						
+					camera.stop_recording()
 					time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
 					
 			except:
@@ -293,6 +297,8 @@ def callback_button_copy_to_SDcard( channel ):
 				button_state = GPIO.input( BUTTON_copy_to_SDcard )
 	
 			# do the copying ....
+			test_String = "testing command line command"
+			return_code = subprocess.call(["echo", test_String ])
 			x = y / x	# **** FORCE AN EXCEPTION FOR DEBUGGING ONLY ****
 	
 			turn_OFF_LED( LED_copy_to_SDcard )
