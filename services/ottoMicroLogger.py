@@ -179,7 +179,7 @@ def callback_switch_collect_data( channel ):
 			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 	else: 
 		print( "* another switch OFF interrupt" )
-		if( gCameraIsRecording ):"
+		if( gCameraIsRecording ):
 			print( "camera is still ON" )
 		
 		else:
