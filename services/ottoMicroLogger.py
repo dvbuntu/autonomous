@@ -266,6 +266,7 @@ def handle_gadget_exception( kindOfException, which_gadget, which_LED, message )
 		
 	else: 
 		g_Current_Exception_Not_Finished = True
+		print ( "" )
 		print ( message )
 		print("***", sys.exc_info()[0], "occured.")
 		
