@@ -298,10 +298,10 @@ def handle_gadget_exception( kindOfException, which_gadget, which_LED, message )
 			if ( GPIO.input( which_gadget ) != PUSHED): break
 	
 		if( kindOfException == FATAL ):
-			print( "*** fatal error handled" )
+			print( "*** FATAL exception handled" )
 	
 		else:	
-			print( "*** warning error handled" )
+			print( "*** WARNING exception handled" )
 		
 		g_Current_Exception_Not_Finished = False
 	
@@ -338,7 +338,7 @@ def callback_button_copy_to_USBdrive( channel ):
 			handle_gadget_exception( kindOfException, BUTTON_copy_to_USBdrive, LED_copy_to_USBdrive, message )
 
 	else: 
-		print( "detected spurious copy to USBdrive button interrupt" )
+		print( "detected RISING EDGE interrupt" )
 
 # ------------------------------------------------- 
 def callback_button_read_from_USBdrive( channel ): 
@@ -373,7 +373,7 @@ def callback_button_read_from_USBdrive( channel ):
 			handle_gadget_exception( kindOfException, BUTTON_read_from_USBdrive, LED_read_from_USBdrive, message )
 
 	else: 
-		print( "detected spurious read from USBdrive button interrupt" )
+		print( "detected RISING EDGE interrupt" )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -408,7 +408,7 @@ def callback_button_autonomous( channel ):
 			handle_gadget_exception( kindOfException, BUTTON_run_autonomous, LED_autonomous, message )
 
 	else: 
-		print( "detected spurious autonomous button interrupt" )
+		print( "detected RISING EDGE interrupt" )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
@@ -449,7 +449,7 @@ def callback_switch_shutdown_RPi( channel ):
 			handle_gadget_exception( kindOfException, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
 
 	else: 
-		print( "detected spurious switch interrupt" )
+		print( "detected RISING EDGE interrupt" )
 		
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
