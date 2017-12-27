@@ -253,7 +253,7 @@ def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )
 		
 
-g_Current_Exception_Not_Finished = True
+g_Current_Exception_Not_Finished = False
 
 # -------- Handler for clearing all gadget errors --------- 
 # 	A gadget is a button or a switch. An LED is not a gadget!
