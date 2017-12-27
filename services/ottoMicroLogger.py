@@ -252,46 +252,58 @@ def turn_ON_LED( which_LED ):
 def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )
 		
+
+g_Current_Exception_Not_Finished = True
+
 # -------- Handler for clearing all gadget errors --------- 
 # 	A gadget is a button or a switch. An LED is not a gadget!
 def handle_gadget_exception( kindOfException, which_gadget, which_LED, message ):
-	
-	print ( message )
-	print("***", sys.exc_info()[0], "occured.")
-		
-	if( kindOfException == FATAL ):
-		blinkSpeed = .1 
-		button_down_count = 6
-	
-	else:	
-		blinkSpeed = .2
-		button_down_count = 3
-		
-	LED_state = LED_ON
-	# blink the LED until the user holds down the button for 3 seconds
-	error_not_cleared = True	
-	while( error_not_cleared ):	
-		if( GPIO.input( which_gadget ) == PUSHED ):
-			button_down_count = button_down_count - 1
-			if( button_down_count <= 0 ):
-				error_not_cleared = False
-				
-		GPIO.output( which_LED, LED_state )	# blink the LED to show the error
-		time.sleep( blinkSpeed )	
-		LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 
-	turn_OFF_LED( which_LED )		# show the user the error has been cleared
+	global g_Current_Exception_Not_Finished
 	
-	# don't leave until we're sure user released button	
-	while True:
-		time.sleep( blinkSpeed )		# executes delay at least once
-		if ( GPIO.input( which_gadget ) != PUSHED): break
+	if( g_Current_Exception_Not_Finished ):
+		print( "*** another exception occurred" )
+		
+	else: 
+		g_Current_Exception_Not_Finished = True
+		print ( message )
+		print("***", sys.exc_info()[0], "occured.")
+		
+		if( kindOfException == FATAL ):
+			blinkSpeed = .1 
+			button_down_count = 6
 	
-	if( kindOfException == FATAL ):
-		print( "*** fatal error handled" )
+		else:	
+			blinkSpeed = .2
+			button_down_count = 3
+		
+		LED_state = LED_ON
+		# blink the LED until the user holds down the button for 3 seconds
+		error_not_cleared = True	
+		while( error_not_cleared ):	
+			if( GPIO.input( which_gadget ) == PUSHED ):
+				button_down_count = button_down_count - 1
+				if( button_down_count <= 0 ):
+					error_not_cleared = False
+				
+			GPIO.output( which_LED, LED_state )	# blink the LED to show the error
+			time.sleep( blinkSpeed )	
+			LED_state = LED_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+
+		turn_OFF_LED( which_LED )		# show the user the error has been cleared
 	
-	else:	
-		print( "*** warning error handled" )
+		# don't leave until we're sure user released button	
+		while True:
+			time.sleep( blinkSpeed )		# executes delay at least once
+			if ( GPIO.input( which_gadget ) != PUSHED): break
+	
+		if( kindOfException == FATAL ):
+			print( "*** fatal error handled" )
+	
+		else:	
+			print( "*** warning error handled" )
+		
+		g_Current_Exception_Not_Finished = False
 	
 
 # -------- Functions called by gadget callback functions --------- 
