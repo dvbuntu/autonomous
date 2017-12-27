@@ -173,7 +173,8 @@ def callback_switch_collect_data( channel ):
 					
 				camera.stop_recording()
 				gCameraIsRecording = False
-				time.sleep( .5 )	# wait a half of a second just in case the switch isn't stable
+				turn_OFF_LED( LED_collect_data )
+				time.sleep( .1 )	# wait a little just in case the switch isn't stable
 				
 		except Exception as e:
 			exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -184,7 +185,7 @@ def callback_switch_collect_data( channel ):
 
 			handle_gadget_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
 	else: 
-		print( "* another switch OFF interrupt" )
+		print( "* detected another switch OFF interrupt" )
 		if( gCameraIsRecording ):
 			print( "  camera is still ON" )
 		
@@ -308,9 +309,7 @@ def callback_button_copy_to_USBdrive( channel ):
 				button_state = GPIO.input( BUTTON_copy_to_USBdrive )
 	
 			# do the copying ....
-			test_String = "testing command line command"
-			return_code = subprocess.call(["echo", test_String ])
-#			x = y / x	# **** FORCE AN EXCEPTION FOR DEBUGGING ONLY ****
+			raise Exception( "exception for debugging purposes" )
 	
 			turn_OFF_LED( LED_copy_to_USBdrive )
 		except:
@@ -327,7 +326,7 @@ def callback_button_copy_to_USBdrive( channel ):
 			handle_gadget_exception( kindOfException, BUTTON_copy_to_USBdrive, LED_copy_to_USBdrive, message )
 
 	else: 
-		print( "spurious copy to USBdrive button interrupt" )
+		print( "detected spurious copy to USBdrive button interrupt" )
 
 # ------------------------------------------------- 
 def callback_button_read_from_USBdrive( channel ): 
@@ -344,7 +343,7 @@ def callback_button_read_from_USBdrive( channel ):
 				button_state = GPIO.input( BUTTON_read_from_USBdrive )
 	
 			# do the reading ....
-			raise NameError('Raise NameError exception')
+			raise Exception( "exception for debugging purposes" )
 	
 			turn_OFF_LED( LED_read_from_USBdrive )
 		except:
@@ -362,7 +361,7 @@ def callback_button_read_from_USBdrive( channel ):
 			handle_gadget_exception( kindOfException, BUTTON_read_from_USBdrive, LED_read_from_USBdrive, message )
 
 	else: 
-		print( "spurious read from USBdrive button interrupt" )
+		print( "detected spurious read from USBdrive button interrupt" )
 
 # ------------------------------------------------- 
 def callback_button_autonomous( channel ):  
@@ -380,7 +379,7 @@ def callback_button_autonomous( channel ):
 				button_state = GPIO.input( BUTTON_run_autonomous )
 	
 			# do the autonomous ....
-			raise NameError('Raise NameError exception')
+			raise Exception( "exception for debugging purposes" )
 	
 			turn_OFF_LED( LED_autonomous )
 		except:
@@ -397,7 +396,7 @@ def callback_button_autonomous( channel ):
 			handle_gadget_exception( kindOfException, BUTTON_run_autonomous, LED_autonomous, message )
 
 	else: 
-		print( "spurious autonomous button interrupt" )
+		print( "detected spurious autonomous button interrupt" )
 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
@@ -416,8 +415,7 @@ def callback_switch_shutdown_RPi( channel ):
 				# give another warning about not saving data
 				if( gWasWarnedAboutNotSavingData == False ):
 					gWasWarnedAboutNotSavingData = True
-					print( "unsaved data warning" )
-					x = y / x	#  code to force another exception to warn of unsaved data
+					raise Exception( "data not saved, first warning" )
 			
 				else:	# You were warned once about the unsaved data, too bad
 					print( "shutdown with data unsaved" )
@@ -439,9 +437,7 @@ def callback_switch_shutdown_RPi( channel ):
 			handle_gadget_exception( kindOfException, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
 
 	else: 
-		print( "spurious switch interrupt" )
-
-
+		print( "detected spurious switch interrupt" )
 		
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
