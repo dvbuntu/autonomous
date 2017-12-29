@@ -38,8 +38,7 @@ https://github.com/samjabrahams/tensorflow-on-raspberry-pi
 Another version of installing the Python version. It must be updated to python3 as well:
 https://syed-ahmed.gitbooks.io/nvidia-jetson-tx2-recipes/content/first-question.html
 
-
-
+Another version of installing tensor flow
 http://www.jetsonhacks.com/2017/04/02/tensorflow-on-nvidia-jetson-tx2-development-kit/
 
 
