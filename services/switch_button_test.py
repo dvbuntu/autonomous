@@ -65,7 +65,7 @@ RECORDED_DATA_NOT_SAVED = 5
 # --------Old Data Collection Command Line Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
 
-#	**** fubarino not hooked up for debugging purposes ****
+#	**** fubarino not connected yet for debugging purposes ****
 #Opens serial port to the arduino:
 #try:
 #	ser=serial.Serial('/dev/ttyACM0')
@@ -195,11 +195,17 @@ def turn_ON_LED( which_LED ):
 def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )	
 	
+# -------------- Global Variables -------------------------------
+# -------- note: global variables start with a little "g" --------- 
+
+g_Wants_To_See_Video = True
+g_Camera_Is_Recording = False
+g_Recorded_Data_Not_Saved = False
+g_No_Callback_Function_Running = True
 g_Current_Exception_Not_Finished = False
 
 # -------- Handler for clearing all switch errors --------- 
-def handle_switch_exception( kindOfException, which_switch, which_LED, message ):
-
+def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message ):
 	global g_Current_Exception_Not_Finished
 	
 	if( g_Current_Exception_Not_Finished ):
@@ -211,7 +217,7 @@ def handle_switch_exception( kindOfException, which_switch, which_LED, message )
 		print ( message )
 		print("***", sys.exc_info()[0], "occured.")
 		
-		if( kindOfException == FATAL ):
+		if( kind_Of_Exception == FATAL ):
 			blinkSpeed = .1 
 			switch_on_count = 6
 	
@@ -239,7 +245,7 @@ def handle_switch_exception( kindOfException, which_switch, which_LED, message )
 			time.sleep( blinkSpeed )		# executes delay at least once
 			if ( GPIO.input( which_switch ) != PUSHED): break
 	
-		if( kindOfException == FATAL ):
+		if( kind_Of_Exception == FATAL ):
 			print( "*** FATAL exception handled" )
 	
 		else:	
@@ -247,19 +253,16 @@ def handle_switch_exception( kindOfException, which_switch, which_LED, message )
 		
 		g_Current_Exception_Not_Finished = False
 	
-# -------- define global variables which start with a little "g" --------- 
-# -------------- Data Collector Global Variables -------------------------------
-gWantsToSeeVideo = True
-gCameraIsRecording = False
-gRecordedDataNotSaved = False
+
 
 # -------- Functions called by switch callback functions --------- 
 def callback_switch_save_to_USBdrive( channel ): 
-	# Contrary to the falling edge detection set up previously, sometimes an interrupt
-	#	will occur on the RISING edge. These must be disregarded
+	global g_No_Callback_Function_Running
 	
-	if( GPIO.input( SWITCH_save_to_USBdrive ) == PUSHED ): 
-		
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_save_to_USBdrive ) == ON )): 
+		g_No_Callback_Function_Running = False
+			
 		try:
 			turn_ON_LED( LED_save_to_USBdrive )
 			switch_state = ON
@@ -271,28 +274,30 @@ def callback_switch_save_to_USBdrive( channel ):
 	
 			turn_OFF_LED( LED_save_to_USBdrive )
 		except:
-			returnedError = NO_USB_DRIVE_WARNING	# **** set for debugging ****
+			returned_Error = NO_USB_DRIVE_WARNING	# **** set for debugging ****
 
-			if( returnedError == NO_USB_DRIVE_WARNING ):			
+			if( returned_Error == NO_USB_DRIVE_WARNING ):			
 				message = "copy to USB drive warning: USB drive not found"
-				kindOfException = WARNING	
+				kind_Of_Exception = WARNING	
 				
 			else:			
 				message = "copy to USB drive fatal error"
-				kindOfException = FATAL	
+				kind_Of_Exception = FATAL	
 			
-			handle_switch_exception( kindOfException, SWITCH_save_to_USBdrive, LED_save_to_USBdrive, message )
+			handle_switch_exception( kind_Of_Exception, SWITCH_save_to_USBdrive, LED_save_to_USBdrive, message )
 
+		g_No_Callback_Function_Running = True
 	else: 
-		print( "detected RISING EDGE interrupt on save to USB switch" )
+		print( "skipped: another callback from save_to_USBdrive" )
 	
 # ------------------------------------------------- 
 def callback_switch_read_from_USBdrive( channel ):
-	# Contrary to the falling edge detection set up previously, sometimes an interrupt
-	#	will occur on the RISING edge. These must be disregarded
+	global g_No_Callback_Function_Running
 	
-	if( GPIO.input( SWITCH_read_from_USBdrive ) == PUSHED ): 
-		
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_read_from_USBdrive ) == ON )): 
+		g_No_Callback_Function_Running = False
+				
 		try:
 			turn_ON_LED( LED_read_from_USBdrive )
 			switch_state = ON
@@ -304,28 +309,31 @@ def callback_switch_read_from_USBdrive( channel ):
 	
 			turn_OFF_LED( LED_read_from_USBdrive )
 		except:
-			returnedError = NO_USB_DRIVE_WARNING	# **** set for debugging ****
+			returned_Error = NO_USB_DRIVE_WARNING	# **** set for debugging ****
 			
-			if( returnedError == NO_USB_DRIVE_WARNING ):			
+			if( returned_Error == NO_USB_DRIVE_WARNING ):			
 				message = "read from USB drive warning: USB drive not found"
-				kindOfException = WARNING	
+				kind_Of_Exception = WARNING	
 				
 			else:			
 				print( "read error: I/O" )
 				message = "read from USB drive fatal error"
-				kindOfException = FATAL	
+				kind_Of_Exception = FATAL	
 			
-			handle_switch_exception( kindOfException, SWITCH_read_from_USBdrive, LED_read_from_USBdrive, message )
+			handle_switch_exception( kind_Of_Exception, SWITCH_read_from_USBdrive, LED_read_from_USBdrive, message )
 
+		g_No_Callback_Function_Running = True
 	else: 
-		print( "detected RISING EDGE interrupt on read from USB switch" )
+		print( "skipped: another callback from read_from_USBdrive" )
 	 
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
-	# Contrary to the falling edge detection set up previously, sometimes an interrupt
-	#	will occur on the RISING edge. These must be disregarded
-	if( GPIO.input( SWITCH_run_autonomous ) == PUSHED ): 
-		
+	global g_No_Callback_Function_Running
+
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_run_autonomous ) == ON )): 
+		g_No_Callback_Function_Running = False
+				
 		try:
 			turn_ON_LED( LED_autonomous )
 			switch_state = ON
@@ -337,38 +345,40 @@ def callback_switch_autonomous( channel ):
 	
 			turn_OFF_LED( LED_autonomous )
 		except:
-			returnedError = FATAL	# **** set for debugging ****
+			returned_Error = FATAL	# **** set for debugging ****
 
-			if( returnedError == AUTONOMOUS_WARNING ):			
+			if( returned_Error == AUTONOMOUS_WARNING ):			
 				message = "autonomous error warning"
-				kindOfException = WARNING	
+				kind_Of_Exception = WARNING	
 				
 			else:			
 				message = "autonomous error fatal error"
-				kindOfException = FATAL	
+				kind_Of_Exception = FATAL	
 			
-			handle_switch_exception( kindOfException, SWITCH_run_autonomous, LED_autonomous, message )
+			handle_switch_exception( kind_Of_Exception, SWITCH_run_autonomous, LED_autonomous, message )
 
+		g_No_Callback_Function_Running = True
 	else: 
-		print( "detected RISING EDGE interrupt on autonomous switch" )
+		print( "skipped: another callback from autonomous" )
 	 
 # ------------------------------------------------- 
 def callback_switch_shutdown_RPi( channel ):
+	global g_Recorded_Data_Not_Saved
+	global g_No_Callback_Function_Running
+	global g_Was_Warned_About_Unsaved_Data
 
-	global gRecordedDataNotSaved
-
-	# Contrary to the falling edge detection set up previously, sometimes an interrupt
-	#	will occur on the RISING edge. These must be disregarded
-	
-	if( GPIO.input( SWITCH_shutdown_RPi ) == ON ): 
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_shutdown_RPi ) == ON )): 
+		g_No_Callback_Function_Running = False
+		
 		try:
 			turn_ON_all_LEDs( )
 			# It takes two shutdown switch changes to shutdown when there is unsaved data
-			if( gRecordedDataNotSaved ):
+			if( g_Recorded_Data_Not_Saved ):
 		
 				# give another warning about not saving data
-				if( gWasWarnedAboutNotSavingData == False ):
-					gWasWarnedAboutNotSavingData = True
+				if( g_Was_Warned_About_Unsaved_Data == False ):
+					g_Was_Warned_About_Unsaved_Data = True
 					raise Exception( "data not saved, first warning" )
 			
 				else:	# You were warned once about the unsaved data, too bad
@@ -382,26 +392,29 @@ def callback_switch_shutdown_RPi( channel ):
 				turn_OFF_all_LEDs( )
 	
 		except:
-			returnedError = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
+			returned_Error = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
 		
-			if( returnedError == RECORDED_DATA_NOT_SAVED ):			
+			if( returned_Error == RECORDED_DATA_NOT_SAVED ):			
 				message = "shutdown error: recorded data not saved" 
-				kindOfException = WARNING	
+				kind_Of_Exception = WARNING	
 								
-			handle_switch_exception( kindOfException, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
+			handle_switch_exception( kind_Of_Exception, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
 
+		g_No_Callback_Function_Running = True
 	else: 
-		print( "detected RISING EDGE interrupt on shutdown switch" )
+		print( "skipped: another callback from shutdown_RPi" )
 	 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
-	global gRecordedDataNotSaved
-	global gWantsToSeeVideo
-	global gCameraIsRecording
+	global g_Recorded_Data_Not_Saved
+	global g_Wants_To_See_Video
+	global g_Camera_Is_Recording
+	global g_No_Callback_Function_Running
 
-	# Contrary to the falling edge detection set up previously, sometimes an interrupt
-	#	will occur on the RISING edge. These must be disregarded
-	if( GPIO.input( SWITCH_collect_data ) == ON ): 
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_collect_data ) == ON )): 
+		g_No_Callback_Function_Running = False
+		
 		try:
 			print( "* starting recording " )
 			turn_ON_LED( LED_collect_data )
@@ -414,15 +427,15 @@ def callback_switch_collect_data( channel ):
 				camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
 				camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 				camera.start_recording( collector, format='rgb' )
-				gCameraIsRecording = True
-				if ( gWantsToSeeVideo ):
+				g_Camera_Is_Recording = True
+				if ( g_Wants_To_See_Video ):
 					camera.start_preview() #displays video while it's being recorded
 				
 				while( GPIO.input( SWITCH_collect_data ) == ON ):
 					pass
 					
 				camera.stop_recording()
-				gCameraIsRecording = False
+				g_Camera_Is_Recording = False
 				turn_OFF_LED( LED_collect_data )
 				time.sleep( .1 )	# wait a little just in case the switch isn't stable
 				
@@ -431,12 +444,14 @@ def callback_switch_collect_data( channel ):
 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 			print(exc_type, fname, "   line number = ", exc_tb.tb_lineno)			
 			message = "* Data collection fatal error"
-			kindOfException = FATAL	
+			kind_Of_Exception = FATAL	
 
-			handle_switch_exception( kindOfException, SWITCH_collect_data, LED_collect_data, message )
+			handle_switch_exception( kind_Of_Exception, SWITCH_collect_data, LED_collect_data, message )
+
+		g_No_Callback_Function_Running = True
 	else: 
-		print( "* detected another switch OFF interrupt" )
-		if( gCameraIsRecording ):
+		print( "skipped: another callback from collect_data" )
+		if( g_Camera_Is_Recording ):
 			print( "  camera is still ON" )
 		
 		else:
