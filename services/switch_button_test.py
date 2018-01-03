@@ -10,6 +10,7 @@ import numpy as np
 import serial
 import argparse
 import RPi.GPIO as GPIO  
+from subprocess import call
 
 # for call USB stick functions
 # import ottoUSBdriveFunctions as USBfunct
@@ -38,7 +39,7 @@ SWITCH_save_to_USBdrive = 9
 SWITCH_read_from_USBdrive = 11
 SWITCH_run_autonomous = 5
 SWITCH_shutdown_RPi = 6
-# SWITCH_boot_RPi = relay coil
+# SWITCH_boot_RPi -> relay coil
 
 OUTPUT_to_relay = 13
 
@@ -220,7 +221,6 @@ def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message
 		if( kind_Of_Exception == FATAL ):
 			blinkSpeed = .1 
 			switch_on_count = 6
-	
 		else:	
 			blinkSpeed = .2
 			switch_on_count = 3
@@ -246,8 +246,7 @@ def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message
 			if ( GPIO.input( which_switch ) != PUSHED): break
 	
 		if( kind_Of_Exception == FATAL ):
-			print( "*** FATAL exception handled" )
-	
+			print( "*** FATAL exception handled" )	
 		else:	
 			print( "*** WARNING exception handled" )
 		
@@ -270,16 +269,15 @@ def callback_switch_save_to_USBdrive( channel ):
 				switch_state = GPIO.input( SWITCH_save_to_USBdrive )
 	
 			# do the copying ....
+			returned_Error = WARNING	# **** set for debugging ****
 			raise Exception( "exception for debugging purposes" )
 	
 			turn_OFF_LED( LED_save_to_USBdrive )
+			
 		except:
-			returned_Error = NO_USB_DRIVE_WARNING	# **** set for debugging ****
-
-			if( returned_Error == NO_USB_DRIVE_WARNING ):			
+			if( returned_Error == WARNING ):			
 				message = "copy to USB drive warning: USB drive not found"
-				kind_Of_Exception = WARNING	
-				
+				kind_Of_Exception = WARNING					
 			else:			
 				message = "copy to USB drive fatal error"
 				kind_Of_Exception = FATAL	
@@ -308,13 +306,11 @@ def callback_switch_read_from_USBdrive( channel ):
 			raise Exception( "exception for debugging purposes" )
 	
 			turn_OFF_LED( LED_read_from_USBdrive )
-		except:
-			returned_Error = NO_USB_DRIVE_WARNING	# **** set for debugging ****
 			
-			if( returned_Error == NO_USB_DRIVE_WARNING ):			
+		except:
+			if( returned_Error == WARNING ):			
 				message = "read from USB drive warning: USB drive not found"
-				kind_Of_Exception = WARNING	
-				
+				kind_Of_Exception = WARNING					
 			else:			
 				print( "read error: I/O" )
 				message = "read from USB drive fatal error"
@@ -341,16 +337,15 @@ def callback_switch_autonomous( channel ):
 				switch_state = GPIO.input( SWITCH_run_autonomous )
 	
 			# do the autonomous ....
+			returned_Error = FATAL	# **** set for debugging ****
 			raise Exception( "exception for debugging purposes" )
 	
 			turn_OFF_LED( LED_autonomous )
+			
 		except:
-			returned_Error = FATAL	# **** set for debugging ****
-
-			if( returned_Error == AUTONOMOUS_WARNING ):			
+			if( returned_Error == WARNING ):			
 				message = "autonomous error warning"
-				kind_Of_Exception = WARNING	
-				
+				kind_Of_Exception = WARNING					
 			else:			
 				message = "autonomous error fatal error"
 				kind_Of_Exception = FATAL	
@@ -360,49 +355,6 @@ def callback_switch_autonomous( channel ):
 		g_No_Callback_Function_Running = True
 	else: 
 		print( "skipped: another callback from autonomous" )
-	 
-# ------------------------------------------------- 
-def callback_switch_shutdown_RPi( channel ):
-	global g_Recorded_Data_Not_Saved
-	global g_No_Callback_Function_Running
-	global g_Was_Warned_About_Unsaved_Data
-
-	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_shutdown_RPi ) == ON )): 
-		g_No_Callback_Function_Running = False
-		
-		try:
-			turn_ON_all_LEDs( )
-			# It takes two shutdown switch changes to shutdown when there is unsaved data
-			if( g_Recorded_Data_Not_Saved ):
-		
-				# give another warning about not saving data
-				if( g_Was_Warned_About_Unsaved_Data == False ):
-					g_Was_Warned_About_Unsaved_Data = True
-					raise Exception( "data not saved, first warning" )
-			
-				else:	# You were warned once about the unsaved data, too bad
-					print( "shutdown with data unsaved" )
-					time.sleep( 2 )		# leave the LED on for 2 seconds to show we did something
-					turn_OFF_LED( LED_shutdown_RPi )	
-	
-			else:	
-				print( "graceful shutdown" )
-				time.sleep( 2 )		# leave the LED on for 2 seconds to show we did something
-				turn_OFF_all_LEDs( )
-	
-		except:
-			returned_Error = RECORDED_DATA_NOT_SAVED	# **** set for debugging ****
-		
-			if( returned_Error == RECORDED_DATA_NOT_SAVED ):			
-				message = "shutdown error: recorded data not saved" 
-				kind_Of_Exception = WARNING	
-								
-			handle_switch_exception( kind_Of_Exception, SWITCH_shutdown_RPi, LED_shutdown_RPi, message )
-
-		g_No_Callback_Function_Running = True
-	else: 
-		print( "skipped: another callback from shutdown_RPi" )
 	 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
@@ -451,11 +403,61 @@ def callback_switch_collect_data( channel ):
 		g_No_Callback_Function_Running = True
 	else: 
 		print( "skipped: another callback from collect_data" )
-		if( g_Camera_Is_Recording ):
-			print( "  camera is still ON" )
 		
+		if( g_Camera_Is_Recording ):
+			print( "  camera is still ON" )		
 		else:
 			print( "  camera is turned OFF" )
+	 
+# ------------------------------------------------- 
+#	regular exception handling not used with shutdown function
+def callback_switch_shutdown_RPi( channel ):
+	global g_Recorded_Data_Not_Saved
+	global g_No_Callback_Function_Running
+
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_shutdown_RPi ) == ON )): 
+		g_No_Callback_Function_Running = False
+		
+		blinkSpeed = .2
+		switch_on_count = 10
+		turn_ON_all_LEDs( )		
+		LEDs_state = ON
+		
+		g_Recorded_Data_Not_Saved = True	# debugging
+		print( "starting shutdown" )
+			
+		while( GPIO.input( SWITCH_shutdown_RPi ) == PUSHED ):	
+			if( switch_on_count > 0 ):
+				time.sleep( blinkSpeed )
+				
+				if( g_Recorded_Data_Not_Saved ):		# blink all LEDs as warning data not saved
+					LEDs_state = LEDs_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
+				
+				if( LEDs_state == ON ):
+					turn_ON_all_LEDs()
+				else:
+					turn_OFF_all_LEDs()
+				
+				switch_on_count = switch_on_count - 1
+			else:
+				break
+				
+		if( switch_on_count <= 0 ):
+			# shut down pi, data saved or not
+			turn_OFF_all_LEDs()		# show the user the error has been cleared
+			GPIO.output( OUTPUT_to_relay, OFF )
+			print( "calling pi shutdown" )
+			call( "sudo shutdown now", shell=True )
+		
+		#	user changed his mind, exit function without shut down
+		turn_OFF_all_LEDs()		# show the user the shutdown has been stopped
+		turn_ON_LED( LED_boot_RPi )	# turn this one back on to show power is still on
+		print( "user changed mind about shutdown" )
+		g_No_Callback_Function_Running = True
+		
+	else: 
+		print( "skipped: another callback from shutdown_RPi" )
 				 	
 # ------------------------------------------------- 
 def turn_OFF_all_LEDs():
@@ -478,12 +480,11 @@ def turn_ON_all_LEDs():
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
 	
-	# blink LEDs as an alarm if either switch has been left in the ON (up) position
+	# blink LEDs as an alarm if shutdown switch has been left up
 	LED_state = LED_ON
 
-	while(( GPIO.input( SWITCH_shutdown_RPi ) == ON ) or ( GPIO.input( SWITCH_collect_data ) == ON )):
+	while( GPIO.input( SWITCH_shutdown_RPi ) == ON ):
 		GPIO.output( LED_shutdown_RPi, LED_state )
-		GPIO.output( LED_collect_data, LED_state )
 		time.sleep( .25 )
 		LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
 	
@@ -521,9 +522,8 @@ GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_swit
 
 initialize_RPi_Stuff()
 
-turn_ON_LED( OUTPUT_to_relay )
 turn_ON_LED( LED_boot_RPi )
-
+GPIO.output( OUTPUT_to_relay, ON )
 
 while ( True ):	
 #	turn_ON_LED( LED_read_from_USBdrive )
