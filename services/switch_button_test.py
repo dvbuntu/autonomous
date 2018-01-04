@@ -272,8 +272,10 @@ def callback_switch_save_to_USBdrive( channel ):
 				switch_state = GPIO.input( SWITCH_save_to_USBdrive )
 	
 			# do the copying ....
-			returned_Error = WARNING	# **** set for debugging ****
-			raise Exception( "exception for debugging purposes" )
+			# returned_Error = WARNING	# **** set for debugging ****
+			# raise Exception( "exception for debugging purposes" )
+			print( "from save_to_USBdrive:" )
+			call( "ls /media", shell=True )
 	
 			turn_OFF_LED( LED_save_to_USBdrive )
 			
@@ -306,8 +308,10 @@ def callback_switch_read_from_USBdrive( channel ):
 				switch_state = GPIO.input( SWITCH_read_from_USBdrive )
 	
 			# do the reading ....
-			returned_Error = WARNING	# **** set for debugging ****
-			raise Exception( "exception for debugging purposes" )
+			# returned_Error = WARNING	# **** set for debugging ****
+			# raise Exception( "exception for debugging purposes" )
+			print( "from read_from_USBdrive:" )
+			call( "ls /media", shell=True )
 	
 			turn_OFF_LED( LED_read_from_USBdrive )
 			
@@ -505,7 +509,7 @@ def initialize_RPi_Stuff():
 GPIO.setmode( GPIO.BCM )  
 GPIO.setwarnings( False )
 
-#  falling edge detection setup for all switchs ( switchs or switches ) 
+#  falling edge detection setup for all switchs 
 GPIO.setup( SWITCH_save_to_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_read_from_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
