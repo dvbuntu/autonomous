@@ -37,23 +37,26 @@ LED_boot_RPi = 22
 SWITCH_collect_data = 10
 SWITCH_save_to_USBdrive = 9
 SWITCH_read_from_USBdrive = 11
-SWITCH_run_autonomous = 5
+SWITCH_autonomous = 5
 SWITCH_shutdown_RPi = 6
 # SWITCH_boot_RPi -> relay coil
 
 OUTPUT_to_relay = 13
 
-# -------- Button or switch (switchs) constants --------- 
-# switch push or switch position-up connects to ground, 
+# -------- Switch constants --------- 
+# switch position-UP connects to GROUND, 
 #  thus internal pull up  resistors are used  
-ON = GPIO.LOW		# LOW signal on GPIO pin means switch is ON (up position)		
-OFF = GPIO.HIGH		# HIGH signal on GPIO pin means switch is OFF (down position)
-PUSHED = GPIO.LOW	# LOW signal on GPIO pin means switch is PUSHED
-UP = GPIO.HIGH		# HIGH signal on GPIO pin means switch is UP
+#  and LOW and HIGH signals are contrary to usual ON and OFF
+SWITCH_UP = GPIO.LOW		# LOW signal on GPIO pin means switch is ON (up position)		
+SWITCH_DOWN = GPIO.HIGH		# HIGH signal on GPIO pin means switch is OFF (down position)
 
 # -------- LED state constants --------- 
 LED_ON = GPIO.HIGH
 LED_OFF = GPIO.LOW
+
+# -------- Relay state constants --------- 
+RELAY_ON = GPIO.HIGH
+RELAY_OFF = GPIO.LOW
 
 # -------- Kind of error constants --------- 
 NONE = 0
@@ -144,7 +147,7 @@ class DataCollector(object):
 # SWITCH_shutdown_RPi		momentary up	Gracefully shutdown RPi		
 #				down		normal RPi operation
 #
-# SWITCH_run_autonomous		up		Put car in autonomous mode
+# SWITCH_autonomous		up		Put car in autonomous mode
 #				down		normal RPi operation
 #
 # SWITCH_collect_data		up		Start collecting data
@@ -229,7 +232,7 @@ def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message
 		# blink the LED until the user holds down the button for 3 seconds
 		error_not_cleared = True	
 		while( error_not_cleared ):	
-			if( GPIO.input( which_switch ) == PUSHED ):
+			if( GPIO.input( which_switch ) == SWITCH_UP ):
 				switch_on_count = switch_on_count - 1
 				if( switch_on_count <= 0 ):
 					error_not_cleared = False
@@ -243,7 +246,7 @@ def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message
 		# don't leave until we're sure user released button	
 		while True:
 			time.sleep( blinkSpeed )		# executes delay at least once
-			if ( GPIO.input( which_switch ) != PUSHED): break
+			if ( GPIO.input( which_switch ) == SWITCH_DOWN ): break
 	
 		if( kind_Of_Exception == FATAL ):
 			print( "*** FATAL exception handled" )	
@@ -259,13 +262,13 @@ def callback_switch_save_to_USBdrive( channel ):
 	global g_No_Callback_Function_Running
 	
 	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_save_to_USBdrive ) == ON )): 
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP )): 
 		g_No_Callback_Function_Running = False
 			
 		try:
 			turn_ON_LED( LED_save_to_USBdrive )
-			switch_state = ON
-			while ( switch_state == ON ):
+			switch_state = SWITCH_UP
+			while ( switch_state == SWITCH_UP ):
 				switch_state = GPIO.input( SWITCH_save_to_USBdrive )
 	
 			# do the copying ....
@@ -293,16 +296,17 @@ def callback_switch_read_from_USBdrive( channel ):
 	global g_No_Callback_Function_Running
 	
 	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_read_from_USBdrive ) == ON )): 
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP )): 
 		g_No_Callback_Function_Running = False
 				
 		try:
 			turn_ON_LED( LED_read_from_USBdrive )
-			switch_state = ON
-			while ( switch_state == ON ):
+			switch_state = SWITCH_UP
+			while ( switch_state == SWITCH_UP ):
 				switch_state = GPIO.input( SWITCH_read_from_USBdrive )
 	
 			# do the reading ....
+			returned_Error = WARNING	# **** set for debugging ****
 			raise Exception( "exception for debugging purposes" )
 	
 			turn_OFF_LED( LED_read_from_USBdrive )
@@ -327,14 +331,14 @@ def callback_switch_autonomous( channel ):
 	global g_No_Callback_Function_Running
 
 	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_run_autonomous ) == ON )): 
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )): 
 		g_No_Callback_Function_Running = False
 				
 		try:
 			turn_ON_LED( LED_autonomous )
-			switch_state = ON
-			while ( switch_state == ON ):
-				switch_state = GPIO.input( SWITCH_run_autonomous )
+			switch_state = SWITCH_UP
+			while ( switch_state == SWITCH_UP ):
+				switch_state = GPIO.input( SWITCH_autonomous )
 	
 			# do the autonomous ....
 			returned_Error = FATAL	# **** set for debugging ****
@@ -350,7 +354,7 @@ def callback_switch_autonomous( channel ):
 				message = "autonomous error fatal error"
 				kind_Of_Exception = FATAL	
 			
-			handle_switch_exception( kind_Of_Exception, SWITCH_run_autonomous, LED_autonomous, message )
+			handle_switch_exception( kind_Of_Exception, SWITCH_autonomous, LED_autonomous, message )
 
 		g_No_Callback_Function_Running = True
 	else: 
@@ -364,7 +368,7 @@ def callback_switch_collect_data( channel ):
 	global g_No_Callback_Function_Running
 
 	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_collect_data ) == ON )): 
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_collect_data ) == SWITCH_UP )): 
 		g_No_Callback_Function_Running = False
 		
 		try:
@@ -383,7 +387,7 @@ def callback_switch_collect_data( channel ):
 				if ( g_Wants_To_See_Video ):
 					camera.start_preview() #displays video while it's being recorded
 				
-				while( GPIO.input( SWITCH_collect_data ) == ON ):
+				while( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
 					pass
 					
 				camera.stop_recording()
@@ -416,25 +420,25 @@ def callback_switch_shutdown_RPi( channel ):
 	global g_No_Callback_Function_Running
 
 	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_shutdown_RPi ) == ON )): 
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )): 
 		g_No_Callback_Function_Running = False
 		
 		blinkSpeed = .2
-		switch_on_count = 10
+		switch_on_count = 15
 		turn_ON_all_LEDs( )		
-		LEDs_state = ON
+		LEDs_state = LED_ON
 		
 		g_Recorded_Data_Not_Saved = True	# debugging
 		print( "starting shutdown" )
 			
-		while( GPIO.input( SWITCH_shutdown_RPi ) == PUSHED ):	
+		while( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP ):	
 			if( switch_on_count > 0 ):
 				time.sleep( blinkSpeed )
 				
 				if( g_Recorded_Data_Not_Saved ):		# blink all LEDs as warning data not saved
 					LEDs_state = LEDs_state ^ 1		# xor bit 0 to toggle it from 0 to 1 to 0 ...
 				
-				if( LEDs_state == ON ):
+				if( LEDs_state == LED_ON ):
 					turn_ON_all_LEDs()
 				else:
 					turn_OFF_all_LEDs()
@@ -446,7 +450,7 @@ def callback_switch_shutdown_RPi( channel ):
 		if( switch_on_count <= 0 ):
 			# shut down pi, data saved or not
 			turn_OFF_all_LEDs()		# show the user the error has been cleared
-			GPIO.output( OUTPUT_to_relay, OFF )
+			GPIO.output( OUTPUT_to_relay, RELAY_OFF )
 			print( "calling pi shutdown" )
 			call( "sudo shutdown now", shell=True )
 		
@@ -480,11 +484,16 @@ def turn_ON_all_LEDs():
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
 	
-	# blink LEDs as an alarm if shutdown switch has been left up
+	# blink LEDs as an alarm if autonmous or collect switches have been left up
 	LED_state = LED_ON
 
-	while( GPIO.input( SWITCH_shutdown_RPi ) == ON ):
-		GPIO.output( LED_shutdown_RPi, LED_state )
+	while( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
+		GPIO.output( LED_collect_data, LED_state )
+		time.sleep( .25 )
+		LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
+		
+	while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 
+		GPIO.output( LED_autonomous, LED_state )
 		time.sleep( .25 )
 		LED_state = LED_state ^ 1		# XOR bit to turn LEDs off or on
 	
@@ -498,7 +507,7 @@ GPIO.setwarnings( False )
 
 #  falling edge detection setup for all switchs ( switchs or switches ) 
 GPIO.setup( SWITCH_save_to_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( SWITCH_run_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( SWITCH_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_read_from_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
@@ -515,29 +524,17 @@ GPIO.setup( OUTPUT_to_relay, GPIO.OUT )
 # setup callback routines for switch falling edge detection  
 #	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
 GPIO.add_event_detect( SWITCH_save_to_USBdrive, GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50 )  
-GPIO.add_event_detect( SWITCH_run_autonomous, GPIO.FALLING, callback=callback_switch_autonomous, bouncetime=50 )  
+GPIO.add_event_detect( SWITCH_autonomous, GPIO.FALLING, callback=callback_switch_autonomous, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_read_from_USBdrive, GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=50 ) 
 
 initialize_RPi_Stuff()
-
+	
 turn_ON_LED( LED_boot_RPi )
-GPIO.output( OUTPUT_to_relay, ON )
+GPIO.output( OUTPUT_to_relay, RELAY_ON )
 
 while ( True ):	
-#	turn_ON_LED( LED_read_from_USBdrive )
-#	turn_OFF_LED( LED_save_to_USBdrive )
-#	turn_ON_LED( LED_collect_data )
-#	turn_OFF_LED( LED_autonomous )
-#	time.sleep( .25 )
-
-#	turn_OFF_LED( LED_read_from_USBdrive )
-#	turn_ON_LED( LED_save_to_USBdrive )
-#	turn_OFF_LED( LED_collect_data )
-#	turn_ON_LED( LED_autonomous )
-#	time.sleep( .25 )
-
-	pass	
+	pass
 	
 	
