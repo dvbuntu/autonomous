@@ -276,6 +276,7 @@ def callback_switch_save_to_USBdrive( channel ):
 			# raise Exception( "exception for debugging purposes" )
 			print( "from save_to_USBdrive:" )
 			call( "ls /media", shell=True )
+			returned_Error = NONE		# **** for debugging ****
 	
 			turn_OFF_LED( LED_save_to_USBdrive )
 			
@@ -312,6 +313,7 @@ def callback_switch_read_from_USBdrive( channel ):
 			# raise Exception( "exception for debugging purposes" )
 			print( "from read_from_USBdrive:" )
 			call( "ls /media", shell=True )
+			returned_Error = NONE		# **** for debugging ****
 	
 			turn_OFF_LED( LED_read_from_USBdrive )
 			
