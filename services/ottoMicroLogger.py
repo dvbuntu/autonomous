@@ -9,8 +9,13 @@ import picamera.array
 import numpy as np
 import serial
 import argparse
-import RPi.GPIO as GPIO  
+import RPi.GPIO as GPIO
+import subprocess  
 from subprocess import call
+
+import logging
+logging.basicConfig(filename='ottoMicroLogger.log',level=logging.DEBUG)
+logging.debug( '\n new session \n' )
 
 # for call USB stick functions
 # import ottoUSBdriveFunctions as USBfunct
@@ -39,16 +44,16 @@ SWITCH_save_to_USBdrive = 9
 SWITCH_read_from_USBdrive = 11
 SWITCH_autonomous = 5
 SWITCH_shutdown_RPi = 6
-# SWITCH_boot_RPi -> relay coil
+# SWITCH_boot_RPi -> daughter board relay coil
 
 OUTPUT_to_relay = 13
 
 # -------- Switch constants --------- 
-# switch position-UP connects to GROUND, 
+# switch position-UP connects GPIO pin to GROUND, 
 #  thus internal pull up  resistors are used  
-#  and LOW and HIGH signals are contrary to usual ON and OFF
-SWITCH_UP = GPIO.LOW		# LOW signal on GPIO pin means switch is ON (up position)		
-SWITCH_DOWN = GPIO.HIGH		# HIGH signal on GPIO pin means switch is OFF (down position)
+#  and LOW and HIGH signals are opposite to usual ON and OFF conventions
+SWITCH_UP = GPIO.LOW		# LOW signal on GPIO pin means switch is in up position		
+SWITCH_DOWN = GPIO.HIGH		# HIGH signal on GPIO pin means switch is in down position
 
 # -------- LED state constants --------- 
 LED_ON = GPIO.HIGH
@@ -74,7 +79,7 @@ time_format='%Y-%m-%d_%H-%M-%S'
 #try:
 #	ser=serial.Serial('/dev/ttyACM0')
 #except serial.SerialException:
-#	print('Cannot connect to serial port')
+#	logging.debug( 'gCannot connect to serial port' )
  
 # -------------- Data Collector Object -------------------------------  
 
@@ -101,12 +106,12 @@ class DataCollector(object):
 			ser.flushInput()
 			datainput=ser.readline()
 			data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
-			print(data)
-			print("got cereal\n")
+			logging.debug( data )
+			logging.debug( 'got cereal\n' )
 
 		except:
-			print(err)
-			print( "exception in data collection write" )
+			logging.debug( err )
+			logging.debug( 'exception in data collection write' )
 			return 
 			
 		#Note: the data from the IMU requires some processing which does not happen here:
@@ -213,13 +218,12 @@ def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message
 	global g_Current_Exception_Not_Finished
 	
 	if( g_Current_Exception_Not_Finished ):
-		print( "*** another exception occurred" )
+		logging.debug( '*** another exception occurred' )
 		
 	else: 
 		g_Current_Exception_Not_Finished = True
-		print ( "" )
-		print ( message )
-		print("***", sys.exc_info()[0], "occured.")
+		logging.debug( message )
+		logging.debug( sys.exc_info()[0] )
 		
 		if( kind_Of_Exception == FATAL ):
 			blinkSpeed = .1 
@@ -249,9 +253,9 @@ def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message
 			if ( GPIO.input( which_switch ) == SWITCH_DOWN ): break
 	
 		if( kind_Of_Exception == FATAL ):
-			print( "*** FATAL exception handled" )	
+			logging.debug( "*** FATAL exception handled" )
 		else:	
-			print( "*** WARNING exception handled" )
+			logging.debug( "*** WARNING exception handled" )
 		
 		g_Current_Exception_Not_Finished = False
 	
@@ -272,13 +276,19 @@ def callback_switch_save_to_USBdrive( channel ):
 				switch_state = GPIO.input( SWITCH_save_to_USBdrive )
 	
 			# do the copying ....
-			# returned_Error = WARNING	# **** set for debugging ****
-			# raise Exception( "exception for debugging purposes" )
-			print( "from save_to_USBdrive:" )
-			call( "ls /media", shell=True )
-			call( "cp -a ~/autonomous/data/ /media/usb1/", shell=True )
-			returned_Error = NONE		# **** for debugging ****
-	
+			logging.debug( 'attempting to save Data folder to USB drive' )
+
+			p = subprocess.Popen( ['ls', '/dev/sda1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			out, err = p.communicate()
+			
+			#	decode() deals with python byte literal craziness
+			if( out.decode() == "/dev/sda1\n" ):
+				call( "cp -a ~/autonomous/data/ /media/usb1/", shell=True )
+				logging.debug( 'Data folder saved to USB drive' )
+			else:
+				returned_Error = WARNING
+				raise NameError(' *** ')
+				
 			turn_OFF_LED( LED_save_to_USBdrive )
 			
 		except:
@@ -293,7 +303,7 @@ def callback_switch_save_to_USBdrive( channel ):
 
 		g_No_Callback_Function_Running = True
 	else: 
-		print( "skipped: another callback from save_to_USBdrive" )
+		logging.debug( 'skipped: another callback from save_to_USBdrive' )
 	
 # ------------------------------------------------- 
 def callback_switch_read_from_USBdrive( channel ):
@@ -312,7 +322,7 @@ def callback_switch_read_from_USBdrive( channel ):
 			# do the reading ....
 			# returned_Error = WARNING	# **** set for debugging ****
 			# raise Exception( "exception for debugging purposes" )
-			print( "from read_from_USBdrive:" )
+			logging.debug( 'from read_from_USBdrive:' )
 			call( "ls /media", shell=True )
 			returned_Error = NONE		# **** for debugging ****
 	
@@ -323,7 +333,7 @@ def callback_switch_read_from_USBdrive( channel ):
 				message = "read from USB drive warning: USB drive not found"
 				kind_Of_Exception = WARNING					
 			else:			
-				print( "read error: I/O" )
+				logging.debug( 'read error: I/O' )
 				message = "read from USB drive fatal error"
 				kind_Of_Exception = FATAL	
 			
@@ -331,7 +341,7 @@ def callback_switch_read_from_USBdrive( channel ):
 
 		g_No_Callback_Function_Running = True
 	else: 
-		print( "skipped: another callback from read_from_USBdrive" )
+		logging.debug( 'skipped: another callback from read_from_USBdrive' )
 	 
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
@@ -365,7 +375,7 @@ def callback_switch_autonomous( channel ):
 
 		g_No_Callback_Function_Running = True
 	else: 
-		print( "skipped: another callback from autonomous" )
+		logging.debug( 'skipped: another callback from autonomous' )
 	 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
@@ -379,7 +389,7 @@ def callback_switch_collect_data( channel ):
 		g_No_Callback_Function_Running = False
 		
 		try:
-			print( "* starting recording " )
+			logging.debug( '* starting recording' )
 			turn_ON_LED( LED_collect_data )
 			
 			collector=DataCollector()
@@ -405,7 +415,7 @@ def callback_switch_collect_data( channel ):
 		except Exception as e:
 			exc_type, exc_obj, exc_tb = sys.exc_info()
 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-			print(exc_type, fname, "   line number = ", exc_tb.tb_lineno)			
+			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
 			message = "* Data collection fatal error"
 			kind_Of_Exception = FATAL	
 
@@ -413,12 +423,12 @@ def callback_switch_collect_data( channel ):
 
 		g_No_Callback_Function_Running = True
 	else: 
-		print( "skipped: another callback from collect_data" )
+		logging.debug( 'skipped: another callback from collect_data' )
 		
 		if( g_Camera_Is_Recording ):
-			print( "  camera is still ON" )		
+			logging.debug( 'camera is still ON' )
 		else:
-			print( "  camera is turned OFF" )
+			logging.debug( 'camera is turned OFF' )
 	 
 # ------------------------------------------------- 
 #	regular exception handling not used with shutdown function
@@ -436,7 +446,7 @@ def callback_switch_shutdown_RPi( channel ):
 		LEDs_state = LED_ON
 		
 		g_Recorded_Data_Not_Saved = True	# debugging
-		print( "starting shutdown" )
+		logging.debug( 'starting shutdown' )
 			
 		while( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP ):	
 			if( switch_on_count > 0 ):
@@ -458,17 +468,17 @@ def callback_switch_shutdown_RPi( channel ):
 			# shut down pi, data saved or not
 			turn_OFF_all_LEDs()		# show the user the error has been cleared
 			GPIO.output( OUTPUT_to_relay, RELAY_OFF )
-			print( "calling pi shutdown" )
+			logging.debug( 'calling pi shutdown' )
 			call( "sudo shutdown now", shell=True )
 		
 		#	user changed his mind, exit function without shut down
 		turn_OFF_all_LEDs()		# show the user the shutdown has been stopped
 		turn_ON_LED( LED_boot_RPi )	# turn this one back on to show power is still on
-		print( "user changed mind about shutdown" )
+		logging.debug( 'user changed mind about shutdown' )
 		g_No_Callback_Function_Running = True
 		
 	else: 
-		print( "skipped: another callback from shutdown_RPi" )
+		logging.debug( 'skipped: another callback from shutdown_RPi' )
 				 	
 # ------------------------------------------------- 
 def turn_OFF_all_LEDs():
