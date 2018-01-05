@@ -7,6 +7,8 @@
 # 3- while in directory /usr/local/bin/, create a symlink thusly: 
 #	sudo ln -s ~/autonomous/services/automount_USB/cpmount
 
+# -r below was changed to -w when drive was discovered unwritable
+
 if mountpoint -q /media/usb1
 then
    if mountpoint -q /media/usb2
@@ -18,14 +20,14 @@ then
              echo "No mountpoints available!"
              #You can add more if you need
          else
-             /usr/bin/pmount --umask 00 -noatime -r --sync $1 usb4
+             /usr/bin/pmount --umask 00 -noatime -w --sync $1 usb4
          fi
       else
-         /usr/bin/pmount --umask 000 --noatime -r --sync $1 usb3
+         /usr/bin/pmount --umask 000 --noatime -w --sync $1 usb3
       fi
    else
-      /usr/bin/pmount --umask 000 --noatime -r --sync $1 usb2
+      /usr/bin/pmount --umask 000 --noatime -w --sync $1 usb2
    fi
 else
-   /usr/bin/pmount --umask 000 --noatime -r --sync $1 usb1
+   /usr/bin/pmount --umask 000 --noatime -w --sync $1 usb1
 fi
