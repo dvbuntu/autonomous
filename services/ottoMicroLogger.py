@@ -310,11 +310,29 @@ def callback_switch_save_to_USBdrive( channel ):
 			logging.debug( 'after mount' )
 
 
-			call( "cp -a /test.txt /mnt/usbdrive/ 2> /home/pi/log.txt", shell=True )
+#			call( "cp -a /test.txt /mnt/usbdrive/ 2> /home/pi/log.txt", shell=True )
+#			logging.debug( 'after cp' )
+
+
+#			p = subprocess.Popen( ['cp -a', '/test.txt /mnt/usbdrive/ 2> log.txt'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			p = subprocess.Popen( ['cp -a', '/test.txt /mnt/usbdrive/'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			out, err = p.communicate()
+			logging.debug( err )
+			logging.debug( p.returncode )
 			logging.debug( 'after cp' )
+
 			
-			call ( "/usr/bin/umount /dev/sda1 2> /home/pi/log.txt", shell=True )
+#			call ( "umount /dev/sda1 2> /home/pi/log.txt", shell=True )
+#			logging.debug( 'after umount' )
+
+
+#			p = subprocess.Popen( ['umount', '/mnt/usbdrive 2> log.txt'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			p = subprocess.Popen( ['umount', '/mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			out, err = p.communicate()
+			logging.debug( err )
+			logging.debug( p.returncode )
 			logging.debug( 'after umount' )
+
 			
 			logging.debug( 'Data folder saved to USB drive' )
 				
