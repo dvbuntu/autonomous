@@ -278,16 +278,39 @@ def callback_switch_save_to_USBdrive( channel ):
 			# do the copying ....
 			logging.debug( 'attempting to save Data folder to USB drive' )
 
-			p = subprocess.Popen( ['ls', '/dev/sda1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+
+			returned_Error = WARNING
+			
+			# 	try to unmount the USB drive if it is mounted
+			#		if it isn't mounted, pipe the error message to /log.txt 
+			
+
+			p = subprocess.Popen( ['sudo mkdir', '/mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
 			out, err = p.communicate()
+			logging.debug( err )
+			logging.debug( p.returncode )
 			
 			#	decode() deals with python byte literal craziness
-			if( out.decode() == "/dev/sda1\n" ):
-				call( "cp -a ~/autonomous/data/ /media/usb1/", shell=True )
-				logging.debug( 'Data folder saved to USB drive' )
-			else:
-				returned_Error = WARNING
-				raise NameError(' *** ')
+#			if( out.decode() == "/dev/sda1\n" ):
+#				call( "cp -a ~/autonomous/data/ /media/usb1/", shell=True )
+#				logging.debug( 'Data folder saved to USB drive' )
+#			else:
+#				returned_Error = WARNING
+
+#			call ( "/usr/bin/mkdir /mnt/usbdrive 2> /log.txt", shell=True )
+#			call ( "/usr/bin/mount /dev/sda1 /mnt/usbdrive 2> /log.txt", shell=True )
+
+
+			p = subprocess.Popen( ['sudo mount', '/dev/sda1 /mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			out, err = p.communicate()
+			logging.debug( err )
+			logging.debug( p.returncode )
+
+
+			call( "cp -a /test.txt /mnt/usbdrive/ 2> log.txt", shell=True )
+			call ( "/usr/bin/umount /dev/sda1 2> log.txt", shell=True )
+#			
+			logging.debug( 'Data folder saved to USB drive' )
 				
 			turn_OFF_LED( LED_save_to_USBdrive )
 			
