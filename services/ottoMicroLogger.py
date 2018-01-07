@@ -285,10 +285,12 @@ def callback_switch_save_to_USBdrive( channel ):
 			#		if it isn't mounted, pipe the error message to /log.txt 
 			
 
-			p = subprocess.Popen( ['sudo mkdir', '/mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			p = subprocess.Popen( ['mkdir', '/mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
 			out, err = p.communicate()
+			
 			logging.debug( err )
 			logging.debug( p.returncode )
+			logging.debug( 'after mkdir' )
 			
 			#	decode() deals with python byte literal craziness
 #			if( out.decode() == "/dev/sda1\n" ):
@@ -301,20 +303,25 @@ def callback_switch_save_to_USBdrive( channel ):
 #			call ( "/usr/bin/mount /dev/sda1 /mnt/usbdrive 2> /log.txt", shell=True )
 
 
-			p = subprocess.Popen( ['sudo mount', '/dev/sda1 /mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+			p = subprocess.Popen( ['mount', '/dev/sda1 /mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
 			out, err = p.communicate()
 			logging.debug( err )
 			logging.debug( p.returncode )
+			logging.debug( 'after mount' )
 
 
-			call( "cp -a /test.txt /mnt/usbdrive/ 2> log.txt", shell=True )
-			call ( "/usr/bin/umount /dev/sda1 2> log.txt", shell=True )
-#			
+			call( "cp -a /test.txt /mnt/usbdrive/ 2> /home/pi/log.txt", shell=True )
+			logging.debug( 'after cp' )
+			
+			call ( "/usr/bin/umount /dev/sda1 2> /home/pi/log.txt", shell=True )
+			logging.debug( 'after umount' )
+			
 			logging.debug( 'Data folder saved to USB drive' )
 				
 			turn_OFF_LED( LED_save_to_USBdrive )
 			
 		except:
+			
 			if( returned_Error == WARNING ):			
 				message = "copy to USB drive warning: USB drive not found"
 				kind_Of_Exception = WARNING					
