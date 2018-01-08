@@ -12,9 +12,10 @@ import argparse
 import RPi.GPIO as GPIO
 import subprocess  
 from subprocess import call
+import shutil
 
 import logging
-logging.basicConfig(filename='ottoMicroLogger.log',level=logging.DEBUG)
+logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
 logging.debug( '\n new session \n' )
 
 # for call USB stick functions
@@ -223,7 +224,6 @@ def handle_switch_exception( kind_Of_Exception, which_switch, which_LED, message
 	else: 
 		g_Current_Exception_Not_Finished = True
 		logging.debug( message )
-		logging.debug( sys.exc_info()[0] )
 		
 		if( kind_Of_Exception == FATAL ):
 			blinkSpeed = .1 
@@ -277,47 +277,48 @@ def callback_switch_save_to_USBdrive( channel ):
 	
 			# do the copying ....
 			logging.debug( 'attempting to save Data folder to USB drive' )
-
-
-			returned_Error = WARNING
+			drive_not_mounted_msg = 'USB drive not mounted'
 			
-			# 	try to unmount the USB drive if it is mounted
-			#		if it isn't mounted, pipe the error message to /log.txt 
-			
-
+			# 	check to see if the USB drive is mounted
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'mount test ok' )
+			else:
+				raise ValueError( drive_not_mounted_msg )
+			
+			#	'&  redirects both stdout and stderr to /tmp/log.txt
+#			call( "cp -a /tmp/test.txt /mnt/usbdrive/ &>/tmp/log.txt", shell=True )
 
-
-			call( "cp -a /tmp/test.txt /mnt/usbdrive/ 2>/tmp/log.txt", shell=True )
-			logging.debug( 'after cp' )
-
-
-
-
+			shutil.copy2( '/tmp/test.txt', '/mnt/usbdrive' )			
+			logging.debug( 'no error from copy' )
 			
 			call ( "umount /mnt/usbdrive 2> /tmp/log.txt", shell=True )
-			logging.debug( 'after umount' )
-
-
-
-
-			
-			logging.debug( 'Data folder saved to USB drive' )
+			logging.debug( 'no error from umount\n' )
 				
 			turn_OFF_LED( LED_save_to_USBdrive )
 			
-		except:
-			
-			if( returned_Error == WARNING ):			
-				message = "copy to USB drive warning: USB drive not found"
+		except ValueError as err:			
+			if( str( err ) == drive_not_mounted_msg ):			
+				message = drive_not_mounted_msg
 				kind_Of_Exception = WARNING					
 			else:			
-				message = "copy to USB drive fatal error"
+				message = "unknown ValueError"
 				kind_Of_Exception = FATAL	
-			
+							
+			handle_switch_exception( kind_Of_Exception, SWITCH_save_to_USBdrive, LED_save_to_USBdrive, message )
+		
+		except IOError as err:	
+			if( err.errno == 2 ):		# no such file or directory error	
+				message = str( err )
+				kind_Of_Exception = WARNING					
+			else:			
+				message = "unknown ValueError"
+				kind_Of_Exception = FATAL	
+
 			handle_switch_exception( kind_Of_Exception, SWITCH_save_to_USBdrive, LED_save_to_USBdrive, message )
 
+		except:
+			handle_switch_exception( FATAL, SWITCH_save_to_USBdrive, LED_save_to_USBdrive, 'unknown fatal error' )
+			
 		g_No_Callback_Function_Running = True
 	else: 
 		logging.debug( 'skipped: another callback from save_to_USBdrive' )
