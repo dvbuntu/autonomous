@@ -285,53 +285,22 @@ def callback_switch_save_to_USBdrive( channel ):
 			#		if it isn't mounted, pipe the error message to /log.txt 
 			
 
-			p = subprocess.Popen( ['mkdir', '/mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			out, err = p.communicate()
-			
-			logging.debug( err )
-			logging.debug( p.returncode )
-			logging.debug( 'after mkdir' )
-			
-			#	decode() deals with python byte literal craziness
-#			if( out.decode() == "/dev/sda1\n" ):
-#				call( "cp -a ~/autonomous/data/ /media/usb1/", shell=True )
-#				logging.debug( 'Data folder saved to USB drive' )
-#			else:
-#				returned_Error = WARNING
-
-#			call ( "/usr/bin/mkdir /mnt/usbdrive 2> /log.txt", shell=True )
-#			call ( "/usr/bin/mount /dev/sda1 /mnt/usbdrive 2> /log.txt", shell=True )
+			if( os.path.ismount( '/mnt/usbdrive' )):
+				logging.debug( 'mount test ok' )
 
 
-			p = subprocess.Popen( ['mount', '/dev/sda1 /mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			out, err = p.communicate()
-			logging.debug( err )
-			logging.debug( p.returncode )
-			logging.debug( 'after mount' )
-
-
-#			call( "cp -a /test.txt /mnt/usbdrive/ 2> /home/pi/log.txt", shell=True )
-#			logging.debug( 'after cp' )
-
-
-#			p = subprocess.Popen( ['cp -a', '/test.txt /mnt/usbdrive/ 2> log.txt'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			p = subprocess.Popen( ['cp -a', '/test.txt /mnt/usbdrive/'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			out, err = p.communicate()
-			logging.debug( err )
-			logging.debug( p.returncode )
+			call( "cp -a /tmp/test.txt /mnt/usbdrive/ 2>/tmp/log.txt", shell=True )
 			logging.debug( 'after cp' )
 
+
+
+
 			
-#			call ( "umount /dev/sda1 2> /home/pi/log.txt", shell=True )
-#			logging.debug( 'after umount' )
-
-
-#			p = subprocess.Popen( ['umount', '/mnt/usbdrive 2> log.txt'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			p = subprocess.Popen( ['umount', '/mnt/usbdrive'], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			out, err = p.communicate()
-			logging.debug( err )
-			logging.debug( p.returncode )
+			call ( "umount /mnt/usbdrive 2> /tmp/log.txt", shell=True )
 			logging.debug( 'after umount' )
+
+
+
 
 			
 			logging.debug( 'Data folder saved to USB drive' )
