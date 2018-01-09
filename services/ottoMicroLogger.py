@@ -232,7 +232,7 @@ def handle_switch_exception( error_number, which_switch, message ):
 		LED_state = LED_ON
 		error_not_cleared = True
 		if( error_number > 31 ):
-			erro_number = 31	# bigger than this, we've run out of LEDs
+			error_number = 31	# bigger than this, we've run out of LEDs
 			
 		while( error_not_cleared ):	
 			if( GPIO.input( which_switch ) == SWITCH_UP ):
