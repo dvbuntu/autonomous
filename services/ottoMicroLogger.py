@@ -147,11 +147,14 @@ class DataCollector(object):
 #
 # Switch / Button		STATE		MEANING
 # --------------------------------------------------------------
-# SWITCH_boot_RPi		momentary up	Boot up RPi		
+# SWITCH_boot_RPi		up		Energize power relay to Pi -> Boot Pi		
 #				down		normal RPi operation
 #
-# SWITCH_shutdown_RPi		momentary up	Gracefully shutdown RPi		
-#				down		normal RPi operation
+# SWITCH_shutdown_RPi		momentary up	Tried to shutdown Pi, if Data folder unsaved, blink all LEDs as warning
+#						otherwise go through normal shutdown
+#	after warning LEDs blinking:					
+#				up, but not held	go back to normal RPi operation
+#				up, and held	go through shutdown without saving Data folder
 #
 # SWITCH_autonomous		up		Put car in autonomous mode
 #				down		normal RPi operation
@@ -167,36 +170,13 @@ class DataCollector(object):
 #
 
 # -------- LED status cheatsheet --------- 
-#
-# 	SLOW blink -> WARNING ERROR
-#	FAST blink -> FATAL ERROR
-#
-# LED				STATE		MEANING
-# --------------------------------------------------------------
-# LED_boot_RPi			OFF		No power to RPi		
-#				ON		Turned on when RPi has finished booting
-#				BLINKING	Not defined yet
-#
-# LED_shutdown_RPi		OFF		Not in use		
-#				ON		System A-OK
-#				BLINKING	Tried to shut down without copying collected data to USB drive
-#
-# LED_autonomous		OFF		Not in use		
-#				ON		Car running autonomously
-#				BLINKING	Autonomous error
-#
-# LED_collect_data		OFF		Not in use		
-#				ON		Data collection in progress
-#				BLINKING	Error during data collection
-#
-# LED_save_to_USBdrive		OFF		Not in use		
-#				ON		Copy in progress
-#				BLINKING	Error during copy
-#
-# LED_read_from_USBdrive	OFF		Not in use		
-#				ON		Copy in progress
-#				BLINKING	Error during read
-#
+#	on startup:
+# autonomous LED blinking on startup			autonomous switch was left in the up position
+# collect data LED blinking on startup			collect data switch was left in the up position
+
+#	in normal operation:
+# all LEDs blinking					Tried to shutdown without first saving Data folder
+# read and save LEDs blinking together			USB drive not mounted - insert or remove and insert USB drive
 
 # -------- LED functions to make code clearer --------- 
 def turn_ON_LED( which_LED ):
@@ -291,17 +271,51 @@ def callback_switch_save_to_USBdrive( channel ):
 			else:
 				raise Exception( 'USB drive not mounted' )
 			
-			shutil.copy2( '/tmp/test.txt', '/mnt/usbdrive' )			
-			logging.debug( 'no error from copy' )
+			# copytree will choke trying to save a folder if a target folder by the same name already exists
+			#  thus we try to make new data folder by the name of dataN where N is 0 to the folder_index_limit
+				
+			not_done_searching_for_a_free_folder = True
+			folder_index = 0
+			folder_index_limit = 5			
+			path = '/mnt/usbdrive/data'
+			
+			while( not_done_searching_for_a_free_folder ):
+				path_with_index = path + str( folder_index )
+				
+				if( os.path.exists( path_with_index )):
+					logging.debug( path_with_index + ' already exists on USB drive' )
+					folder_index = folder_index + 1
+					if( folder_index > folder_index_limit ):
+						raise Exception( 'data folder index on USB drive exceeds limit' )
+				else:
+					not_done_searching_for_a_free_folder = False
+			
+			shutil.copytree( '/home/pi/autonomous/data', path_with_index )
+			logging.debug( 'no errors from copying data folder to ' + path_with_index )
 			
 			call ( "umount /mnt/usbdrive 2> /tmp/log.txt", shell=True )
-			logging.debug( 'no error from umount\n' )
+			logging.debug( 'no errors from umount\n' )
 				
 			turn_OFF_LED( LED_save_to_USBdrive )
-			
-		except Exception as err:
-			message = str( err )
-			handle_switch_exception( 3, SWITCH_save_to_USBdrive, message )
+		
+		except IOError as err:
+ 			message = str( err )	
+			handle_switch_exception( err.errno, SWITCH_save_to_USBdrive, message )
+		
+# 		except Exception as err:
+# 			message = str( err )
+# 			
+# 			trunc_message = 'USB drive not mounted'
+# 			if( trunc_message == message[:len( trunc_message )]):
+# 				error_number = 3				
+# 			else:
+# 				trunc_message = '[Errno 2] No such file or directory:'
+# 				if( trunc_message == message[:len( trunc_message )]):
+# 					error_number = 7
+# 				else:
+# 					error_number =31
+# 			
+# 			handle_switch_exception( error_number, SWITCH_save_to_USBdrive, message )
 
 		except: 
 			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
@@ -334,7 +348,7 @@ def callback_switch_read_from_USBdrive( channel ):
 			else:
 				raise Exception( 'USB drive not mounted' )
 			
-			shutil.copy2( '/mnt/usbdrive/test.txt', '/tmp/' )
+			shutil.copy2( '/mnt/usbdrive/test.txt', '/tmp/' )	# for debugging purposes
 			logging.debug( 'no error from copy' )
 			
 			call ( "umount /mnt/usbdrive 2> /tmp/log.txt", shell=True )
@@ -461,37 +475,44 @@ def callback_switch_shutdown_RPi( channel ):
 			
 		if( g_Recorded_Data_Not_Saved ):
 			blinkSpeed = .2
-			switch_on_count = 15
+			pushed_up_count = 15
 			LEDs_state = LED_ON
-			user_needs_to_decide_to_save = True
+			shutdown_is_wanted = False
 		else:
 			shutdown_is_wanted = True
-			user_needs_to_decide_to_save = False
-														
-		while( user_needs_to_decide_to_save ):	
-			# check to see if user will push switch up long enough to signify shutdown should continue with unsaved data
-			if( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP ):
-				if( switch_on_count > 0 ):								
-					switch_on_count = switch_on_count - 1
-				# counter counted to zero while user pushed switch up -> continue shutdown even though data is unsaved
-				else:	
-					shutdown_is_wanted = True
-					user_needs_to_decide_to_save = False			
-								
+		
+		#----------------------------------------------
+		#	Recorded data is not saved, check to see if user really wants to shutdown without saving
+		if( shutdown_is_wanted == False ):
+			user_has_not_reacted = True												
+			
+			while( True ):		# loop until break
 				if( LEDs_state == LED_ON ):	# blink all lights to signify data is unsaved
 					turn_ON_all_LEDs()
 					LEDs_state = LED_OFF		
 				else:
 					turn_OFF_all_LEDs()
 					LEDs_state = LED_ON
-						
-				time.sleep( blinkSpeed )					
-										
-			# user did not push switch up long enough, maybe he changed his mind, so exit without shutdown
-			else:
-				shutdown_is_wanted = False
-				user_needs_to_decide_to_save = False
 					
+				time.sleep( blinkSpeed )					
+
+				if( user_has_not_reacted ):
+					if( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP ):	# pushed up yet?
+						user_has_not_reacted = False			# user has finally pushed switch up		
+			
+				# switch has been pushed up again
+				else:	
+					if( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP ):	# still pushed up?
+						pushed_up_count = pushed_up_count - 1
+					
+						if( pushed_up_count <= 0 ):								
+							shutdown_is_wanted = True
+							break			# switch was pushed up long enough				 
+					else:							
+						shutdown_is_wanted = False
+						break				# switch was pushed up but not for long enough																			
+		#----------------------------------------------
+							
 		if( shutdown_is_wanted ):
 			# shut down pi, data saved or not
 			turn_OFF_all_LEDs()		# show the user the error has been cleared
