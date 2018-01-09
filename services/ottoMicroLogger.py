@@ -217,7 +217,7 @@ g_Current_Exception_Not_Finished = False
 # -------- Handler for clearing all switch errors --------- 
 def handle_switch_exception( error_number, which_switch, message ):
 	global g_Current_Exception_Not_Finished
-	
+
 	if( g_Current_Exception_Not_Finished ):
 		logging.debug( '*** another exception occurred' )
 		
@@ -251,12 +251,12 @@ def handle_switch_exception( error_number, which_switch, message ):
 				GPIO.output( LED_autonomous, LED_state )
 				LED_state = ( error_number & 0b10000 ) >> 4
 				GPIO.output( LED_shutdown_RPi, LED_state )
-				time.sleep( blinkSpeed )
 				LED_state = LED_OFF	
 			else:
 				turn_OFF_all_LEDs_except_BOOT()	
-				time.sleep( blinkSpeed )
 				LED_state = LED_ON	
+			
+			time.sleep( blinkSpeed )
 
 		turn_OFF_all_LEDs_except_BOOT()		# show the user the error has been cleared
 	
@@ -282,7 +282,6 @@ def callback_switch_save_to_USBdrive( channel ):
 			while ( switch_state == SWITCH_UP ):
 				switch_state = GPIO.input( SWITCH_save_to_USBdrive )
 	
-			drive_not_mounted_msg = 'USB drive not mounted'
 			# do the copying ....
 			logging.debug( 'attempting to save Data folder to USB drive' )
 			
@@ -290,11 +289,8 @@ def callback_switch_save_to_USBdrive( channel ):
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'mount test ok' )
 			else:
-				raise ValueError( drive_not_mounted_msg )
+				raise Exception( 'USB drive not mounted' )
 			
-			#	'&  redirects both stdout and stderr to /tmp/log.txt
-#			call( "cp -a /tmp/test.txt /mnt/usbdrive/ &>/tmp/log.txt", shell=True )
-
 			shutil.copy2( '/tmp/test.txt', '/mnt/usbdrive' )			
 			logging.debug( 'no error from copy' )
 			
@@ -305,7 +301,11 @@ def callback_switch_save_to_USBdrive( channel ):
 			
 		except Exception as err:
 			message = str( err )
-			handle_switch_exception( err.errno, SWITCH_save_to_USBdrive, message )
+			handle_switch_exception( 3, SWITCH_save_to_USBdrive, message )
+
+		except: 
+			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
+			handle_switch_exception( 31, SWITCH_save_to_USBdrive, message )
 			
 		g_No_Callback_Function_Running = True
 	else: 
@@ -326,16 +326,29 @@ def callback_switch_read_from_USBdrive( channel ):
 				switch_state = GPIO.input( SWITCH_read_from_USBdrive )
 	
 			# do the reading ....
-			# returned_Error = WARNING	# **** set for debugging ****
-			# raise Exception( "exception for debugging purposes" )
-			logging.debug( 'from read_from_USBdrive:' )
-			raise ValueError( 'read_from_USBdrive not implemented' )
-	
+			logging.debug( 'attempting to read Trained folder from USB drive' )
+			
+			# 	check to see if the USB drive is mounted
+			if( os.path.ismount( '/mnt/usbdrive' )):
+				logging.debug( 'mount test ok' )
+			else:
+				raise Exception( 'USB drive not mounted' )
+			
+			shutil.copy2( '/mnt/usbdrive/test.txt', '/tmp/' )
+			logging.debug( 'no error from copy' )
+			
+			call ( "umount /mnt/usbdrive 2> /tmp/log.txt", shell=True )
+			logging.debug( 'no error from umount\n' )
+				
 			turn_OFF_LED( LED_read_from_USBdrive )
-
+			
 		except Exception as err:
 			message = str( err )
-			handle_switch_exception( err.errno, SWITCH_read_from_USBdrive, message )
+			handle_switch_exception( 3, SWITCH_read_from_USBdrive, message )
+
+		except: 
+			message = 'unknown exception in read_from_usb', sys.exc_info()[0]
+			handle_switch_exception( 31, SWITCH_read_from_USBdrive, message )
 
 		g_No_Callback_Function_Running = True
 	else: 
@@ -356,14 +369,18 @@ def callback_switch_autonomous( channel ):
 				switch_state = GPIO.input( SWITCH_autonomous )
 	
 			# do the autonomous ....
-			returned_Error = FATAL	# **** set for debugging ****
-			raise Exception( "exception for debugging purposes" )
+			logging.debug( 'from autonmous:' )
+			raise Exception( 'autonomous not implemented' )
 	
 			turn_OFF_LED( LED_autonomous )
 			
 		except Exception as err:
 			message = str( err )
-			handle_switch_exception( err.errno, SWITCH_autonomous, message )
+			handle_switch_exception( 8, SWITCH_autonomous, message )
+		
+		except: 
+			message = 'unknown exception in autonomous', sys.exc_info()[0]
+			handle_switch_exception( 31, SWITCH_autonomous, message )
 			
 		g_No_Callback_Function_Running = True
 	else: 
