@@ -1,45 +1,12 @@
 
-So, I found a solution that works quite well. Big thanks to
-avanc and his udev rule that makes this possible. I also modified it so that it
-could mount up to 4 flash drives at the same time (it can be increased if
-needed).
+ad last lines to /etc/fstab to make it look like this:
 
-Requirements
 
-Install pmount if not installed sudo apt-get install pmount This script mounts
-drives to /media/usb*, so make sure those folders aren't occupied. If you want a
-cleaner look, don't create any folders. Udev rule
+proc            /proc           proc    defaults          0       0
+PARTUUID=5b827b1f-01  /boot           vfat    defaults          0       2
+PARTUUID=5b827b1f-02  /               ext4    defaults,noatime  0       1
 
-Create file /etc/udev/rules.d/usbstick.rules Insert: ACTION=="add",
-KERNEL=="sd[a-z][0-9]", TAG+="systemd", ENV{SYSTEMD_WANTS}="usbstick-handler@%k"
-Save and close Systemd service
+# pi won't boot if USB not inserted on boot and nofail option is missing below
+/dev/sda1             /mnt/usbdrive   vfat    rw,defaults,nofail       0       0
 
-Create file /lib/systemd/system/usbstick-handler@.service Insert: [Unit]
-Description=Mount USB sticks BindsTo=dev-%i.device After=dev-%i.device
 
-[Service] Type=oneshot RemainAfterExit=yes ExecStart=/usr/local/bin/cpmount
-/dev/%I ExecStop=/usr/bin/pumount /dev/%I Save and close Mount script
-
-Create file /usr/local/bin/cpmount Insert:
-#!/bin/bash
-if mountpoint -q /media/usb1 then if mountpoint -q /media/usb2 then if
-mountpoint -q /media/usb3 then if mointpoint -1 /media/usb4 then echo "No
-mountpoints available!"
-             #You can add more if you need
-         else
-             /usr/bin/pmount --umask 00 -noatime -w --sync $1 usb4
-         fi else
-         /usr/bin/pmount --umask 000 --noatime -w --sync $1 usb3
-      fi else
-      /usr/bin/pmount --umask 000 --noatime -w --sync $1 usb2
-   fi else
-   /usr/bin/pmount --umask 000 --noatime -w --sync $1 usb1
-fi Save and close Finish
-
-Reboot your RPi and test.
-
-NOTES
-
-You can change pmount parameters, but these allow anyone r/w access to usb. The
-amount of mountpoints can be changed. Thanks to avanc for his udev rule and
-service.

@@ -269,14 +269,14 @@ def callback_switch_save_to_USBdrive( channel ):
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'mount test ok' )
 			else:
-				raise Exception( 'USB drive not mounted' )
-			
+				raise OSError(3, 'USB drive not mounted at', '/mnt/usbdrive')
+				
 			# copytree will choke trying to save a folder if a target folder by the same name already exists
 			#  thus we try to make new data folder by the name of dataN where N is 0 to the folder_index_limit
 				
 			not_done_searching_for_a_free_folder = True
 			folder_index = 0
-			folder_index_limit = 5			
+			folder_index_limit = 10			
 			path = '/mnt/usbdrive/data'
 			
 			while( not_done_searching_for_a_free_folder ):
@@ -298,24 +298,9 @@ def callback_switch_save_to_USBdrive( channel ):
 				
 			turn_OFF_LED( LED_save_to_USBdrive )
 		
-		except IOError as err:
- 			message = str( err )	
+		except ( IOError, OSError ) as err:
+			message = str( err )	
 			handle_switch_exception( err.errno, SWITCH_save_to_USBdrive, message )
-		
-# 		except Exception as err:
-# 			message = str( err )
-# 			
-# 			trunc_message = 'USB drive not mounted'
-# 			if( trunc_message == message[:len( trunc_message )]):
-# 				error_number = 3				
-# 			else:
-# 				trunc_message = '[Errno 2] No such file or directory:'
-# 				if( trunc_message == message[:len( trunc_message )]):
-# 					error_number = 7
-# 				else:
-# 					error_number =31
-# 			
-# 			handle_switch_exception( error_number, SWITCH_save_to_USBdrive, message )
 
 		except: 
 			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
@@ -518,7 +503,7 @@ def callback_switch_shutdown_RPi( channel ):
 			turn_OFF_all_LEDs()		# show the user the error has been cleared
 			GPIO.output( OUTPUT_to_relay, RELAY_OFF )
 			logging.debug( 'calling pi shutdown' )
-			call( "sudo shutdown now", shell=True )
+			os.system( 'shutdown now -h' )
 		
 		#	user changed his mind, exit function without shut down
 		turn_OFF_all_LEDs()		# show the user the shutdown has been stopped
