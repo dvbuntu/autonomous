@@ -105,14 +105,13 @@ class DataCollector(object):
 		#now we read from the serial port and format and save the data:
 		try:
 			ser.flushInput()
-			datainput=ser.readline()
-			data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
+#			datainput=ser.readline()
+#			data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
 			logging.debug( data )
 			logging.debug( 'got cereal\n' )
 
 		except:
-			logging.debug( err )
-			logging.debug( 'exception in data collection write' )
+			logging.debug( 'exception in data collection write', sys.exc_info()[0] )
 			return 
 			
 		#Note: the data from the IMU requires some processing which does not happen here:
@@ -194,13 +193,26 @@ g_Recorded_Data_Not_Saved = False
 g_No_Callback_Function_Running = True
 g_Current_Exception_Not_Finished = False
 
+def at_least_one_switch_is_up():
+	if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )
+			or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )
+			or ( GPIO.input( SWITCH_collect_data ) == SWITCH_UP )):	
+		return True
+	else:
+		return False
+		
+def all_switches_are_down():
+	if( at_least_one_switch_is_up()):
+		return False
+	else:
+		return True
+				
 # -------- Handler for clearing all switch errors --------- 
-def handle_switch_exception( error_number, which_switch, message ):
+def handle_switch_exception( error_number, message ):
 	global g_Current_Exception_Not_Finished
 
 	if( g_Current_Exception_Not_Finished ):
-		logging.debug( '*** another exception occurred' )
-		
+		logging.debug( '*** another exception occurred' )		
 	else: 
 		g_Current_Exception_Not_Finished = True
 		logging.debug( message )
@@ -211,16 +223,15 @@ def handle_switch_exception( error_number, which_switch, message ):
 		# blink the error number in the LEDs until the user holds down the button for 3 seconds
 		LED_state = LED_ON
 		error_not_cleared = True
-		if( error_number > 31 ):
-			error_number = 31	# bigger than this, we've run out of LEDs
+		if( error_number > 31 ):	# bigger than this, we've run out of LEDs
+			error_number = 31
 			
 		while( error_not_cleared ):	
-			if( GPIO.input( which_switch ) == SWITCH_UP ):
+			if( at_least_one_switch_is_up()):	# holding any switch up for long enough will clear error
 				switch_on_count = switch_on_count - 1
 				if( switch_on_count <= 0 ):
-					error_not_cleared = False
-			
-			if( LED_state == LED_ON ):	
+					error_not_cleared = False			
+			if( LED_state == LED_ON ):		# put error_number in binary on the LEDs	
 				LED_state = error_number & 0b00001
 				GPIO.output( LED_read_from_USBdrive, LED_state )
 				LED_state = ( error_number & 0b00010 ) >> 1
@@ -243,7 +254,7 @@ def handle_switch_exception( error_number, which_switch, message ):
 		# don't leave until we're sure user released button	
 		while True:
 			time.sleep( blinkSpeed )		# executes delay at least once
-			if ( GPIO.input( which_switch ) == SWITCH_DOWN ): break
+			if ( all_switches_are_down()): break
 	
 		logging.debug( "*** exception handled" )
 		g_Current_Exception_Not_Finished = False
@@ -269,29 +280,30 @@ def callback_switch_save_to_USBdrive( channel ):
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'mount test ok' )
 			else:
-				raise OSError(3, 'USB drive not mounted at', '/mnt/usbdrive')
+				raise OSError( 3, 'USB drive not mounted at', '/mnt/usbdrive' )
 				
 			# copytree will choke trying to save a folder if a target folder by the same name already exists
 			#  thus we try to make new data folder by the name of dataN where N is 0 to the folder_index_limit
 				
 			not_done_searching_for_a_free_folder = True
 			folder_index = 0
-			folder_index_limit = 10			
-			path = '/mnt/usbdrive/data'
+			folder_index_limit = 10		# arbitrary limit on number of data folders on USB drive		
+			usb_data_folder_path = '/mnt/usbdrive/data'
+			pi_data_folder_path = '/home/pi/autonomous/data'
 			
 			while( not_done_searching_for_a_free_folder ):
-				path_with_index = path + str( folder_index )
+				usb_path_with_index = usb_data_folder_path + str( folder_index )
 				
-				if( os.path.exists( path_with_index )):
-					logging.debug( path_with_index + ' already exists on USB drive' )
+				if( os.path.exists( usb_path_with_index )):
+					logging.debug( usb_path_with_index + ' already exists on USB drive' )
 					folder_index = folder_index + 1
 					if( folder_index > folder_index_limit ):
 						raise Exception( 'data folder index on USB drive exceeds limit' )
 				else:
 					not_done_searching_for_a_free_folder = False
 			
-			shutil.copytree( '/home/pi/autonomous/data', path_with_index )
-			logging.debug( 'no errors from copying data folder to ' + path_with_index )
+			shutil.copytree( pi_data_folder_path, usb_path_with_index )
+			logging.debug( 'no errors from copying data folder to ' + usb_path_with_index )
 			
 			call ( "umount /mnt/usbdrive 2> /tmp/log.txt", shell=True )
 			logging.debug( 'no errors from umount\n' )
@@ -300,11 +312,10 @@ def callback_switch_save_to_USBdrive( channel ):
 		
 		except ( IOError, OSError ) as err:
 			message = str( err )	
-			handle_switch_exception( err.errno, SWITCH_save_to_USBdrive, message )
-
+			handle_switch_exception( err.errno, message )
 		except: 
 			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
-			handle_switch_exception( 31, SWITCH_save_to_USBdrive, message )
+			handle_switch_exception( 15, message )
 			
 		g_No_Callback_Function_Running = True
 	else: 
@@ -317,7 +328,7 @@ def callback_switch_read_from_USBdrive( channel ):
 	# don't reenter an already running callback and don't respond to a high to low switch transition
 	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP )): 
 		g_No_Callback_Function_Running = False
-				
+						
 		try:
 			turn_ON_LED( LED_read_from_USBdrive )
 			switch_state = SWITCH_UP
@@ -331,23 +342,25 @@ def callback_switch_read_from_USBdrive( channel ):
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'mount test ok' )
 			else:
-				raise Exception( 'USB drive not mounted' )
+				raise OSError( 3, 'USB drive not mounted at', '/mnt/usbdrive' )
 			
-			shutil.copy2( '/mnt/usbdrive/test.txt', '/tmp/' )	# for debugging purposes
-			logging.debug( 'no error from copy' )
+			usb_training_file_path = '/mnt/usbdrive/weights.h5'
+			pi_training_file_path = '/home/pi/autonomous/nntrain/weights.h5'
+
+			shutil.copy2( usb_training_file_path, pi_training_file_path )	
+			logging.debug( 'no errors from copying ' + usb_training_file_path + ' to ' + pi_training_file_path )
 			
 			call ( "umount /mnt/usbdrive 2> /tmp/log.txt", shell=True )
 			logging.debug( 'no error from umount\n' )
 				
 			turn_OFF_LED( LED_read_from_USBdrive )
-			
-		except Exception as err:
-			message = str( err )
-			handle_switch_exception( 3, SWITCH_read_from_USBdrive, message )
-
+					
+		except ( IOError, OSError ) as err:
+			message = str( err )	
+			handle_switch_exception( err.errno, message )
 		except: 
-			message = 'unknown exception in read_from_usb', sys.exc_info()[0]
-			handle_switch_exception( 31, SWITCH_read_from_USBdrive, message )
+			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
+			handle_switch_exception( 15, message )
 
 		g_No_Callback_Function_Running = True
 	else: 
@@ -363,23 +376,19 @@ def callback_switch_autonomous( channel ):
 				
 		try:
 			turn_ON_LED( LED_autonomous )
-			switch_state = SWITCH_UP
-			while ( switch_state == SWITCH_UP ):
-				switch_state = GPIO.input( SWITCH_autonomous )
 	
 			# do the autonomous ....
 			logging.debug( 'from autonmous:' )
-			raise Exception( 'autonomous not implemented' )
+			raise OSError( 8, 'autonomous function not implemented yet' )
 	
 			turn_OFF_LED( LED_autonomous )
-			
-		except Exception as err:
-			message = str( err )
-			handle_switch_exception( 8, SWITCH_autonomous, message )
-		
+								
+		except ( IOError, OSError ) as err:
+			message = str( err )	
+			handle_switch_exception( err.errno, message )
 		except: 
-			message = 'unknown exception in autonomous', sys.exc_info()[0]
-			handle_switch_exception( 31, SWITCH_autonomous, message )
+			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
+			handle_switch_exception( 15, message )
 			
 		g_No_Callback_Function_Running = True
 	else: 
@@ -390,54 +399,55 @@ def callback_switch_collect_data( channel ):
 	global g_Recorded_Data_Not_Saved
 	global g_Wants_To_See_Video
 	global g_Camera_Is_Recording
-	global g_No_Callback_Function_Running
-
-	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_collect_data ) == SWITCH_UP )): 
-		g_No_Callback_Function_Running = False
 		
-		try:
-			logging.debug( '* starting recording' )
-			turn_ON_LED( LED_collect_data )
-			
-			collector=DataCollector()
-			
-			with picamera.PiCamera() as camera:
-				#Note: these are just parameters to set up the camera, so the order is not important
-				camera.resolution=(64, 64) #final image size
-				camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-				camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-				camera.start_recording( collector, format='rgb' )
+	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
+		if( g_Camera_Is_Recording == False ):
+			try:
+				logging.debug( '* starting recording' )
+				turn_ON_LED( LED_collect_data )			
+				collector=DataCollector()
+				logging.debug( '* collector object instantiated' )
+		
+# 				with picamera.PiCamera() as camera:
+# 					#Note: these are just parameters to set up the camera, so the order is not important
+# 					camera.resolution=(64, 64) #final image size
+# 					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+# 					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+# 					camera.start_recording( collector, format='rgb' )
 				g_Camera_Is_Recording = True
-				if ( g_Wants_To_See_Video ):
-					camera.start_preview() #displays video while it's being recorded
+# 					if ( g_Wants_To_See_Video ):
+# 						camera.start_preview() #displays video while it's being recorded
+
+	# 			old debugging code:
+	# 			exc_type, exc_obj, exc_tb = sys.exc_info()
+	# 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+	# 			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
 				
-				while( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
-					pass
-					
-				camera.stop_recording()
-				g_Camera_Is_Recording = False
-				turn_OFF_LED( LED_collect_data )
-				time.sleep( .1 )	# wait a little just in case the switch isn't stable
-				
-		except Exception as err:
-			message = str( err )
-			handle_switch_exception( err.errno, SWITCH_collect_data, message )
-
-# 			exc_type, exc_obj, exc_tb = sys.exc_info()
-# 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-# 			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
-
-			handle_switch_exception( err.errno, SWITCH_collect_data, message )
-
-		g_No_Callback_Function_Running = True
-	else: 
-		logging.debug( 'skipped: another callback from collect_data' )
-		
-		if( g_Camera_Is_Recording ):
-			logging.debug( 'camera is still ON' )
+			except ( IOError, OSError ) as err:
+				message = str( err )	
+				handle_switch_exception( err.errno, message )
+			except: 
+	#			exc_type, exc_obj, exc_tb = sys.exc_info()
+				exc_tb = sys.exc_info()
+				fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+	#			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
+	#			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
+				logging.debug( fname )
+	
+				message = 'unknown exception in collect_data', sys.exc_info()[0]
+				handle_switch_exception( 15, message )
 		else:
-			logging.debug( 'camera is turned OFF' )
+			logging.debug( '* warning: not recording and a low to high transition has occurred on the collect data switch' )
+		
+	else:	# a collect data switch down position has occurred		
+		if ( g_Camera_Is_Recording ):					
+			camera.stop_recording()
+			g_Camera_Is_Recording = False
+			g_Recorded_Data_Not_Saved = True
+			turn_OFF_LED( LED_collect_data )
+			time.sleep( .1 )	# wait a little just in case the switch isn't stable
+		else:		# ??? not recording and a low transition -> bad news
+			logging.debug( '* warning: not recording and a high to low transition has occurred on the collect data switch' )
 	 
 # ------------------------------------------------- 
 #	regular exception handling not used with shutdown function
