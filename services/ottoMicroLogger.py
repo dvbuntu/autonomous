@@ -64,23 +64,15 @@ LED_OFF = GPIO.LOW
 RELAY_ON = GPIO.HIGH
 RELAY_OFF = GPIO.LOW
 
-# -------- Kind of error constants --------- 
-NONE = 0
-WARNING = 1
-FATAL = 2
-NO_USB_DRIVE_WARNING = 3
-AUTONOMOUS_WARNING = 4
-RECORDED_DATA_NOT_SAVED = 5
-
 # --------Old Data Collection Command Line Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
 
 #	**** fubarino not connected yet for debugging purposes ****
-#Opens serial port to the arduino:
-#try:
-#	ser=serial.Serial('/dev/ttyACM0')
-#except serial.SerialException:
-#	logging.debug( 'gCannot connect to serial port' )
+#	Opens serial port to the arduino:
+try:
+	ser=serial.Serial('/dev/ttyACM0')
+except serial.SerialException:
+	logging.debug( 'gCannot connect to serial port' )
  
 # -------------- Data Collector Object -------------------------------  
 
@@ -101,12 +93,13 @@ class DataCollector(object):
 
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
+		logging.debug( 'trying to write camera data' )
 		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (64, 64, 3), 'C')
 		#now we read from the serial port and format and save the data:
 		try:
 			ser.flushInput()
-#			datainput=ser.readline()
-#			data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
+			datainput=ser.readline()
+			data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
 			logging.debug( data )
 			logging.debug( 'got cereal\n' )
 
@@ -406,17 +399,21 @@ def callback_switch_collect_data( channel ):
 				logging.debug( '* starting recording' )
 				turn_ON_LED( LED_collect_data )			
 				collector=DataCollector()
-				logging.debug( '* collector object instantiated' )
+				if( collector ):
+					logging.debug( '* collector object instantiated' )
+				else:
+					logging.debug( '* collector object NOT instantiated' )
 		
-# 				with picamera.PiCamera() as camera:
-# 					#Note: these are just parameters to set up the camera, so the order is not important
-# 					camera.resolution=(64, 64) #final image size
-# 					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-# 					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-# 					camera.start_recording( collector, format='rgb' )
-				g_Camera_Is_Recording = True
-# 					if ( g_Wants_To_See_Video ):
-# 						camera.start_preview() #displays video while it's being recorded
+				with picamera.PiCamera() as camera:
+					#Note: these are just parameters to set up the camera, so the order is not important
+					camera.resolution=(64, 64) #final image size
+					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+					camera.start_recording( collector, format='rgb' )
+					g_Camera_Is_Recording = True
+					logging.debug( '* camera is recording' )
+					if ( g_Wants_To_See_Video ):
+						camera.start_preview() #displays video while it's being recorded
 
 	# 			old debugging code:
 	# 			exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -428,11 +425,11 @@ def callback_switch_collect_data( channel ):
 				handle_switch_exception( err.errno, message )
 			except: 
 	#			exc_type, exc_obj, exc_tb = sys.exc_info()
-				exc_tb = sys.exc_info()
-				fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+	#			exc_tb = sys.exc_info()
+	#			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 	#			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
 	#			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
-				logging.debug( fname )
+	#			logging.debug( fname )
 	
 				message = 'unknown exception in collect_data', sys.exc_info()[0]
 				handle_switch_exception( 15, message )
@@ -441,6 +438,7 @@ def callback_switch_collect_data( channel ):
 		
 	else:	# a collect data switch down position has occurred		
 		if ( g_Camera_Is_Recording ):					
+			logging.debug( '* stopping recording' )
 			camera.stop_recording()
 			g_Camera_Is_Recording = False
 			g_Recorded_Data_Not_Saved = True
@@ -593,10 +591,10 @@ GPIO.setup( OUTPUT_to_relay, GPIO.OUT )
 # setup callback routines for switch falling edge detection  
 #	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
 GPIO.add_event_detect( SWITCH_save_to_USBdrive, GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50 )  
-GPIO.add_event_detect( SWITCH_autonomous, GPIO.FALLING, callback=callback_switch_autonomous, bouncetime=50 )  
+GPIO.add_event_detect( SWITCH_autonomous, GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_read_from_USBdrive, GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50 )  
-GPIO.add_event_detect( SWITCH_collect_data, GPIO.FALLING, callback=callback_switch_collect_data, bouncetime=50 ) 
+GPIO.add_event_detect( SWITCH_collect_data, GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50 ) 
 
 initialize_RPi_Stuff()
 	
