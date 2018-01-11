@@ -93,7 +93,6 @@ class DataCollector(object):
 
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
-		logging.debug( 'trying to write camera data' )
 		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (64, 64, 3), 'C')
 		#now we read from the serial port and format and save the data:
 		try:
@@ -201,7 +200,7 @@ def all_switches_are_down():
 		return True
 				
 # -------- Handler for clearing all switch errors --------- 
-def handle_switch_exception( error_number, message ):
+def handle_exception( error_number, message ):
 	global g_Current_Exception_Not_Finished
 
 	if( g_Current_Exception_Not_Finished ):
@@ -305,10 +304,10 @@ def callback_switch_save_to_USBdrive( channel ):
 		
 		except ( IOError, OSError ) as err:
 			message = str( err )	
-			handle_switch_exception( err.errno, message )
+			handle_exception( err.errno, message )
 		except: 
 			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
-			handle_switch_exception( 15, message )
+			handle_exception( 15, message )
 			
 		g_No_Callback_Function_Running = True
 	else: 
@@ -350,10 +349,10 @@ def callback_switch_read_from_USBdrive( channel ):
 					
 		except ( IOError, OSError ) as err:
 			message = str( err )	
-			handle_switch_exception( err.errno, message )
+			handle_exception( err.errno, message )
 		except: 
 			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
-			handle_switch_exception( 15, message )
+			handle_exception( 15, message )
 
 		g_No_Callback_Function_Running = True
 	else: 
@@ -378,20 +377,28 @@ def callback_switch_autonomous( channel ):
 								
 		except ( IOError, OSError ) as err:
 			message = str( err )	
-			handle_switch_exception( err.errno, message )
+			handle_exception( err.errno, message )
 		except: 
 			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
-			handle_switch_exception( 15, message )
+			handle_exception( 15, message )
 			
 		g_No_Callback_Function_Running = True
 	else: 
 		logging.debug( 'skipped: another callback from autonomous' )
-	 
+
+try:
+	camera = picamera.PiCamera()
+	logging.debug( camera )
+except:
+	message = 'error trying to instantiate camera'
+	handle_exception( 15, message )
+		 
 # ------------------------------------------------- 
 def callback_switch_collect_data( channel ):  
 	global g_Recorded_Data_Not_Saved
 	global g_Wants_To_See_Video
 	global g_Camera_Is_Recording
+	global g_camera
 		
 	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
 		if( g_Camera_Is_Recording == False ):
@@ -400,21 +407,22 @@ def callback_switch_collect_data( channel ):
 				turn_ON_LED( LED_collect_data )			
 				collector=DataCollector()
 				if( collector ):
-					logging.debug( '* collector object instantiated' )
+					logging.debug( collector )
 				else:
 					logging.debug( '* collector object NOT instantiated' )
 		
-				with picamera.PiCamera() as camera:
-					#Note: these are just parameters to set up the camera, so the order is not important
-					camera.resolution=(64, 64) #final image size
-					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-					camera.start_recording( collector, format='rgb' )
-					g_Camera_Is_Recording = True
-					logging.debug( '* camera is recording' )
-					if ( g_Wants_To_See_Video ):
-						camera.start_preview() #displays video while it's being recorded
-
+#				with picamera.PiCamera() as camera:
+#				with camera:
+				#Note: these are just parameters to set up the camera, so the order is not important
+				camera.resolution=(64, 64) #final image size
+				camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+				camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+				camera.start_recording( collector, format='rgb' )
+				g_Camera_Is_Recording = True
+				logging.debug( '* camera is recording' )
+				if ( g_Wants_To_See_Video ):
+					camera.start_preview() #displays video while it's being recorded
+					
 	# 			old debugging code:
 	# 			exc_type, exc_obj, exc_tb = sys.exc_info()
 	# 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -422,7 +430,7 @@ def callback_switch_collect_data( channel ):
 				
 			except ( IOError, OSError ) as err:
 				message = str( err )	
-				handle_switch_exception( err.errno, message )
+				handle_exception( err.errno, message )
 			except: 
 	#			exc_type, exc_obj, exc_tb = sys.exc_info()
 	#			exc_tb = sys.exc_info()
@@ -431,15 +439,25 @@ def callback_switch_collect_data( channel ):
 	#			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
 	#			logging.debug( fname )
 	
-				message = 'unknown exception in collect_data', sys.exc_info()[0]
-				handle_switch_exception( 15, message )
+#				message = 'unknown exception in collect_data', sys.exc_info()[0]
+				message = 'unknown exception in collect_data'
+				handle_exception( 15, message )
 		else:
 			logging.debug( '* warning: not recording and a low to high transition has occurred on the collect data switch' )
 		
 	else:	# a collect data switch down position has occurred		
 		if ( g_Camera_Is_Recording ):					
 			logging.debug( '* stopping recording' )
-			camera.stop_recording()
+			logging.debug( camera )
+			try:
+				if ( g_Wants_To_See_Video ):
+					camera.stop_preview()
+				camera.stop_recording()
+			except:
+				message = 'error stopping recording'
+				handle_exception( 15, message )
+				
+					
 			g_Camera_Is_Recording = False
 			g_Recorded_Data_Not_Saved = True
 			turn_OFF_LED( LED_collect_data )
