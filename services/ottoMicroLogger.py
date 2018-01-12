@@ -16,7 +16,7 @@ import shutil
 
 import logging
 logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
-logging.debug( '\n new session \n' )
+logging.debug( '\n\n new session \n' )
 
 # for call USB stick functions
 # import ottoUSBdriveFunctions as USBfunct
@@ -250,7 +250,59 @@ def handle_exception( error_number, message ):
 	
 		logging.debug( "*** exception handled" )
 		g_Current_Exception_Not_Finished = False
-	
+		 	
+# ------------------------------------------------- 
+def callback_switch_collect_data( channel ):  
+	global g_Recorded_Data_Not_Saved
+	global g_Wants_To_See_Video
+	global g_Camera_Is_Recording
+	global g_camera
+		
+	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
+		if( g_Camera_Is_Recording == False ):
+			try:
+				logging.debug( '* starting recording' )
+				turn_ON_LED( LED_collect_data )			
+				collector=DataCollector()
+				if( collector ):
+					logging.debug( collector )
+				else:
+					logging.debug( '* collector object NOT instantiated' )
+		
+				with picamera.PiCamera() as camera:
+					#Note: these are just parameters to set up the camera, so the order is not important
+					camera.resolution=(64, 64) #final image size
+					camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+					camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+					camera.start_recording( collector, format='rgb' )
+					g_Camera_Is_Recording = True
+					logging.debug( '* camera is recording' )
+					if ( g_Wants_To_See_Video ):
+						camera.start_preview() #displays video while it's being recorded
+				
+					logging.debug( '* stopping recording' )
+					logging.debug( camera )
+					if ( g_Wants_To_See_Video ):
+						camera.stop_preview()
+					camera.stop_recording()
+					
+					g_Camera_Is_Recording = False
+					g_Recorded_Data_Not_Saved = True
+					turn_OFF_LED( LED_collect_data )
+					time.sleep( .1 )	# wait a little just in case the switch isn't stable
+					
+											
+			except Exception as msg:
+				if( len( msg.args ) == 1 ):
+					handle_exception( 15,  "unforseen exception: " + str( msg[0] ))
+				else:
+					handle_exception( msg[0], msg[1] )
+		else:
+			logging.debug( '* warning: not recording and a low to high transition has occurred on the collect data switch' )
+		
+	else:	# a collect data switch down position has occurred		
+		logging.debug( '* warning: not recording and a high to low transition has occurred on the collect data switch' )
+	 
 # -------- Functions called by switch callback functions --------- 
 def callback_switch_save_to_USBdrive( channel ): 
 	global g_No_Callback_Function_Running
@@ -272,7 +324,7 @@ def callback_switch_save_to_USBdrive( channel ):
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'mount test ok' )
 			else:
-				raise OSError( 3, 'USB drive not mounted at', '/mnt/usbdrive' )
+				raise Exception( 3, 'USB drive not mounted at /mnt/usbdrive' )
 				
 			# copytree will choke trying to save a folder if a target folder by the same name already exists
 			#  thus we try to make new data folder by the name of dataN where N is 0 to the folder_index_limit
@@ -301,13 +353,12 @@ def callback_switch_save_to_USBdrive( channel ):
 			logging.debug( 'no errors from umount\n' )
 				
 			turn_OFF_LED( LED_save_to_USBdrive )
-		
-		except ( IOError, OSError ) as err:
-			message = str( err )	
-			handle_exception( err.errno, message )
-		except: 
-			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
-			handle_exception( 15, message )
+													
+		except Exception as msg:
+			if( len( msg.args ) == 1 ):
+				handle_exception( 15,  "unforseen exception: " + str( msg[0] ))
+			else:
+				handle_exception( msg[0], msg[1] )
 			
 		g_No_Callback_Function_Running = True
 	else: 
@@ -334,7 +385,7 @@ def callback_switch_read_from_USBdrive( channel ):
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'mount test ok' )
 			else:
-				raise OSError( 3, 'USB drive not mounted at', '/mnt/usbdrive' )
+				raise Exception( 3, 'USB drive not mounted at /mnt/usbdrive' )
 			
 			usb_training_file_path = '/mnt/usbdrive/weights.h5'
 			pi_training_file_path = '/home/pi/autonomous/nntrain/weights.h5'
@@ -346,14 +397,13 @@ def callback_switch_read_from_USBdrive( channel ):
 			logging.debug( 'no error from umount\n' )
 				
 			turn_OFF_LED( LED_read_from_USBdrive )
-					
-		except ( IOError, OSError ) as err:
-			message = str( err )	
-			handle_exception( err.errno, message )
-		except: 
-			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
-			handle_exception( 15, message )
-
+			
+		except Exception as msg:
+			if( len( msg.args ) == 1 ):
+				handle_exception( 15,  "unforseen exception: " + str( msg[0] ))
+			else:
+				handle_exception( msg[0], msg[1] )
+				
 		g_No_Callback_Function_Running = True
 	else: 
 		logging.debug( 'skipped: another callback from read_from_USBdrive' )
@@ -371,100 +421,30 @@ def callback_switch_autonomous( channel ):
 	
 			# do the autonomous ....
 			logging.debug( 'from autonmous:' )
-			raise OSError( 8, 'autonomous function not implemented yet' )
+			raise Exception( 8, 'autonomous function not implemented yet' )
 	
 			turn_OFF_LED( LED_autonomous )
-								
-		except ( IOError, OSError ) as err:
-			message = str( err )	
-			handle_exception( err.errno, message )
-		except: 
-			message = 'unknown exception in save_to_usb', sys.exc_info()[0]
-			handle_exception( 15, message )
+											
+		except Exception as errno, msg:
+			logging.debug( 'handling autonmous exception...' )
+#			theStr =  str( msg[0] )
+#			theStr =  str( sys.exc_info()[0] )
 			
+			logging.debug( str( errno ) + "  " + msg )
+# 			if( len( msg.args ) == 1 ):
+# 				logging.debug( 'one argument...' )
+# 				handle_exception( 15,  "unforseen exception: " + str( msg[0] ))
+# 			else:
+# 				logging.debug( 'two arguments...' )
+# 				handle_exception( msg[0], msg[1] )
+		except:
+			logging.debug( 'exception ????' )
+
+		logging.debug( 'exiting autonomous' )
 		g_No_Callback_Function_Running = True
 	else: 
 		logging.debug( 'skipped: another callback from autonomous' )
 
-try:
-	camera = picamera.PiCamera()
-	logging.debug( camera )
-except:
-	message = 'error trying to instantiate camera'
-	handle_exception( 15, message )
-		 
-# ------------------------------------------------- 
-def callback_switch_collect_data( channel ):  
-	global g_Recorded_Data_Not_Saved
-	global g_Wants_To_See_Video
-	global g_Camera_Is_Recording
-	global g_camera
-		
-	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
-		if( g_Camera_Is_Recording == False ):
-			try:
-				logging.debug( '* starting recording' )
-				turn_ON_LED( LED_collect_data )			
-				collector=DataCollector()
-				if( collector ):
-					logging.debug( collector )
-				else:
-					logging.debug( '* collector object NOT instantiated' )
-		
-#				with picamera.PiCamera() as camera:
-#				with camera:
-				#Note: these are just parameters to set up the camera, so the order is not important
-				camera.resolution=(64, 64) #final image size
-				camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-				camera.framerate=10 #<---- framerate (fps) determines speed of data recording
-				camera.start_recording( collector, format='rgb' )
-				g_Camera_Is_Recording = True
-				logging.debug( '* camera is recording' )
-				if ( g_Wants_To_See_Video ):
-					camera.start_preview() #displays video while it's being recorded
-					
-	# 			old debugging code:
-	# 			exc_type, exc_obj, exc_tb = sys.exc_info()
-	# 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-	# 			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
-				
-			except ( IOError, OSError ) as err:
-				message = str( err )	
-				handle_exception( err.errno, message )
-			except: 
-	#			exc_type, exc_obj, exc_tb = sys.exc_info()
-	#			exc_tb = sys.exc_info()
-	#			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-	#			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
-	#			logging.debug( exc_type, fname, "   line number = ", exc_tb.tb_lineno )
-	#			logging.debug( fname )
-	
-#				message = 'unknown exception in collect_data', sys.exc_info()[0]
-				message = 'unknown exception in collect_data'
-				handle_exception( 15, message )
-		else:
-			logging.debug( '* warning: not recording and a low to high transition has occurred on the collect data switch' )
-		
-	else:	# a collect data switch down position has occurred		
-		if ( g_Camera_Is_Recording ):					
-			logging.debug( '* stopping recording' )
-			logging.debug( camera )
-			try:
-				if ( g_Wants_To_See_Video ):
-					camera.stop_preview()
-				camera.stop_recording()
-			except:
-				message = 'error stopping recording'
-				handle_exception( 15, message )
-				
-					
-			g_Camera_Is_Recording = False
-			g_Recorded_Data_Not_Saved = True
-			turn_OFF_LED( LED_collect_data )
-			time.sleep( .1 )	# wait a little just in case the switch isn't stable
-		else:		# ??? not recording and a low transition -> bad news
-			logging.debug( '* warning: not recording and a high to low transition has occurred on the collect data switch' )
-	 
 # ------------------------------------------------- 
 #	regular exception handling not used with shutdown function
 def callback_switch_shutdown_RPi( channel ):
