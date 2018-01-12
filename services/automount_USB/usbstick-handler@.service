@@ -1,0 +1,18 @@
+
+# 1- after creating folder ~/autonomous/services/automount_USB/
+
+# 2- save file as ~/autonomous/services/automount_USB/usbstick-handler@.service
+
+# 3- while in directory /lib/systemd/system/, create a symlink thusly: 
+#	sudo ln -s ~/autonomous/services/automount_USB/usbstick-handler@.service
+
+[Unit]
+Description=Mount USB sticks
+BindsTo=dev-%i.device
+After=dev-%i.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/cpmount /dev/%I
+ExecStop=/usr/bin/pumount /dev/%I
