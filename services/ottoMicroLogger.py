@@ -346,9 +346,13 @@ def callback_switch_save_to_USBdrive( channel ):
 			# 	check to see if the USB drive is mounted
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'OK: USB drive is mounted' )
+			
+			elif(os.path.exists( '/dev/sda1')):
+				call ( 'mount /mnt/usbdrive', shell=True )
+				logging.debug( 'OK: USB drive is remounted' )
 			else:
 				raise Exception( 3, 'error: USB drive not mounted at /mnt/usbdrive' )
-				
+								
 			pi_data_folder_path = '/home/pi/autonomous/data'
 			nowtime=datetime.datetime.now()
 			usb_path_with_index = '/mnt/usbdrive/data_{0}'.format(nowtime.strftime(time_format))
@@ -392,6 +396,10 @@ def callback_switch_read_from_USBdrive( channel ):
 			# 	check to see if the USB drive is mounted
 			if( os.path.ismount( '/mnt/usbdrive' )):
 				logging.debug( 'OK: USB drive is mounted' )
+			
+			elif(os.path.exists( '/dev/sda1')):
+				call ( 'mount /mnt/usbdrive', shell=True )
+				logging.debug( 'OK: USB drive is remounted' )
 			else:
 				raise Exception( 3, 'error: USB drive not mounted at /mnt/usbdrive' )
 			
@@ -456,9 +464,6 @@ def callback_switch_shutdown_RPi( channel ):
 	# don't reenter an already running callback and don't respond to a high to low switch transition
 	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )): 
 		g_No_Callback_Function_Running = False
-		
-		g_Recorded_Data_Not_Saved = True	# debugging
-
 		logging.debug( 'starting shutdown' )		
 		
 		while( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP ):	# wait for user to release switch

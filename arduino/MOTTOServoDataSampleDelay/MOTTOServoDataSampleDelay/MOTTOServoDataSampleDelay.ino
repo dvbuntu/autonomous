@@ -1,3 +1,6 @@
+#include <MPU9250.h>
+#include <quaternionFilters.h>
+
 #include <Arduino.h>
 #include "MPU9250.h"
 
@@ -139,6 +142,8 @@ void loop()
 
   //SoftPWMServoServoWrite(PIN_STR, STR_VAL);
   ServoSTR.writeMicroseconds(FILT_STR_VAL);
+ 
+ //	changed from original values of 1570 and 1400
  
   if(thr_dif>50){
     ServoTHR.writeMicroseconds(1570);
