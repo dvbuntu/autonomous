@@ -134,25 +134,40 @@ void loop()
   unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read the pulse width of
   unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
 
-  long thr_dif=long(THR_VAL)-long(thr_zero_val);
-  //try to average the steering values to smooth behavior:
-  steer_history[steer_next_ind]=STR_VAL;
-  steer_next_ind=(steer_next_ind+1)%20;
-  unsigned long FILT_STR_VAL=compAvg(steer_history, 20);
+//   long thr_dif=long(THR_VAL)-long(thr_zero_val);
+//   //try to average the steering values to smooth behavior:
+//   steer_history[steer_next_ind]=STR_VAL;
+//   steer_next_ind=(steer_next_ind+1)%20;
+//   unsigned long FILT_STR_VAL=compAvg(steer_history, 20);
+// 
+//   //SoftPWMServoServoWrite(PIN_STR, STR_VAL);
+//   ServoSTR.writeMicroseconds(FILT_STR_VAL);
+ 
+//	changed from original values of 1570 and 1400
+ 
+//   if(thr_dif>50){
+//     ServoTHR.writeMicroseconds(1570);
+//   }else if(thr_dif<-50){
+//     ServoTHR.writeMicroseconds(1400);
+//   }else{
+//     ServoTHR.writeMicroseconds(thr_zero_val);
+//   }
 
-  //SoftPWMServoServoWrite(PIN_STR, STR_VAL);
-  ServoSTR.writeMicroseconds(FILT_STR_VAL);
- 
- //	changed from original values of 1570 and 1400
- 
-  if(thr_dif>50){
-    ServoTHR.writeMicroseconds(1570);
-  }else if(thr_dif<-50){
-    ServoTHR.writeMicroseconds(1400);
+  if(STR_VAL>1700){
+    ServoSTR.writeMicroseconds(1700);
+  }else if(STR_VAL<1200){
+    ServoSTR.writeMicroseconds(1200);
   }else{
-    ServoTHR.writeMicroseconds(thr_zero_val);
+    ServoSTR.writeMicroseconds(STR_VAL);
   }
 
+  if(THR_VAL>1650){
+    ServoTHR.writeMicroseconds(1650);
+  }else if(THR_VAL<1250){
+    ServoTHR.writeMicroseconds(1250);
+  }else{
+    ServoTHR.writeMicroseconds(THR_VAL);
+  }
 
   ottoIMU.readAccelData(ottoIMU.accelCount);  // Read the x/y/z adc values
   ottoIMU.getAres();
@@ -168,6 +183,6 @@ void loop()
   // Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(),
 
 
-  printData(ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(), FILT_STR_VAL, THR_VAL);
-  delay(10);
+ // printData(ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(), FILT_STR_VAL, THR_VAL);
+ // delay(10);
 }
