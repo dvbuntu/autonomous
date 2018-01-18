@@ -153,21 +153,39 @@ void loop()
 //     ServoTHR.writeMicroseconds(thr_zero_val);
 //   }
 
-  if(STR_VAL>1700){
-    ServoSTR.writeMicroseconds(1700);
-  }else if(STR_VAL<1200){
-    ServoSTR.writeMicroseconds(1200);
+  unsigned long STR_MIN = 1200;
+  unsigned long STR_MAX = 1700;
+  unsigned long STR_VAL_OUT;
+  
+  if(STR_VAL > STR_MAX){
+    ServoSTR.writeMicroseconds(STR_MAX);
+    STR_VAL_OUT = STR_MAX;
+    
+  }else if(STR_VAL < STR_MIN){
+    ServoSTR.writeMicroseconds(STR_MIN);
+    STR_VAL_OUT = STR_MIN;
+    
   }else{
     ServoSTR.writeMicroseconds(STR_VAL);
-  }
+     STR_VAL_OUT = STR_VAL;
+ }
 
-  if(THR_VAL>1650){
-    ServoTHR.writeMicroseconds(1650);
-  }else if(THR_VAL<1250){
-    ServoTHR.writeMicroseconds(1250);
+  unsigned long THR_MIN = 1250;
+  unsigned long THR_MAX = 1650;
+  unsigned long THR_VAL_OUT;
+  
+  if(THR_VAL > THR_MAX){
+    ServoTHR.writeMicroseconds(THR_MAX);
+    THR_VAL_OUT = THR_MAX;
+    
+  }else if(THR_VAL < THR_MIN){
+    ServoTHR.writeMicroseconds(THR_MIN);
+    THR_VAL_OUT = THR_MIN;
+    
   }else{
     ServoTHR.writeMicroseconds(THR_VAL);
-  }
+     THR_VAL_OUT = THR_VAL;
+ }
 
   ottoIMU.readAccelData(ottoIMU.accelCount);  // Read the x/y/z adc values
   ottoIMU.getAres();
@@ -184,5 +202,6 @@ void loop()
 
 
  // printData(ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(), FILT_STR_VAL, THR_VAL);
- // delay(10);
+  printData(ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(), STR_VAL_OUT, THR_VAL_OUT);
+  delay(10);
 }
