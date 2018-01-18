@@ -30,7 +30,10 @@ sudo pip3 install mock
 ```
 
 Raspberry PI open cv installation:
+
+Training system needs openCV for image review. It's a nice to have for the PI.
 ```
+TODO: custom compilation information
 ```
 
 The actual car code:
