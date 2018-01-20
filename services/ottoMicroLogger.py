@@ -71,6 +71,8 @@ time_format='%Y-%m-%d_%H-%M-%S'
 #	Opens serial port to the arduino:
 try:
 	ser=serial.Serial('/dev/ttyACM0')
+	logging.debug( 'opened serial port' )
+	
 except Exception as the_bad_news:				
 	handle_exception( the_bad_news ) 
 	
@@ -99,8 +101,8 @@ class DataCollector(object):
 			ser.flushInput()
 			datainput=ser.readline()
 			data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
-# 			logging.debug( data )
-# 			logging.debug( 'got cereal\n' )
+#			logging.debug( data )
+#			logging.debug( 'got cereal\n' )
 
 		except:
 			raise Exception( 11, 'exception in data collection write' )
