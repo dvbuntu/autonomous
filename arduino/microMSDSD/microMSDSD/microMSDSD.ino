@@ -1,3 +1,6 @@
+#include <MPU9250.h>
+#include <quaternionFilters.h>
+
 #include <Arduino.h>
 #include "MPU9250.h"
 
@@ -131,23 +134,58 @@ void loop()
   unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read the pulse width of
   unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
 
-  long thr_dif=long(THR_VAL)-long(thr_zero_val);
-  //try to average the steering values to smooth behavior:
-  steer_history[steer_next_ind]=STR_VAL;
-  steer_next_ind=(steer_next_ind+1)%20;
-  unsigned long FILT_STR_VAL=compAvg(steer_history, 20);
-
-  //SoftPWMServoServoWrite(PIN_STR, STR_VAL);
-  ServoSTR.writeMicroseconds(FILT_STR_VAL);
+//   long thr_dif=long(THR_VAL)-long(thr_zero_val);
+//   //try to average the steering values to smooth behavior:
+//   steer_history[steer_next_ind]=STR_VAL;
+//   steer_next_ind=(steer_next_ind+1)%20;
+//   unsigned long FILT_STR_VAL=compAvg(steer_history, 20);
+// 
+//   //SoftPWMServoServoWrite(PIN_STR, STR_VAL);
+//   ServoSTR.writeMicroseconds(FILT_STR_VAL);
  
-  if(thr_dif>50){
-    ServoTHR.writeMicroseconds(1570);
-  }else if(thr_dif<-50){
-    ServoTHR.writeMicroseconds(1400);
-  }else{
-    ServoTHR.writeMicroseconds(thr_zero_val);
-  }
+//	changed from original values of 1570 and 1400
+ 
+//   if(thr_dif>50){
+//     ServoTHR.writeMicroseconds(1570);
+//   }else if(thr_dif<-50){
+//     ServoTHR.writeMicroseconds(1400);
+//   }else{
+//     ServoTHR.writeMicroseconds(thr_zero_val);
+//   }
 
+  unsigned long STR_MIN = 1200;
+  unsigned long STR_MAX = 1700;
+  unsigned long STR_VAL_OUT;
+  
+  if(STR_VAL > STR_MAX){
+    ServoSTR.writeMicroseconds(STR_MAX);
+    STR_VAL_OUT = STR_MAX;
+    
+  }else if(STR_VAL < STR_MIN){
+    ServoSTR.writeMicroseconds(STR_MIN);
+    STR_VAL_OUT = STR_MIN;
+    
+  }else{
+    ServoSTR.writeMicroseconds(STR_VAL);
+     STR_VAL_OUT = STR_VAL;
+ }
+
+  unsigned long THR_MIN = 1250;
+  unsigned long THR_MAX = 1650;
+  unsigned long THR_VAL_OUT;
+  
+  if(THR_VAL > THR_MAX){
+    ServoTHR.writeMicroseconds(THR_MAX);
+    THR_VAL_OUT = THR_MAX;
+    
+  }else if(THR_VAL < THR_MIN){
+    ServoTHR.writeMicroseconds(THR_MIN);
+    THR_VAL_OUT = THR_MIN;
+    
+  }else{
+    ServoTHR.writeMicroseconds(THR_VAL);
+     THR_VAL_OUT = THR_VAL;
+ }
 
   ottoIMU.readAccelData(ottoIMU.accelCount);  // Read the x/y/z adc values
   ottoIMU.getAres();
@@ -163,6 +201,7 @@ void loop()
   // Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n", ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(),
 
 
-  printData(ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(), FILT_STR_VAL, THR_VAL);
+ // printData(ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(), FILT_STR_VAL, THR_VAL);
+  printData(ottoIMU.ax, ottoIMU.ay,  ottoIMU.az, ottoIMU.gx, ottoIMU.gy, ottoIMU.gz, millis(), STR_VAL_OUT, THR_VAL_OUT);
   delay(10);
 }
