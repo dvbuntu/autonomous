@@ -19,8 +19,8 @@ ncols=128
 
 num_epochs=100
 save_epochs=10
-weightfile='Jan18weights.h5'
-data_dir='/home/jim/autonomous/data/data4'
+weightfile='Jan20weights.h5'
+data_dir='/home/jim/Desktop/data_2018-01-20_12-38-39'
 
 ctlfiles=glob.glob(os.path.join(data_dir, 'commands*.npz'))
 
