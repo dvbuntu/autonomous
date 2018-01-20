@@ -19,10 +19,12 @@ ncols=128
 
 num_epochs=100
 save_epochs=10
-weightfile='Jan11weights.h5'
-data_dir='/home/fubar/otto/autonomous/data/data4'
+weightfile='Jan18weights.h5'
+data_dir='/home/jim/autonomous/data/data4'
 
 ctlfiles=glob.glob(os.path.join(data_dir, 'commands*.npz'))
+
+print(len(ctlfiles))
 steer=np.array([])
 for ctlfile in sorted(ctlfiles):
   ctldata=np.load(ctlfile)['arr_0']
@@ -36,6 +38,7 @@ steer=smSteer[4:-5]
 '''
 
 #use these values to normalize target data before training
+print(steer.size)
 steerSampleMean=steer.mean()
 steerSampleSTD=steer.std()
 np.savez("steerstats.npz", [steerSampleMean, steerSampleSTD])

@@ -82,7 +82,7 @@ class DataCollector(object):
 	'''this object is passed to the camera.start_recording function, which will treat it as a 
 	writable object, like a stream or a file'''
 	def __init__(self):
-		self.imgs=np.zeros((NUM_FRAMES, 64, 64, 3), dtype=np.uint8) #we put the images in here
+		self.imgs=np.zeros((NUM_FRAMES, 96, 128, 3), dtype=np.uint8) #we put the images in here
 		self.IMUdata=np.zeros((NUM_FRAMES, 7), dtype=np.float32) #we put the imu data in here
 		self.RCcommands=np.zeros((NUM_FRAMES, 2), dtype=np.float16) #we put the RC data in here
 		self.idx=0 # this is the variable to keep track of number of frames per datafile
@@ -93,7 +93,7 @@ class DataCollector(object):
 
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
-		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (64, 64, 3), 'C')
+		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
 		#now we read from the serial port and format and save the data:
 		try:
 			ser.flushInput()
@@ -196,8 +196,8 @@ g_Current_Exception_Not_Finished = False
 g_collector=DataCollector()
 g_camera = picamera.PiCamera()
 #	Note: these are just parameters to set up the camera, so the order is not important
-g_camera.resolution=(64, 64) #final image size
-g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+g_camera.resolution=(96, 128) #final image size
+# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
 g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 
 def at_least_one_switch_is_up():

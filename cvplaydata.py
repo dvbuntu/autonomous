@@ -7,8 +7,8 @@ import numpy as np
 
 #imagefiles=glob.glob(os.path.join('data', 'imgs_2017-09-14_22-2[2-5]*.npz'))
 #ctlfiles=glob.glob(os.path.join('data', 'commands_2017-09-14_22-2[2-5]*.npz'))
-imagefiles=glob.glob(os.path.join('data/pitts/add', 'imgs*.npz'))
-ctlfiles=glob.glob(os.path.join('data/pitts/add', 'commands*.npz'))
+imagefiles=glob.glob(os.path.join('/home/jim/Desktop/data_2018-01-18_19-53-37', 'imgs*.npz'))
+ctlfiles=glob.glob(os.path.join('/home/jim/Desktop/data_2018-01-18_19-53-37', 'commands*.npz'))
 print(len(imagefiles))
 
 speed=np.array([])
