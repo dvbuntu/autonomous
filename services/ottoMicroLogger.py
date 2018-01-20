@@ -76,6 +76,7 @@ try:
 except Exception as the_bad_news:				
 	handle_exception( the_bad_news ) 
 	
+
 # -------------- Data Collector Object -------------------------------  
 
 NUM_FRAMES = 100
@@ -144,6 +145,25 @@ class DataCollector(object):
 		self.RCcommands[:]=0
 		logging.debug( 'OK: camera flush')
 		
+		
+		
+# -------------- Global Variables -------------------------------
+# -------- note: global variables start with a little "g" --------- 
+
+g_Wants_To_See_Video = True
+g_Camera_Is_Recording = False
+g_Recorded_Data_Not_Saved = False
+g_No_Callback_Function_Running = True
+g_Current_Exception_Not_Finished = False
+g_collector=DataCollector()
+g_camera = picamera.PiCamera()
+#	Note: these are just parameters to set up the camera, so the order is not important
+
+g_camera.resolution=(128, 96) #final image size
+
+# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+
 
 # -------- Switch / Button use cheatsheet --------- 
 #
@@ -187,20 +207,7 @@ def turn_ON_LED( which_LED ):
 def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )	
 	
-# -------------- Global Variables -------------------------------
-# -------- note: global variables start with a little "g" --------- 
 
-g_Wants_To_See_Video = True
-g_Camera_Is_Recording = False
-g_Recorded_Data_Not_Saved = False
-g_No_Callback_Function_Running = True
-g_Current_Exception_Not_Finished = False
-g_collector=DataCollector()
-g_camera = picamera.PiCamera()
-#	Note: these are just parameters to set up the camera, so the order is not important
-g_camera.resolution=(96, 128) #final image size
-# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 
 def at_least_one_switch_is_up():
 	if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )

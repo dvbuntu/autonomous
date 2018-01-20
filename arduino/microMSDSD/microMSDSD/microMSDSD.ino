@@ -154,7 +154,7 @@ void loop()
 //   }
 
   unsigned long STR_MIN = 1200;
-  unsigned long STR_MAX = 1700;
+  unsigned long STR_MAX = 1800;
   unsigned long STR_VAL_OUT;
   
   if(STR_VAL > STR_MAX){
