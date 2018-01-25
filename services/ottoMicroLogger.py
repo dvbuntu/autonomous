@@ -90,9 +90,29 @@ class DataCollector(object):
 		self.RCcommands=np.zeros((NUM_FRAMES, 2), dtype=np.float16) #we put the RC data in here
 		self.idx=0 # this is the variable to keep track of number of frames per datafile
 		nowtime=datetime.datetime.now()
-		self.img_file='/home/pi/autonomous/data/imgs_{0}'.format(nowtime.strftime(time_format))
-		self.IMUdata_file='/home/pi/autonomous/data/IMU_{0}'.format(nowtime.strftime(time_format))
-		self.RCcommands_file='/home/pi/autonomous/data/commands_{0}'.format(nowtime.strftime(time_format))
+
+		
+		not_done_searching_for_a_free_folder = True
+		folder_index = 0
+		folder_index_limit = 20
+		path = '/home/pi/autonomous/data/collected_data'
+		
+		while( not_done_searching_for_a_free_folder ):
+			path_with_index = path + str( folder_index )
+			
+			if( os.path.exists( path_with_index )):
+				logging.debug( path_with_index + ' already exists on USB drive' )
+				folder_index = folder_index + 1
+				if( folder_index > folder_index_limit ):
+					raise Exception( 'data folder index on USB drive exceeds limit' )
+			else:
+				not_done_searching_for_a_free_folder = False
+				
+		os.makedirs( path_with_index )				
+		logging.debug( 'collected data path = ' + path_with_index )
+		self.img_file = path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
+		self.IMUdata_file = path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
+		self.RCcommands_file = path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
 
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
