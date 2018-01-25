@@ -11,10 +11,8 @@ matplotlib
 sklearn
 tqdm
 pyserial
-scipy
-pygame
 tensorflow
-theano
+
 
 
 
