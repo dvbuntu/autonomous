@@ -23,11 +23,10 @@ RUN pip3 install  tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl
 RUN pip3 install mock
 RUN pip install platformio
 
-# RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # TODO: upload Arduino code to car
 
 # TODO: add default weigths
 
 RUN echo  "Done"
-
