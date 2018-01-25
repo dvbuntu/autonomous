@@ -13,7 +13,7 @@ from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
 
-nrows=36
+nrows=78
 ncols=128
 wr=0.00001 # l1 regularizer value
 dp=0.125 # dropout rate 
