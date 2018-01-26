@@ -19,20 +19,16 @@ ncols=128
 
 num_epochs=100
 save_epochs=10
-weightfile='Oct11weights.h5'
-data_dir1='/home/fubar/otto/autonomous/data/pitts/data1'
-data_dir1='/home/fubar/otto/autonomous/data/pitts/data2'
+weightfile='Jan20weights.h5'
+data_dir='/home/jim/Desktop/data_2018-01-20_12-38-39'
 
-ctlfiles1=glob.glob(os.path.join(data_dir1, 'commands*.npz'))
-ctlfiles2=glob.glob(os.path.join(data_dir2, 'commands*.npz'))
+ctlfiles=glob.glob(os.path.join(data_dir, 'commands*.npz'))
+
+print(len(ctlfiles))
 steer=np.array([])
-for ctlfile in sorted(ctlfiles1):
+for ctlfile in sorted(ctlfiles):
   ctldata=np.load(ctlfile)['arr_0']
   steer=np.concatenate((steer, np.trim_zeros(ctldata[:, 0], trim='b')), axis=0)
-for ctlfile in sorted(ctlfiles2):
-  ctldata=np.load(ctlfile)['arr_0']
-  steer=np.concatenate((steer, np.trim_zeros(ctldata[:, 0], trim='b')), axis=0)
-
 '''
 smSteer=np.zeros(steer.shape)
 for i in np.arange(4, len(steer)-5):
@@ -42,6 +38,7 @@ steer=smSteer[4:-5]
 '''
 
 #use these values to normalize target data before training
+print(steer.size)
 steerSampleMean=steer.mean()
 steerSampleSTD=steer.std()
 np.savez("steerstats.npz", [steerSampleMean, steerSampleSTD])
