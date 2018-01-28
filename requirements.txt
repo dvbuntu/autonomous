@@ -1,2 +1,11 @@
 # Python Package Requirements.
 # Use pip.
+argparse
+tqdm
+pyserial
+pillow
+keras
+tflearn
+sklearn
+
+
