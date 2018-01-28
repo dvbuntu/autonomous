@@ -1,0 +1,12 @@
+
+ad last lines to /etc/fstab to make it look like this:
+
+
+proc            /proc           proc    defaults          0       0
+PARTUUID=5b827b1f-01  /boot           vfat    defaults          0       2
+PARTUUID=5b827b1f-02  /               ext4    defaults,noatime  0       1
+
+# pi won't boot if USB not inserted on boot and nofail option is missing below
+/dev/sda1             /mnt/usbdrive   vfat    rw,defaults,nofail       0       0
+
+
